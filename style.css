@@ -882,6 +882,7 @@ body {
 
     .floating-logo,
     .particles-bg,
+    #end-screen::before,
     .typing-cursor,
     .character-slot.shake,
     .character-slot.fear,
@@ -902,7 +903,11 @@ body {
     .screen.fade-in,
     .screen.flash-effect::before,
     .screen-flash.active,
-    .transition-text {
+    .transition-text,
+    .glow-button,
+    .glow-button::before,
+    .glow-button:hover,
+    .glow-button:hover::before {
         animation: none !important;
         transition: none !important;
     }
@@ -921,6 +926,10 @@ body {
 
     .particles-bg {
         background-position: 0 0;
+    }
+
+    .glow-button:hover {
+        transform: none;
     }
 }
 
