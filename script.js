@@ -20,6 +20,7 @@ class AudioManager {
         this.isMuted = false;
         this.isInitialized = false;
         this.audioCache = {};
+        this.volumeListeners = new Set();
     }
 
     init() {
@@ -181,6 +182,7 @@ class AudioManager {
         if (this.bgm && !this.isMuted) {
             this.bgm.volume = value;
         }
+        this.notifyVolumeListeners();
     }
 
     toggleMute() {
@@ -188,7 +190,20 @@ class AudioManager {
         if (this.bgm) {
             this.bgm.volume = this.isMuted ? 0 : this.volume;
         }
+        this.notifyVolumeListeners();
         return this.isMuted;
+    }
+
+    addVolumeListener(callback) {
+        this.volumeListeners.add(callback);
+    }
+
+    removeVolumeListener(callback) {
+        this.volumeListeners.delete(callback);
+    }
+
+    notifyVolumeListeners() {
+        this.volumeListeners.forEach(callback => callback());
     }
 }
 
@@ -197,7 +212,7 @@ class AudioManager {
 // ============================================
 
 class HeartMonitor {
-    constructor() {
+    constructor(audioManager = null) {
         this.element = document.getElementById('heart-monitor');
         this.ecgPath = document.getElementById('ecg-path');
         this.bpmValue = document.getElementById('bpm-value');
@@ -210,6 +225,12 @@ class HeartMonitor {
         this.monitorSound = null;
         this.monitorSoundPath = 'sfx/monitor.mp3';
         this.monitorVolume = 0.3;
+
+        this.audioManager = null;
+        this.onAudioChange = () => this.updateMonitorSoundVolume();
+        if (audioManager) {
+            this.setAudioManager(audioManager);
+        }
     }
 
     show() {
@@ -228,7 +249,7 @@ class HeartMonitor {
         try {
             this.monitorSound = new Audio(this.monitorSoundPath);
             this.monitorSound.loop = true;
-            this.monitorSound.volume = volume;
+            this.monitorSound.volume = this.getMonitorSoundVolume(volume);
 
             const playPromise = this.monitorSound.play();
             if (playPromise) {
@@ -237,6 +258,29 @@ class HeartMonitor {
         } catch (e) {
             console.warn('Erreur lecture son moniteur:', e);
         }
+    }
+
+    setAudioManager(audioManager) {
+        if (this.audioManager) {
+            this.audioManager.removeVolumeListener(this.onAudioChange);
+        }
+        this.audioManager = audioManager;
+        if (this.audioManager) {
+            this.audioManager.addVolumeListener(this.onAudioChange);
+            this.updateMonitorSoundVolume();
+        }
+    }
+
+    getMonitorSoundVolume(volume = this.monitorVolume) {
+        if (!this.audioManager) {
+            return volume;
+        }
+        return this.audioManager.isMuted ? 0 : this.audioManager.volume * volume;
+    }
+
+    updateMonitorSoundVolume(volume = this.monitorVolume) {
+        if (!this.monitorSound) return;
+        this.monitorSound.volume = this.getMonitorSoundVolume(volume);
     }
 
     stopSound() {
@@ -1709,7 +1753,7 @@ class VisualNovelEngine {
         this.canAdvance = false;
 
         this.audioManager = new AudioManager();
-        this.heartMonitor = new HeartMonitor();
+        this.heartMonitor = new HeartMonitor(this.audioManager);
 
         this.screens = {
             start: document.getElementById('start-screen'),
