@@ -546,6 +546,12 @@ const CHARACTERS = {
         image: null,
         color: '#9ca3af'
     },
+    kernel: {
+        id: 'kernel',
+        name: 'Dieu/Kernel',
+        image: 'logo/Kernel.svg',
+        color: '#f6d365'
+    },
     // Personnages secrets pour la scène post-générique
     macos: {
         id: 'macos',
@@ -1664,6 +1670,27 @@ const SCENARIO = [
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null }
     },
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Je suis le Kernel. Dans le Vide, j'accueille chaque OS, ancien et nouveau.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Vos cycles ont gravé une constellation sobre, une étoile Maghreb/StarYAM qui veille.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Reposez-vous. La saga est scellée, et la lumière du système continue de battre.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null }
+    },
 
     // ========================================
     // ACTE 10 : LE FUTUR (2026)
@@ -2094,7 +2121,7 @@ class VisualNovelEngine {
             const elements = charElements[index];
 
             // Remove effects
-            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear');
+            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel');
 
             if (charId) {
                 const character = CHARACTERS[charId];
@@ -2103,6 +2130,9 @@ class VisualNovelEngine {
                 elements.img.src = character.image;
                 elements.img.alt = character.name;
                 elements.name.textContent = character.name;
+                if (charId === 'kernel') {
+                    elements.slot.classList.add('kernel');
+                }
 
                 if (scene.speaker === charId) {
                     elements.slot.classList.add('speaking');
@@ -2209,7 +2239,7 @@ class VisualNovelEngine {
     }
 
     clearEmotions(slot) {
-        slot.classList.remove('fear', 'sad', 'happy', 'angry', 'dying', 'dying-slow', 'shake', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear');
+        slot.classList.remove('fear', 'sad', 'happy', 'angry', 'dying', 'dying-slow', 'shake', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel');
     }
 
     updateDialogue(scene) {
