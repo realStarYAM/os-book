@@ -870,6 +870,60 @@ body {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .floating-logo,
+    .particles-bg,
+    .typing-cursor,
+    .character-slot.shake,
+    .character-slot.fear,
+    .character-slot.happy,
+    .character-slot.angry,
+    .character-slot.dying,
+    .character-slot.dying-slow,
+    .character-slot.fade-out-goodbye,
+    .character-slot.crying,
+    .character-slot.hug-animation,
+    .character-slot.death-effect,
+    .character-slot.fast-death-effect,
+    .character-slot.ubuntu-appear,
+    .character-slot.xp-appear,
+    .character-slot.windows12-appear,
+    .character-slot.lonely,
+    .screen.fade-out,
+    .screen.fade-in,
+    .screen.flash-effect::before,
+    .screen-flash.active,
+    .transition-text {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .transition-overlay,
+    .scene-bg,
+    .act-slide,
+    .final-slide,
+    .memorial-slide,
+    .secret-character,
+    .secret-dialogue,
+    .reboot-effect.glitch,
+    .reboot-effect.flash {
+        transition: none !important;
+    }
+
+    .particles-bg {
+        background-position: 0 0;
+    }
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .characters-container {

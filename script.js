@@ -1746,10 +1746,13 @@ const SCENARIO = [
 
 class VisualNovelEngine {
     constructor() {
+        this.prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this.reduceMotion = this.prefersReducedMotionQuery.matches;
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.isTyping = false;
-        this.typingSpeed = 35;
+        this.defaultTypingSpeed = 35;
+        this.typingSpeed = this.reduceMotion ? 0 : this.defaultTypingSpeed;
         this.canAdvance = false;
 
         this.audioManager = new AudioManager();
@@ -1798,6 +1801,20 @@ class VisualNovelEngine {
 
         this.bindEvents();
         this.setupAudioControls();
+        this.bindReducedMotionListener();
+    }
+
+    bindReducedMotionListener() {
+        const updatePreference = (event) => {
+            this.reduceMotion = event.matches;
+            this.typingSpeed = this.reduceMotion ? 0 : this.defaultTypingSpeed;
+        };
+
+        if (this.prefersReducedMotionQuery.addEventListener) {
+            this.prefersReducedMotionQuery.addEventListener('change', updatePreference);
+        } else if (this.prefersReducedMotionQuery.addListener) {
+            this.prefersReducedMotionQuery.addListener(updatePreference);
+        }
     }
 
     setupAudioControls() {
@@ -1878,6 +1895,12 @@ class VisualNovelEngine {
     }
 
     transitionScreen(from, to) {
+        if (this.reduceMotion) {
+            from.classList.remove('active', 'fade-out', 'fade-in');
+            to.classList.add('active');
+            return;
+        }
+
         from.classList.add('fade-out');
         setTimeout(() => {
             from.classList.remove('active', 'fade-out');
@@ -1921,6 +1944,21 @@ class VisualNovelEngine {
             this.transitionText.style.animation = 'none';
 
             this.transitionText.offsetHeight;
+
+            if (this.reduceMotion) {
+                const originalTransition = this.transitionOverlay.style.transition;
+                this.transitionOverlay.style.transition = 'none';
+                this.transitionText.style.opacity = '1';
+                this.transitionOverlay.classList.add('visible');
+
+                setTimeout(() => {
+                    this.transitionOverlay.classList.remove('visible');
+                    this.transitionOverlay.style.transition = originalTransition;
+                    this.transitionText.style.opacity = '';
+                    resolve();
+                }, Math.min(duration, 500));
+                return;
+            }
 
             this.transitionText.style.animation = 'transitionFadeIn 2s ease-out 0.5s forwards';
             this.transitionOverlay.classList.add('visible');
@@ -2067,27 +2105,27 @@ class VisualNovelEngine {
                 }
 
                 // Apply shake effect (trembling with fear)
-                if (scene.shake) {
+                if (scene.shake && !this.reduceMotion) {
                     elements.slot.classList.add('shake');
                 }
 
                 // Apply XP dramatic appearance effect
-                if (scene.xpAppear && charId === 'xp' && pos === 'center') {
+                if (scene.xpAppear && charId === 'xp' && pos === 'center' && !this.reduceMotion) {
                     elements.slot.classList.add('xp-appear');
                 }
 
                 // Apply fadeOutSides effect (98 and ME disappear)
-                if (scene.fadeOutSides && (pos === 'left' || pos === 'right')) {
+                if (scene.fadeOutSides && (pos === 'left' || pos === 'right') && !this.reduceMotion) {
                     elements.slot.classList.add('fade-out-goodbye');
                 }
 
                 // Apply XP crying effect (trembling with tears)
-                if (scene.xpCrying && charId === 'xp') {
+                if (scene.xpCrying && charId === 'xp' && !this.reduceMotion) {
                     elements.slot.classList.add('crying');
                 }
 
                 // Apply hug animation (2000 moves toward XP)
-                if (scene.hugAnimation && charId === 'windows2000') {
+                if (scene.hugAnimation && charId === 'windows2000' && !this.reduceMotion) {
                     elements.slot.classList.add('hug-animation');
                 }
 
@@ -2102,27 +2140,27 @@ class VisualNovelEngine {
                 }
 
                 // Apply death effect (character becomes grey/transparent - R.I.P.)
-                if (scene.deathEffect && charId === scene.deathEffect) {
+                if (scene.deathEffect && charId === scene.deathEffect && !this.reduceMotion) {
                     elements.slot.classList.add('death-effect');
                 }
 
                 // Apply Ubuntu appearance effect
-                if (scene.ubuntuAppear && charId === 'ubuntu') {
+                if (scene.ubuntuAppear && charId === 'ubuntu' && !this.reduceMotion) {
                     elements.slot.classList.add('ubuntu-appear');
                 }
 
                 // Apply bow heads effect (characters lower their heads in mourning)
-                if (scene.bowHeads && pos !== 'center') {
+                if (scene.bowHeads && pos !== 'center' && !this.reduceMotion) {
                     elements.slot.classList.add('bow-head');
                 }
 
                 // Apply fast death effect (quick disappearance - Windows 8)
-                if (scene.fastDeathEffect && charId === scene.fastDeathEffect) {
+                if (scene.fastDeathEffect && charId === scene.fastDeathEffect && !this.reduceMotion) {
                     elements.slot.classList.add('fast-death-effect');
                 }
 
                 // Apply Windows 12 flash appearance effect
-                if (scene.windows12Appear && charId === 'windows12') {
+                if (scene.windows12Appear && charId === 'windows12' && !this.reduceMotion) {
                     elements.slot.classList.add('windows12-appear');
                 }
             } else {
@@ -2182,6 +2220,12 @@ class VisualNovelEngine {
 
         const cursor = document.createElement('span');
         cursor.className = 'typing-cursor';
+
+        if (this.reduceMotion || this.typingSpeed === 0) {
+            this.elements.dialogueText.textContent = text;
+            this.finishTyping();
+            return;
+        }
 
         this.typingInterval = setInterval(() => {
             if (index < text.length) {
@@ -2417,6 +2461,22 @@ class VisualNovelEngine {
     playRebootEffect() {
         const rebootEl = document.getElementById('reboot-effect');
         if (!rebootEl) return;
+
+        if (this.reduceMotion) {
+            rebootEl.classList.add('blackout');
+            rebootEl.innerHTML = `
+                <div class="reboot-text">
+                    <div class="reboot-line">Ubuntu 24.04 LTS</div>
+                    <div class="reboot-line">Rebooting system...</div>
+                    <div class="reboot-cursor">_</div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                this.restartGame();
+            }, 1000);
+            return;
+        }
 
         // Phase 1: Glitch
         rebootEl.classList.add('glitch');
