@@ -1790,7 +1790,17 @@ class VisualNovelEngine {
 
         // Le bouton restart sera ajouté dynamiquement dans les crédits
 
-        this.screens.vn.addEventListener('click', () => {
+        this.screens.vn.addEventListener('click', (event) => {
+            const ignoredSelector = '.audio-controls-game, .audio-controls-start, .volume-slider, .audio-btn, .audio-btn-small';
+            if (event.target.closest(ignoredSelector)) {
+                return;
+            }
+
+            const dialogueContainer = this.screens.vn.querySelector('.dialogue-container');
+            if (dialogueContainer && !dialogueContainer.contains(event.target)) {
+                return;
+            }
+
             this.handleAdvance();
         });
 
