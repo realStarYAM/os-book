@@ -254,6 +254,38 @@ body {
     text-shadow: 0 0 10px var(--primary-color);
 }
 
+/* Dieu/Kernel */
+.character-slot.kernel {
+    position: relative;
+}
+
+.character-slot.kernel::before {
+    content: '';
+    position: absolute;
+    bottom: 20%;
+    width: clamp(140px, 22vw, 260px);
+    height: clamp(140px, 22vw, 260px);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(246, 211, 101, 0.35) 0%, rgba(111, 214, 255, 0.2) 45%, rgba(10, 10, 26, 0) 70%),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 2px, rgba(255, 255, 255, 0) 2px 8px);
+    filter: blur(2px);
+    z-index: 0;
+    animation: kernelPulse 8s ease-in-out infinite;
+}
+
+.character-slot.kernel .character-sprite {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 25px rgba(246, 211, 101, 0.35)) drop-shadow(0 0 45px rgba(111, 214, 255, 0.3));
+}
+
+.character-slot.kernel .character-name-tag {
+    border-color: rgba(246, 211, 101, 0.4);
+    color: #f6d365;
+    text-shadow: 0 0 12px rgba(246, 211, 101, 0.6);
+}
+
 /* Emotion Effects */
 .character-slot.shake {
     animation: shake 0.5s ease-in-out infinite;
@@ -426,6 +458,19 @@ body {
 
     50% {
         opacity: 0.5;
+    }
+}
+
+@keyframes kernelPulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.75;
     }
 }
 
