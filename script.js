@@ -1776,6 +1776,8 @@ class VisualNovelEngine {
 
         this.elements = {
             dialogueText: document.getElementById('dialogue-text'),
+            dialogueVisual: document.getElementById('dialogue-visual'),
+            dialogueLive: document.getElementById('dialogue-live'),
             speakerName: document.getElementById('speaker-name'),
             progressFill: document.getElementById('progress-fill'),
             continueIndicator: document.getElementById('continue-indicator'),
@@ -2224,7 +2226,8 @@ class VisualNovelEngine {
     typeText(text) {
         this.isTyping = true;
         this.canAdvance = false;
-        this.elements.dialogueText.innerHTML = '';
+        this.elements.dialogueVisual.textContent = '';
+        this.elements.dialogueLive.textContent = '';
 
         let index = 0;
         this.currentTypingText = text;
@@ -2233,15 +2236,15 @@ class VisualNovelEngine {
         cursor.className = 'typing-cursor';
 
         if (this.reduceMotion || this.typingSpeed === 0) {
-            this.elements.dialogueText.textContent = text;
+            this.elements.dialogueVisual.textContent = text;
             this.finishTyping();
             return;
         }
 
         this.typingInterval = setInterval(() => {
             if (index < text.length) {
-                this.elements.dialogueText.textContent = text.substring(0, index + 1);
-                this.elements.dialogueText.appendChild(cursor);
+                this.elements.dialogueVisual.textContent = text.substring(0, index + 1);
+                this.elements.dialogueVisual.appendChild(cursor);
                 index++;
             } else {
                 this.finishTyping();
@@ -2254,15 +2257,16 @@ class VisualNovelEngine {
         this.isTyping = false;
         this.canAdvance = true;
 
-        const cursor = this.elements.dialogueText.querySelector('.typing-cursor');
+        const cursor = this.elements.dialogueVisual.querySelector('.typing-cursor');
         if (cursor) cursor.remove();
 
+        this.elements.dialogueLive.textContent = this.currentTypingText || '';
         this.elements.continueIndicator.style.visibility = 'visible';
     }
 
     skipTyping() {
         clearInterval(this.typingInterval);
-        this.elements.dialogueText.textContent = this.currentTypingText;
+        this.elements.dialogueVisual.textContent = this.currentTypingText;
         this.finishTyping();
     }
 

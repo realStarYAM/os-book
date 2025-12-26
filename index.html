@@ -102,7 +102,10 @@
         <div class="dialogue-container">
             <div id="speaker-name" class="speaker-name"></div>
             <div id="dialogue-box" class="dialogue-box">
-                <p id="dialogue-text"></p>
+                <div id="dialogue-text" aria-live="polite" aria-atomic="true">
+                    <p id="dialogue-visual" aria-hidden="true"></p>
+                    <span id="dialogue-live" class="sr-only"></span>
+                </div>
             </div>
             <div class="dialogue-controls">
                 <span id="continue-indicator" class="continue-indicator">▼ Cliquez pour continuer</span>
