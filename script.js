@@ -1953,7 +1953,7 @@ class VisualNovelEngine {
 
     showTransition(text, duration = 4000) {
         return new Promise((resolve) => {
-            this.transitionText.innerHTML = text.replace('\n', '<br>');
+            this.transitionText.innerHTML = text.replaceAll('\n', '<br>');
             this.transitionText.style.animation = 'none';
 
             this.transitionText.offsetHeight;
