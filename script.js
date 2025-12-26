@@ -223,7 +223,7 @@ class HeartMonitor {
         this.animationFrame = null;
 
         this.monitorSound = null;
-        this.monitorSoundPath = 'sfx/monitor.mp3';
+        this.monitorSoundPath = 'sfx/Monitor.mp3';
         this.monitorVolume = 0.3;
 
         this.audioManager = null;
@@ -761,7 +761,7 @@ const SCENARIO = [
         text: "Acte 3 - Le Professionnel (2010) : Windows 2000 a tiré sa révérence.",
         emotion: 'normal',
         characters: { left: 'xp', center: 'windows2000', right: 'vista' },
-        music: 'sfx/monitor.mp3',
+        music: 'sfx/Monitor.mp3',
         showMonitor: true
     },
     {
@@ -1011,7 +1011,7 @@ const SCENARIO = [
         text: "Acte 5 - L'Incompris (2016) : Windows 8 s'éteint prématurément.",
         emotion: 'normal',
         characters: { left: null, center: 'windows8', right: null },
-        music: 'sfx/monitor.mp3',
+        music: 'sfx/Monitor.mp3',
         showMonitor: true
     },
     {
