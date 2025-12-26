@@ -1822,17 +1822,29 @@ class VisualNovelEngine {
         const audioToggleGame = document.getElementById('audio-toggle-game');
         const volumeSlider = document.getElementById('volume-slider');
 
-        const toggleMute = () => {
-            const muted = this.audioManager.toggleMute();
-            audioToggle.textContent = muted ? '🔇' : '🔊';
-            audioToggle.classList.toggle('muted', muted);
-            if (audioToggleGame) {
-                audioToggleGame.textContent = muted ? '🔇' : '🔊';
-                audioToggleGame.classList.toggle('muted', muted);
-            }
+        const updateAudioButtonState = (muted) => {
+            const label = muted ? 'Activer le son' : 'Désactiver le son';
+            const icon = muted ? '🔇' : '🔊';
+            const isPressed = (!muted).toString();
+
+            [audioToggle, audioToggleGame].forEach((button) => {
+                if (!button) return;
+                button.textContent = icon;
+                button.classList.toggle('muted', muted);
+                button.setAttribute('aria-pressed', isPressed);
+                button.setAttribute('aria-label', label);
+                button.setAttribute('title', label);
+            });
         };
 
-        audioToggle.addEventListener('click', toggleMute);
+        const toggleMute = () => {
+            const muted = this.audioManager.toggleMute();
+            updateAudioButtonState(muted);
+        };
+
+        if (audioToggle) {
+            audioToggle.addEventListener('click', toggleMute);
+        }
         if (audioToggleGame) {
             audioToggleGame.addEventListener('click', toggleMute);
         }
@@ -1842,6 +1854,7 @@ class VisualNovelEngine {
         });
 
         this.audioManager.setVolume(volumeSlider.value / 100);
+        updateAudioButtonState(this.audioManager.isMuted);
     }
 
     bindEvents() {
