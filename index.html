@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Book - La Saga Windows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Écran de démarrage -->
+    <div id="start-screen" class="screen active">
+        <div class="title-container">
+            <h1 class="main-title">OS BOOK</h1>
+            <p class="subtitle">BIENVENUE</p>
+            <div class="title-logo">
+                <img src="logo/Windows_vista.png" alt="Windows Vista" class="floating-logo">
+            </div>
+        </div>
+
+        <!-- Contrôles Audio -->
+        <div class="audio-controls-start">
+            <button id="audio-toggle" class="audio-btn" title="Activer/Désactiver le son">
+                🔊
+            </button>
+            <input type="range" id="volume-slider" min="0" max="100" value="50" class="volume-slider">
+        </div>
+
+        <button id="start-btn" class="glow-button">
+            <span>▶ COMMENCER</span>
+        </button>
+
+        <p class="audio-notice">🎵 Cette expérience contient de la musique et des effets sonores</p>
+    </div>
+
+    <!-- Scène principale du Visual Novel -->
+    <div id="vn-scene" class="screen">
+
+        <!-- Écran de transition entre scènes -->
+        <div id="transition-overlay" class="transition-overlay">
+            <p id="transition-text" class="transition-text">The Next Day...</p>
+        </div>
+
+        <!-- Fond Hôpital (Scène 1) -->
+        <div id="hospital-bg" class="hospital-bg scene-bg active"></div>
+
+        <!-- Fond Cimetière (Scène 2) -->
+        <div id="graveyard-bg" class="graveyard-bg scene-bg"></div>
+
+        <!-- Fond Le Vide (Scène finale) -->
+        <div id="void-bg" class="void-bg scene-bg"></div>
+
+        <!-- Particules -->
+        <div class="particles-bg"></div>
+
+        <!-- Conteneur des tombes (Scène 2) -->
+        <div id="graves-container" class="graves-container">
+            <!-- Tombes générées dynamiquement par JS -->
+        </div>
+
+        <!-- Moniteur cardiaque -->
+        <div id="heart-monitor" class="heart-monitor hidden">
+            <div class="monitor-screen">
+                <svg id="ecg-line" class="ecg-svg" viewBox="0 0 400 100" preserveAspectRatio="none">
+                    <polyline id="ecg-path" class="ecg-path" points="0,50 400,50" />
+                </svg>
+            </div>
+            <div class="monitor-label">♥ BPM: <span id="bpm-value">72</span></div>
+        </div>
+
+        <!-- Zone des personnages -->
+        <div id="characters-container" class="characters-container hospital-scene">
+            <div id="character-left" class="character-slot left">
+                <img id="char-left-img" src="" alt="" class="character-sprite">
+                <div id="char-left-name" class="character-name-tag"></div>
+            </div>
+
+            <div id="character-center" class="character-slot center">
+                <img id="char-center-img" src="" alt="" class="character-sprite">
+                <div id="char-center-name" class="character-name-tag"></div>
+            </div>
+
+            <div id="character-right" class="character-slot right">
+                <img id="char-right-img" src="" alt="" class="character-sprite">
+                <div id="char-right-name" class="character-name-tag"></div>
+            </div>
+        </div>
+
+        <!-- Contrôles Audio In-Game -->
+        <div class="audio-controls-game">
+            <button id="audio-toggle-game" class="audio-btn-small" title="Son">🔊</button>
+        </div>
+
+        <!-- Zone de dialogue -->
+        <div class="dialogue-container">
+            <div id="speaker-name" class="speaker-name"></div>
+            <div id="dialogue-box" class="dialogue-box">
+                <p id="dialogue-text"></p>
+            </div>
+            <div class="dialogue-controls">
+                <span id="continue-indicator" class="continue-indicator">▼ Cliquez pour continuer</span>
+            </div>
+        </div>
+
+        <!-- Indicateur de progression -->
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <!-- Écran de fin avec générique défilant -->
+    <div id="end-screen" class="screen">
+        <!-- Le conteneur des crédits sera généré dynamiquement par JS -->
+        <div id="credits-container" class="credits-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
