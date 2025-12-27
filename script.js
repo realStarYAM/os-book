@@ -10,18 +10,35 @@
 // GESTIONNAIRE AUDIO
 // ============================================
 
-let currentAudio = null;
+let globalAudio = new Audio();
+let globalAudioOwner = null;
 
-function stopAudio() {
+function useGlobalAudio({ src, loop = false, volume = 1, owner = 'unknown' }) {
+    if (globalAudioOwner && globalAudioOwner !== owner) {
+        globalAudio.pause();
+        globalAudio.currentTime = 0;
+    }
+
+    globalAudioOwner = owner;
+    if (globalAudio.src !== src) {
+        globalAudio.src = src;
+    }
+    globalAudio.loop = loop;
+    globalAudio.volume = volume;
+    return globalAudio;
+}
+
+function stopGlobalAudio(owner = null) {
+    if (owner && globalAudioOwner !== owner) return;
+
     try {
-        if (currentAudio && typeof currentAudio.pause === 'function') {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-        }
+        globalAudio.pause();
+        globalAudio.currentTime = 0;
+        globalAudio.src = '';
     } catch (e) {
         console.log('Erreur mineure audio (ignorée) :', e);
     }
-    currentAudio = null;
+    globalAudioOwner = null;
 }
 
 class AudioManager {
@@ -45,9 +62,12 @@ class AudioManager {
 
     preload(path) {
         if (!this.audioCache[path]) {
-            const audio = new Audio(path);
-            audio.preload = 'auto';
-            this.audioCache[path] = audio;
+            const preloadLink = document.createElement('link');
+            preloadLink.rel = 'preload';
+            preloadLink.as = 'audio';
+            preloadLink.href = path;
+            document.head.appendChild(preloadLink);
+            this.audioCache[path] = true;
         }
         return this.audioCache[path];
     }
@@ -58,7 +78,7 @@ class AudioManager {
             this.fadeInterval = null;
         }
 
-        stopAudio();
+        stopGlobalAudio('bgm');
         this.bgm = null;
         this.currentBgmPath = null;
     }
@@ -72,10 +92,12 @@ class AudioManager {
 
         this.stopCurrentMusicImmediately();
 
-        this.bgm = new Audio(path);
-        currentAudio = this.bgm;
-        this.bgm.loop = true;
-        this.bgm.volume = fadeIn ? 0 : this.volume * (this.isMuted ? 0 : 1);
+        this.bgm = useGlobalAudio({
+            src: path,
+            loop: true,
+            volume: fadeIn ? 0 : this.volume * (this.isMuted ? 0 : 1),
+            owner: 'bgm',
+        });
         this.currentBgmPath = path;
 
         console.log('🎵 Nouvelle musique:', path);
@@ -95,7 +117,11 @@ class AudioManager {
     }
 
     stopMusic(fadeOut = true) {
-        if (!this.bgm) return;
+        if (!this.bgm || globalAudioOwner !== 'bgm') {
+            this.bgm = null;
+            this.currentBgmPath = null;
+            return;
+        }
 
         if (this.fadeInterval) {
             clearInterval(this.fadeInterval);
@@ -106,7 +132,7 @@ class AudioManager {
             const audioToStop = this.bgm;
 
             this.fadeOut(audioToStop, 1500, () => {
-                stopAudio();
+                stopGlobalAudio('bgm');
             });
 
             this.bgm = null;
@@ -119,8 +145,13 @@ class AudioManager {
     playSFX(path, volume = 1) {
         this.init();
 
-        const sfx = new Audio(path);
-        sfx.volume = this.volume * volume * (this.isMuted ? 0 : 1);
+        stopGlobalAudio();
+        const sfx = useGlobalAudio({
+            src: path,
+            loop: false,
+            volume: this.volume * volume * (this.isMuted ? 0 : 1),
+            owner: 'sfx',
+        });
 
         const playPromise = sfx.play();
         if (playPromise) {
@@ -128,7 +159,7 @@ class AudioManager {
         }
 
         sfx.onended = () => {
-            sfx.src = '';
+            stopGlobalAudio('sfx');
         };
 
         return sfx;
@@ -184,7 +215,7 @@ class AudioManager {
 
     setVolume(value) {
         this.volume = value;
-        if (this.bgm && !this.isMuted) {
+        if (this.bgm && !this.isMuted && globalAudioOwner === 'bgm') {
             this.bgm.volume = value;
         }
         this.notifyVolumeListeners();
@@ -192,7 +223,7 @@ class AudioManager {
 
     toggleMute() {
         this.isMuted = !this.isMuted;
-        if (this.bgm) {
+        if (this.bgm && globalAudioOwner === 'bgm') {
             this.bgm.volume = this.isMuted ? 0 : this.volume;
         }
         this.notifyVolumeListeners();
@@ -252,9 +283,15 @@ class HeartMonitor {
         this.stopSound();
 
         try {
-            this.monitorSound = new Audio(this.monitorSoundPath);
-            this.monitorSound.loop = true;
-            this.monitorSound.volume = this.getMonitorSoundVolume(volume);
+            if (this.audioManager) {
+                this.audioManager.stopMusic(false);
+            }
+            this.monitorSound = useGlobalAudio({
+                src: this.monitorSoundPath,
+                loop: true,
+                volume: this.getMonitorSoundVolume(volume),
+                owner: 'monitor',
+            });
 
             const playPromise = this.monitorSound.play();
             if (playPromise) {
@@ -284,25 +321,18 @@ class HeartMonitor {
     }
 
     updateMonitorSoundVolume(volume = this.monitorVolume) {
-        if (!this.monitorSound) return;
+        if (!this.monitorSound || globalAudioOwner !== 'monitor') return;
         this.monitorSound.volume = this.getMonitorSoundVolume(volume);
     }
 
     stopSound() {
-        if (this.monitorSound) {
-            try {
-                this.monitorSound.pause();
-                this.monitorSound.currentTime = 0;
-                this.monitorSound.src = '';
-            } catch (e) {
-                console.warn('Erreur arrêt son moniteur:', e);
-            }
-            this.monitorSound = null;
-        }
+        if (!this.monitorSound) return;
+        stopGlobalAudio('monitor');
+        this.monitorSound = null;
     }
 
     fadeOutSound(duration = 2000, callback) {
-        if (!this.monitorSound) {
+        if (!this.monitorSound || globalAudioOwner !== 'monitor') {
             if (callback) callback();
             return;
         }
@@ -1891,6 +1921,7 @@ class VisualNovelEngine {
 
     bindEvents() {
         document.getElementById('start-btn').addEventListener('click', () => {
+            globalAudio.play().catch(() => {});
             this.startGame();
         });
 
