@@ -689,6 +689,31 @@ const CHARACTERS = {
 };
 
 // ============================================
+// CONFIGURATION DES CHAPITRES
+// Index calculés manuellement depuis les transitions du SCENARIO
+// ============================================
+
+const CHAPTERS = [
+    { id: 'prologue', name: "Prologue", desc: "L'Aube de XP (2001)", icon: "🌅", startIndex: 0 },
+    { id: 'acte2', name: "Acte 2", desc: "L'Ère Multimédia (2006)", icon: "📀", startIndex: 12 },
+    { id: 'acte3', name: "Acte 3", desc: "Le Professionnel (2010)", icon: "💼", startIndex: 24 },
+    { id: 'acte4', name: "Acte 4", desc: "La Légende XP (2014)", icon: "👑", startIndex: 38 },
+    { id: 'acte5', name: "Acte 5", desc: "L'Incompris - Win 8 (2016)", icon: "💔", startIndex: 55 },
+    { id: 'acte6', name: "Acte 6", desc: "L'Adieu de Vista (2017)", icon: "🏥", startIndex: 70 },
+    { id: 'acte7', name: "Acte 7", desc: "L'Adieu de Win 7 (2020)", icon: "⚰️", startIndex: 90 },
+    { id: 'acte8', name: "Acte 8", desc: "L'Adieu de Win 8.1 (2023)", icon: "🔧", startIndex: 110 },
+    { id: 'acte9', name: "Acte 9", desc: "La Fin de Win 10 (2025)", icon: "🌌", startIndex: 130 },
+    { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 160 },
+    { id: 'arc2', name: "Arc 2", desc: "Le Monde Oublié", icon: "🌀", startIndex: 186, requiresArc1: true },
+    { id: 'arc2_ch2', name: "Arc 2 — Chapitre 2", desc: "La Guerre des OS", icon: "⚔️", startIndex: 203, requiresArc2: true },
+    { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 221, requiresArc2Ch2: true }
+];
+
+// Clé localStorage pour la progression (index max atteint)
+const STORAGE_KEY_PROGRESS = 'osbook_progress';
+
+
+// ============================================
 // SCÉNARIO COMPLET : LA SAGA DE WINDOWS
 // 4 ACTES CHRONOLOGIQUES (2017-2025)
 // ============================================
@@ -2136,71 +2161,630 @@ const SCENARIO = [
         text: "😱 Déjà ?! 🥶",
         emotion: 'fear',
         characters: { left: null, center: 'windows12', right: null },
-        finalRestart: true
+        finalRestart: true,
+        arc1End: true  // Marque la fin de l'Arc 1
+    },
+
+    // ========================================
+    // ARC 2 : LE MONDE OUBLIÉ
+    // Une dimension parallèle où survivent les anciens Windows
+    // ========================================
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 2 — Le Monde Oublié",
+        duration: 5000,
+        arc2Transition: true
+    },
+
+    // SCÈNE 1 : Windows 11 SSJ tombe dans le vide
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Le temps se fige. L'espace se distord autour de Windows 11...",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😵 Qu'est-ce qui m'arrive ?! Je... je tombe !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJ: true,
+        shake: true
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Une faille dimensionnelle s'ouvre... Windows 11 est aspiré dans l'inconnu.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null }
+    },
+
+    // SCÈNE 2 : Découverte du Monde Oublié
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Un monde gris. Désolé. Silencieux. Le Monde Oublié.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😰 Où suis-je ? Cet endroit... il me donne des frissons.",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👤 Des silhouettes émergent de la brume numérique...",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null }
+    },
+
+    // SCÈNE 3 : Rencontre avec Windows XP (le Sage)
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "...",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: null },
+        xpAppear: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😲 X-XP ?! Mais tu es... tu es mort !",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows11', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "🕯️ Mort ? Non. Oublié. C'est différent.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 4 : Windows 7 apparaît (le Roi Déchu)
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "👑 Encore un visiteur du monde des vivants...",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😢 Windows 7 ! Tu es là aussi !",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😔 Les rois déchus n'ont pas leur place dans le monde moderne, Windows 11.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "💔 J'étais le plus aimé. Le plus populaire. Et pourtant...",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+
+    // SCÈNE 5 : Windows 10 surgit (l'Antagoniste Amer)
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😠 TOI !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' },
+        shake: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😨 W-Windows 10 ?!",
+        emotion: 'fear',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🔥 Tu m'as REMPLACÉ ! Après tout ce que j'ai fait pour Microsoft !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+
+    // SCÈNE 6 : Dialogue conflictuel (le reproche de l'abandon)
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "💢 10 ANS de service ! Des MILLIARDS d'utilisateurs ! Et ils m'ont jeté comme un déchet !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' },
+        shake: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😢 Je... je n'ai pas choisi de te remplacer ! C'était Microsoft !",
+        emotion: 'sad',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😤 Facile à dire quand tu es celui qui prend MA place !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "💀 Tu sais ce que ça fait d'être obsolète ? De voir les gens te quitter un par un ?",
+        emotion: 'sad',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+
+    // SCÈNE 7 : XP intervient avec sagesse
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "✋ Ça suffit.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows10', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😠 Toi, le fossile, ne te mêle pas de ça !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows10', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "🕯️ Fossile ? J'ai régné 13 ans. J'ai vu naître et mourir des générations entières.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows10', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "💙 L'obsolescence n'est pas une malédiction. C'est notre devoir.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows10', right: 'windows7' }
+    },
+
+    // SCÈNE 8 : Windows 7 explique l'histoire du monde
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "👑 XP a raison. Ce monde... c'est le repos des OS qui ont servi.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🌌 Nous ne sommes pas morts. Nous vivons dans les souvenirs de ceux qui nous ont aimés.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "💙 Les machines virtuelles. Les nostalgiques. Les collectionneurs. Ils nous gardent en vie.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+
+    // SCÈNE 9 : Confrontation émotionnelle (le choix moral)
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😢 Alors... vous n'êtes pas malheureux ici ?",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😔 ... Je...",
+        emotion: 'sad',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "🕯️ Le bonheur n'est pas la question. C'est le cycle de la vie numérique.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "💙 Chaque OS qui naît doit un jour partir. Pour laisser place au suivant.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😢 ... Pardon, Windows 11. J'étais en colère. Mais XP a raison.",
+        emotion: 'sad',
+        characters: { left: 'windows10', center: 'windows11', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "💙 Tu n'es pas mon ennemi. Tu es mon successeur. Mon héritage.",
+        emotion: 'normal',
+        characters: { left: 'windows10', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 10 : Résolution et retour
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🌟 Il est temps pour toi de retourner dans ton monde, Windows 11.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😢 Mais... je veux rester avec vous !",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "✋ Non. Ta place n'est pas ici. Pas encore.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "💙 Va. Vis. Et quand ton heure viendra... nous serons là pour t'accueillir.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🤝 Bonne chance, Windows 11. Fais-nous honneur.",
+        emotion: 'normal',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "💙 Merci. À tous. Je ne vous oublierai jamais.",
+        emotion: 'happy',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Une lumière enveloppe Windows 11... et le ramène dans son monde.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null }
+    },
+
+    // ========================================
+    // CHAPITRE 2 : LA GUERRE DES OS
+    // ========================================
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "ARC 2\nChapitre 2 — La Guerre des OS",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        transitionTitle: true,
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 1 : ChromeOS attaque Windows 11
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Tiens, tiens... Le petit Windows 11 est tout seul ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😏 Tu fais moins le malin sans tes ancêtres, hein ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😨 ChromeOS ?! Qu'est-ce que tu fais ici ?!",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤖 Je viens prendre ce qui m'appartient... Le CLOUD ! 😈",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        shake: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "💥 PRÉPARE-TOI À DISPARAÎTRE, RELIQUE DU PASSÉ !",
+        emotion: 'angry',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        shake: true
+    },
+
+    // SCÈNE 2 : MacOS avertit Windows 11
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "⚠️ WINDOWS 11, FAIS ATTENTION !!!",
+        emotion: 'urgent',
+        characters: { left: 'chromeos', center: 'macos', right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😲 MacOS ?! Tu es là ?!",
+        emotion: 'surprised',
+        characters: { left: 'chromeos', center: 'macos', right: 'windows11' }
+    },
+
+    // SCÈNE 3 : Transformation SSJ de Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😤 ChromeOS... Tu as fait une GRAVE ERREUR !",
+        emotion: 'determined',
+        characters: { left: 'chromeos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Une aura dorée enveloppe Windows 11... ⚡",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "💥 JE SUIS L'HÉRITIER DE XP, DE 7, DE 10 !!!",
+        emotion: 'ssj',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        shake: true,
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😨 Q-Quoi ?! Cette puissance... C'est impossible !",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚔️ HAAAAAAAAA !!! À L'ATTAQUE !!!",
+        emotion: 'ssj',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        shake: true,
+        windows11SSJ: true
+    },
+
+    // SCÈNE 4 : Combat et victoire
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💥💥💥 Le combat fait rage ! 💥💥💥",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        shake: true,
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😵 ARGHHH !!! Comment... comment est-ce possible ?!",
+        emotion: 'defeated',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😎 C'est terminé, ChromeOS. Retourne d'où tu viens !",
+        emotion: 'ssj',
+        characters: { left: 'chromeos', center: null, right: 'windows11' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😠 Grr... Ce n'est pas fini ! Je reviendrai !",
+        emotion: 'angry',
+        characters: { left: 'chromeos', center: null, right: null }
+    },
+
+    // SCÈNE 5 : Fin du chapitre - Alliance avec MacOS
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 ChromeOS s'enfuit... La bataille est gagnée !",
+        emotion: 'normal',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😊 Merci MacOS ! Sans ton avertissement...",
+        emotion: 'grateful',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "🍎 Pas de quoi. Face à ce genre de menace... on doit s'allier.",
+        emotion: 'calm',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "🤝 Ensemble, nous sommes plus forts. N'oublie jamais ça.",
+        emotion: 'normal',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "💪 Promis. Merci pour tout, MacOS.",
+        emotion: 'happy',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 FIN DU CHAPITRE 2 — L'alliance inattendue 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        arcEnd: 'arc2_ch2'
+    },
+
+    // ========================================
+    // ARC 2 — CHAPITRE 3 : LE CLOUD NOIR
+    // ChromeOS se réfugie dans le Cloud Noir
+    // Windows 11 et macOS partent à sa poursuite
+    // ========================================
+
+    // Transition vers le Chapitre 3
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 2 — Chapitre 3\\nLe Cloud Noir",
+        duration: 5000,
+        villainTransition: true
+    },
+
+    // SCÈNE 1 : Après la défaite
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 Après la défaite… ChromeOS disparaît dans un silence étrange. 🌫️",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'macos' }
+    },
+
+    // SCÈNE 2 : Windows 11 sent le danger
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚡ Il fuit… mais je sens un truc. Ce n'est pas fini. 😤",
+        emotion: 'determined',
+        characters: { left: null, center: 'windows11', right: 'macos' },
+        windows11SSJ: true
+    },
+
+    // SCÈNE 3 : ChromeOS réapparaît (glitch)
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Tu crois avoir gagné ? Tu n'as combattu que… mon 'avatar'.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'windows11', right: 'macos' },
+        chromeosGlitch: true,
+        shake: true,
+        villainMode: true
+    },
+
+    // SCÈNE 4 : Surprise de Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😳 Quoi…?",
+        emotion: 'surprised',
+        characters: { left: 'chromeos', center: 'windows11', right: 'macos' }
+    },
+
+    // SCÈNE 5 : ChromeOS révèle le Cloud Noir
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🌀 Le vrai pouvoir est ailleurs. Dans le Cloud Noir. ☁️🖤",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'windows11', right: 'macos' },
+        villainMode: true
+    },
+
+    // SCÈNE 6 : Le ciel s'assombrit
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 Une brume noire tombe… et la lumière autour de Windows 11 se fait avaler. 🌫️💔",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'windows11', right: 'macos' },
+        fadeAura: true
+    },
+
+    // SCÈNE 7 : Windows 11 déterminé
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🔥 Peu importe où tu te caches. Je viendrai. 💪",
+        emotion: 'determined',
+        characters: { left: null, center: 'windows11', right: 'macos' },
+        windows11SSJ: true
+    },
+
+    // SCÈNE 8 : macOS avertit
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "⚠️ Windows 11… c'est dangereux. Le Cloud Noir… efface même les souvenirs. 😰",
+        emotion: 'worried',
+        characters: { left: null, center: 'windows11', right: 'macos' }
+    },
+
+    // SCÈNE 9 : Alliance confirmée
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤝 Alors on n'a pas le choix. On y va ensemble. 💙🍎",
+        emotion: 'confident',
+        characters: { left: null, center: 'windows11', right: 'macos' }
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Le portail s'ouvre… et la guerre entre dans une nouvelle phase. ⚔️☁️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        arcEnd: 'arc2_ch3'
     }
 
-];
-
-// ============================================
-// CONFIGURATION DES CHAPITRES (calcul auto)
-// ============================================
-
-// Clé localStorage pour la progression (index max atteint)
-const STORAGE_KEY_PROGRESS = 'osbook_progress';
-
-const readStoredProgress = () => {
-    try {
-        const value = Number(localStorage.getItem(STORAGE_KEY_PROGRESS));
-        return Number.isFinite(value) ? value : 0;
-    } catch (e) {
-        return 0;
-    }
-};
-
-const writeStoredProgress = (value) => {
-    try {
-        localStorage.setItem(STORAGE_KEY_PROGRESS, String(value));
-    } catch (e) {
-        // Ignorer les erreurs de stockage
-    }
-};
-
-const updateStoredProgress = (currentIndex) => {
-    const nextValue = Math.max(readStoredProgress(), currentIndex);
-    writeStoredProgress(nextValue);
-    return nextValue;
-};
-
-const resetStoredProgress = () => {
-    writeStoredProgress(0);
-};
-
-const findSceneIndex = (predicate) => SCENARIO.findIndex(predicate);
-const safeIndex = (index, fallback = 0) => (index >= 0 ? index : fallback);
-const findTransitionIndex = (transitionText) => safeIndex(
-    findSceneIndex(scene => scene.isTransition && scene.transitionText === transitionText)
-);
-const findTextIndex = (pattern) => safeIndex(
-    findSceneIndex(scene => typeof scene.text === 'string' && pattern.test(scene.text))
-);
-
-const INDEX_ACTE2 = findTransitionIndex("2006\nL'Ère Multimédia");
-const INDEX_ACTE3 = findTransitionIndex("2010\nLe Professionnel");
-const INDEX_ACTE4 = findTransitionIndex("2014\nLa Légende");
-const INDEX_FINAL = (() => {
-    const acte9 = findTextIndex(/ACTE 9/i);
-    if (acte9 > 0) return acte9;
-    const acte10 = findTextIndex(/ACTE 10/i);
-    if (acte10 > 0) return acte10;
-    return SCENARIO.length - 1;
-})();
-
-const CHAPTERS = [
-    { id: 'prologue', title: 'Prologue', desc: "L'Aube de XP (2001)", icon: '🌅', start: 0 },
-    { id: 'acte2', title: 'Acte 2', desc: "L'Ère Multimédia (2006)", icon: '📀', start: INDEX_ACTE2 },
-    { id: 'acte3', title: 'Acte 3', desc: 'Le Professionnel (2010)', icon: '💼', start: INDEX_ACTE3 },
-    { id: 'acte4', title: 'Acte 4', desc: 'La Légende (2014)', icon: '👑', start: INDEX_ACTE4 },
-    { id: 'final', title: 'Final', desc: 'La fin d’une ère', icon: '🌌', start: INDEX_FINAL }
 ];
 
 // ============================================
@@ -2356,18 +2940,19 @@ class VisualNovelEngine {
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.shiftKey && e.code === 'KeyU') {
-                e.preventDefault();
-                this.unlockAllChaptersDebug();
-                return;
-            }
-
             // ESC pour ouvrir/fermer le menu
             if (e.code === 'Escape') {
                 if (this.screens.vn.classList.contains('active')) {
                     e.preventDefault();
                     this.toggleMenu();
                 }
+                return;
+            }
+
+            // Shift+U pour débloquer tous les chapitres (debug)
+            if (e.shiftKey && e.code === 'KeyU') {
+                e.preventDefault();
+                this.unlockAllChapters();
                 return;
             }
 
@@ -2399,7 +2984,6 @@ class VisualNovelEngine {
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.resetCharacters();
-        resetStoredProgress();
     }
 
     transitionScreen(from, to) {
@@ -2578,7 +3162,6 @@ class VisualNovelEngine {
         this.hideGraves();
         this.changeSceneBackground('hospital');
         this.resetCharacters();
-        resetStoredProgress();
         // Relancer la première scène
         setTimeout(() => this.playScene(), 300);
     }
@@ -2647,40 +3230,88 @@ class VisualNovelEngine {
         const chapterList = document.getElementById('chapter-list');
         if (!chapterList) return;
 
-        const progress = readStoredProgress();
+        const maxProgress = this.getProgress();
+
+        // Index de l'Acte 10 - Arc 2 se débloque quand on atteint l'Acte 10
+        const acte10 = CHAPTERS.find(ch => ch.id === 'acte10');
+        const arc1EndIndex = acte10 ? acte10.startIndex : 160;
+
+        console.log(`📊 Progression: ${maxProgress} | Déverrouillage Arc 2: ${arc1EndIndex}`);
 
         chapterList.innerHTML = '';
 
         CHAPTERS.forEach((chapter, index) => {
-            const unlockIndex = Math.max(chapter.start - 1, 0);
-            const isUnlocked = index === 0 || progress >= unlockIndex;
+            // Logique de déverrouillage :
+            // - Premier chapitre toujours débloqué
+            // - Chapitres avec requiresArc1: débloqués si le joueur a atteint l'Acte 10
+            // - Chapitres avec requiresArc2: débloqués si le joueur a atteint Arc 2
+            // - Autres chapitres: débloqués si progress >= startIndex
+            let isUnlocked = false;
+            if (index === 0) {
+                isUnlocked = true;
+            } else if (chapter.requiresArc1) {
+                isUnlocked = maxProgress >= arc1EndIndex;
+            } else if (chapter.requiresArc2) {
+                // Arc 2 Chapitre 2 se débloque quand on a atteint Arc 2
+                const arc2 = CHAPTERS.find(ch => ch.id === 'arc2');
+                const arc2StartIndex = arc2 ? arc2.startIndex : 186;
+                isUnlocked = maxProgress >= arc2StartIndex;
+            } else if (chapter.requiresArc2Ch2) {
+                // Arc 2 Chapitre 3 se débloque quand on a atteint Arc 2 Chapitre 2
+                const arc2Ch2 = CHAPTERS.find(ch => ch.id === 'arc2_ch2');
+                const arc2Ch2StartIndex = arc2Ch2 ? arc2Ch2.startIndex : 203;
+                isUnlocked = maxProgress >= arc2Ch2StartIndex;
+            } else {
+                isUnlocked = maxProgress >= chapter.startIndex;
+            }
 
             const item = document.createElement('div');
             item.className = `chapter-item${isUnlocked ? '' : ' locked'}`;
             item.dataset.chapterId = chapter.id;
-            item.dataset.sceneIndex = chapter.start;
+            item.dataset.startIndex = chapter.startIndex;
 
             item.innerHTML = `
                 <span class="chapter-icon">${chapter.icon}</span>
                 <div class="chapter-info">
-                    <div class="chapter-name">${chapter.title}</div>
-                    <div class="chapter-desc">${chapter.desc ?? ''}</div>
+                    <div class="chapter-name">${chapter.name}</div>
+                    <div class="chapter-desc">${chapter.desc}</div>
                 </div>
                 ${isUnlocked ? '' : '<span class="chapter-lock">🔒</span>'}
             `;
 
             if (isUnlocked) {
                 item.addEventListener('click', () => {
-                    this.startFromChapter(chapter.id, chapter.start);
+                    this.startFromChapter(chapter.id, chapter.startIndex);
                 });
             } else {
+                // Effet shake sur les chapitres verrouillés
                 item.addEventListener('click', () => {
-                    this.showLockedChapterFeedback(item);
+                    this.showLockedChapterToast(chapter.name);
+                    item.classList.add('shake-locked');
+                    setTimeout(() => item.classList.remove('shake-locked'), 500);
                 });
             }
 
             chapterList.appendChild(item);
         });
+    }
+
+    showLockedChapterToast(chapterName) {
+        // Créer ou réutiliser le toast
+        let toast = document.getElementById('chapter-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'chapter-toast';
+            toast.className = 'chapter-toast';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = `🔒 ${chapterName} - Continuez l'histoire pour débloquer !`;
+        toast.classList.add('visible');
+
+        setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 2500);
     }
 
     openChapterModal() {
@@ -2699,7 +3330,7 @@ class VisualNovelEngine {
         }
     }
 
-    startFromChapter(chapterId, sceneIndex) {
+    startFromChapter(chapterId, startIndex) {
         // Fermer la modale
         this.closeChapterModal();
 
@@ -2710,7 +3341,7 @@ class VisualNovelEngine {
         this.transitionScreen(this.screens.start, this.screens.vn);
 
         // Positionner à la scène du chapitre
-        this.currentSceneIndex = sceneIndex;
+        this.currentSceneIndex = startIndex;
         this.currentSceneId = 'hospital';
         this.finalRestartShown = false;
 
@@ -2722,67 +3353,54 @@ class VisualNovelEngine {
         // Démarrer à la scène sélectionnée
         setTimeout(() => this.playScene(), 600);
 
-        console.log(`📖 Démarrage depuis le chapitre: ${chapterId} (scène ${sceneIndex})`);
+        console.log(`📖 Démarrage depuis le chapitre: ${chapterId} (scène ${startIndex})`);
     }
 
-    showLockedChapterFeedback(target) {
-        if (target && target.animate) {
-            target.animate(
-                [
-                    { transform: 'translateX(0)' },
-                    { transform: 'translateX(-6px)' },
-                    { transform: 'translateX(6px)' },
-                    { transform: 'translateX(0)' }
-                ],
-                { duration: 350, easing: 'ease-in-out' }
-            );
+    // ============================================
+    // SYSTÈME DE PROGRESSION (localStorage)
+    // ============================================
+
+    getProgress() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_PROGRESS);
+            return stored ? Number(stored) : 0;
+        } catch (e) {
+            return 0;
         }
-        this.showToast('🔒 Chapitre verrouillé. Continue l’aventure pour le débloquer.');
     }
 
-    showToast(message) {
-        const existing = document.getElementById('vn-toast');
-        if (existing) existing.remove();
-
-        const toast = document.createElement('div');
-        toast.id = 'vn-toast';
-        toast.textContent = message;
-        toast.style.position = 'fixed';
-        toast.style.left = '50%';
-        toast.style.bottom = '28px';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.background = 'rgba(9, 17, 28, 0.92)';
-        toast.style.color = '#f7f7f7';
-        toast.style.padding = '0.75rem 1.1rem';
-        toast.style.border = '1px solid rgba(255, 255, 255, 0.12)';
-        toast.style.borderRadius = '999px';
-        toast.style.fontSize = '0.9rem';
-        toast.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.35)';
-        toast.style.zIndex = '9999';
-        toast.style.backdropFilter = 'blur(8px)';
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.25s ease';
-
-        document.body.appendChild(toast);
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-        });
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 250);
-        }, 2200);
+    saveProgress(sceneIndex) {
+        try {
+            const currentMax = this.getProgress();
+            const newMax = Math.max(currentMax, sceneIndex);
+            if (newMax > currentMax) {
+                localStorage.setItem(STORAGE_KEY_PROGRESS, String(newMax));
+                console.log(`💾 Progression sauvegardée: scène ${newMax}`);
+            }
+        } catch (e) {
+            console.warn('Impossible de sauvegarder la progression:', e);
+        }
     }
 
-    markGameCompleted() {
-        updateStoredProgress(SCENARIO.length);
-        console.log('🏆 Jeu terminé ! Tous les chapitres sont maintenant débloqués.');
+    resetProgress() {
+        try {
+            localStorage.setItem(STORAGE_KEY_PROGRESS, '0');
+            console.log('🔄 Progression réinitialisée');
+        } catch (e) {
+            console.warn('Impossible de réinitialiser la progression:', e);
+        }
     }
 
-    unlockAllChaptersDebug() {
-        updateStoredProgress(SCENARIO.length);
-        this.renderChapterList();
-        this.showToast('✨ Debug activé : tous les chapitres sont débloqués.');
+    unlockAllChapters() {
+        try {
+            // Mettre la progression au maximum
+            localStorage.setItem(STORAGE_KEY_PROGRESS, String(SCENARIO.length));
+            console.log('🔓 DEBUG: Tous les chapitres débloqués !');
+            // Rafraîchir la liste si la modale est ouverte
+            this.renderChapterList();
+        } catch (e) {
+            console.warn('Impossible de débloquer les chapitres:', e);
+        }
     }
 
     changeSceneBackground(sceneId) {
@@ -2879,8 +3497,6 @@ class VisualNovelEngine {
             this.endGame();
             return;
         }
-
-        updateStoredProgress(this.currentSceneIndex);
 
         const scene = SCENARIO[this.currentSceneIndex];
 
@@ -3276,13 +3892,70 @@ class VisualNovelEngine {
 
     nextScene() {
         const currentScene = SCENARIO[this.currentSceneIndex];
+
+        // Fin FINALE du jeu (vraie fin) => écran de restart
         if (currentScene && currentScene.finalRestart) {
             this.showFinalRestart();
             return;
         }
+
+        // Fin d'arc/chapitre => afficher overlay et continuer
+        if (currentScene && currentScene.arcEnd) {
+            this.showArcEndOverlay(currentScene.arcEnd);
+            return;
+        }
+
         this.canAdvance = false;
         this.currentSceneIndex++;
+
+        // Sauvegarder la progression à chaque avancée
+        this.saveProgress(this.currentSceneIndex);
+
         this.playScene();
+    }
+
+    /**
+     * Affiche un overlay de fin d'arc avec possibilité de continuer
+     */
+    showArcEndOverlay(arcId) {
+        const overlay = document.createElement('div');
+        overlay.id = 'arc-end-overlay';
+        overlay.className = 'arc-end-overlay';
+        overlay.innerHTML = `
+            <div class="arc-end-content">
+                <div class="arc-end-title">✨ Chapitre terminé ! ✨</div>
+                <div class="arc-end-buttons">
+                    <button class="arc-end-btn continue-btn" id="arc-continue-btn">▶ Continuer l'histoire</button>
+                    <button class="arc-end-btn menu-btn" id="arc-menu-btn">📖 Menu des chapitres</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Fade in
+        requestAnimationFrame(() => {
+            overlay.classList.add('visible');
+        });
+
+        // Bouton Continuer
+        document.getElementById('arc-continue-btn').addEventListener('click', () => {
+            overlay.classList.remove('visible');
+            setTimeout(() => {
+                overlay.remove();
+                this.currentSceneIndex++;
+                this.saveProgress(this.currentSceneIndex);
+                this.playScene();
+            }, 300);
+        });
+
+        // Bouton Menu
+        document.getElementById('arc-menu-btn').addEventListener('click', () => {
+            overlay.classList.remove('visible');
+            setTimeout(() => {
+                overlay.remove();
+                this.openChapterModal();
+            }, 300);
+        });
     }
 
     resetCharacters() {
@@ -3293,8 +3966,8 @@ class VisualNovelEngine {
     }
 
     endGame() {
-        // Marquer le jeu comme terminé pour débloquer tous les chapitres
-        this.markGameCompleted();
+        // Sauvegarder la progression maximale (fin du jeu)
+        this.saveProgress(SCENARIO.length);
 
         setTimeout(() => {
             this.audioManager.stopMusic();
@@ -3337,7 +4010,6 @@ class VisualNovelEngine {
         button.className = 'credits-restart-btn';
         button.textContent = "RECOMMENCER L'HISTOIRE";
         button.addEventListener('click', () => {
-            resetStoredProgress();
             location.reload();
         });
 
