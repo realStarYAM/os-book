@@ -12,6 +12,18 @@
 
 let currentAudio = null;
 
+function stopAudio() {
+    try {
+        if (currentAudio && typeof currentAudio.pause === 'function') {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+    } catch (e) {
+        console.log('Erreur mineure audio (ignorée) :', e);
+    }
+    currentAudio = null;
+}
+
 class AudioManager {
     constructor() {
         this.bgm = null;
@@ -46,15 +58,7 @@ class AudioManager {
             this.fadeInterval = null;
         }
 
-        if (currentAudio) {
-            try {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            } catch (e) {
-                console.warn('Erreur arrêt musique:', e);
-            }
-        }
+        stopAudio();
         this.bgm = null;
         this.currentBgmPath = null;
     }
@@ -98,15 +102,7 @@ class AudioManager {
             const audioToStop = this.bgm;
 
             this.fadeOut(audioToStop, 1500, () => {
-                if (currentAudio) {
-                    try {
-                        currentAudio.pause();
-                        currentAudio.currentTime = 0;
-                        currentAudio = null;
-                    } catch (e) {
-                        console.warn('Erreur arrêt musique fade:', e);
-                    }
-                }
+                stopAudio();
             });
 
             this.bgm = null;
