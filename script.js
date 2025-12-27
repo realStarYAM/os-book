@@ -81,8 +81,12 @@ class AudioManager {
         console.log('🎵 Nouvelle musique:', path);
 
         const playPromise = this.bgm.play();
-        if (playPromise) {
-            playPromise.catch(e => console.warn('Autoplay bloqué:', e));
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log(`Audio démarré : ${path}`);
+            }).catch(error => {
+                console.log('Erreur lecture (Safari bloque souvent ici) :', error);
+            });
         }
 
         if (fadeIn) {
