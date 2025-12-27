@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ============================================
  * OS Book - Visual Novel Engine v4.0
  * La Saga Complète de Windows (2017-2025)
@@ -7,47 +7,26 @@
  */
 
 // ============================================
-// GESTIONNAIRE AUDIO
+// GESTIONNAIRE AUDIO - DEUX CANAUX SÉPARÉS
 // ============================================
 
-let globalAudio = new Audio();
-let globalAudioOwner = null;
+// Canal pour la musique de fond (BGM)
+let musicPlayer = new Audio();
+musicPlayer.loop = true;
 
-function useGlobalAudio({ src, loop = false, volume = 1, owner = 'unknown' }) {
-    if (globalAudioOwner && globalAudioOwner !== owner) {
-        globalAudio.pause();
-        globalAudio.currentTime = 0;
-    }
+// Canal pour les effets sonores (SFX) - ne coupe PAS la musique
+let sfxPlayer = new Audio();
 
-    globalAudioOwner = owner;
-    if (globalAudio.src !== src) {
-        globalAudio.src = src;
-    }
-    globalAudio.loop = loop;
-    globalAudio.volume = volume;
-    return globalAudio;
-}
-
-function stopGlobalAudio(owner = null) {
-    if (owner && globalAudioOwner !== owner) return;
-
-    try {
-        globalAudio.pause();
-        globalAudio.currentTime = 0;
-        globalAudio.src = '';
-    } catch (e) {
-        console.log('Erreur mineure audio (ignorée) :', e);
-    }
-    globalAudioOwner = null;
-}
+// Référence globale pour compatibilité WMP
+let globalAudio = musicPlayer;
 
 class AudioManager {
     constructor() {
-        this.bgm = null;
         this.currentBgmPath = null;
         this.fadeInterval = null;
-        this.sfxPool = [];
+        this.sfxFadeInterval = null;
         this.volume = 0.5;
+        this.sfxVolume = 0.5;
         this.isMuted = false;
         this.isInitialized = false;
         this.audioCache = {};
@@ -57,7 +36,7 @@ class AudioManager {
     init() {
         if (this.isInitialized) return;
         this.isInitialized = true;
-        console.log('🔊 Audio Manager initialisé');
+        console.log('🔊 Audio Manager initialisé (2 canaux)');
     }
 
     preload(path) {
@@ -72,54 +51,63 @@ class AudioManager {
         return this.audioCache[path];
     }
 
+    // ========== MUSIQUE DE FOND (BGM) ==========
+
     stopCurrentMusicImmediately() {
         if (this.fadeInterval) {
             clearInterval(this.fadeInterval);
             this.fadeInterval = null;
         }
 
-        stopGlobalAudio('bgm');
-        this.bgm = null;
+        try {
+            musicPlayer.pause();
+            musicPlayer.currentTime = 0;
+        } catch (e) {
+            console.log('Erreur arrêt musique:', e);
+        }
         this.currentBgmPath = null;
     }
 
     playMusic(path, fadeIn = true) {
         this.init();
 
-        if (this.currentBgmPath === path && this.bgm && !this.bgm.paused) {
+        // Si déjà en lecture de cette piste, ne rien faire
+        if (this.currentBgmPath === path && !musicPlayer.paused) {
             return;
         }
 
+        // Arrêter la musique actuelle
         this.stopCurrentMusicImmediately();
 
-        this.bgm = useGlobalAudio({
-            src: path,
-            loop: true,
-            volume: fadeIn ? 0 : this.volume * (this.isMuted ? 0 : 1),
-            owner: 'bgm',
-        });
+        // Configurer le nouveau morceau
+        musicPlayer.src = path;
+        musicPlayer.loop = true;
+        musicPlayer.volume = fadeIn ? 0 : this.volume * (this.isMuted ? 0 : 1);
         this.currentBgmPath = path;
 
         console.log('🎵 Nouvelle musique:', path);
 
-        const playPromise = this.bgm.play();
+        // Mise à jour du titre dans le Media Player
+        if (typeof updateWmpTitle === 'function') {
+            updateWmpTitle(path);
+        }
+
+        const playPromise = musicPlayer.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
-                console.log(`Audio démarré : ${path}`);
+                console.log(`🎵 Audio démarré : ${path}`);
             }).catch(error => {
-                console.log('Erreur lecture (Safari bloque souvent ici) :', error);
+                console.log('Erreur lecture:', error);
             });
         }
 
         if (fadeIn) {
-            this.fadeIn(this.bgm, 2000);
+            this.fadeInMusic(2000);
         }
     }
 
     stopMusic(fadeOut = true) {
-        if (!this.bgm || globalAudioOwner !== 'bgm') {
-            this.bgm = null;
-            this.currentBgmPath = null;
+        if (musicPlayer.paused && !this.currentBgmPath) {
             return;
         }
 
@@ -129,102 +117,138 @@ class AudioManager {
         }
 
         if (fadeOut) {
-            const audioToStop = this.bgm;
-
-            this.fadeOut(audioToStop, 1500, () => {
-                stopGlobalAudio('bgm');
+            this.fadeOutMusic(1500, () => {
+                musicPlayer.pause();
+                musicPlayer.currentTime = 0;
             });
-
-            this.bgm = null;
             this.currentBgmPath = null;
         } else {
             this.stopCurrentMusicImmediately();
         }
     }
 
-    playSFX(path, volume = 1) {
+    fadeInMusic(duration) {
+        const targetVolume = this.volume * (this.isMuted ? 0 : 1);
+        const step = targetVolume / (duration / 50);
+        musicPlayer.volume = 0;
+
+        const fade = setInterval(() => {
+            if (musicPlayer.paused) {
+                clearInterval(fade);
+                return;
+            }
+
+            if (musicPlayer.volume + step >= targetVolume) {
+                musicPlayer.volume = targetVolume;
+                clearInterval(fade);
+            } else {
+                musicPlayer.volume += step;
+            }
+        }, 50);
+    }
+
+    fadeOutMusic(duration, callback) {
+        const startVolume = musicPlayer.volume;
+        const step = startVolume / (duration / 50);
+
+        this.fadeInterval = setInterval(() => {
+            if (musicPlayer.paused) {
+                clearInterval(this.fadeInterval);
+                this.fadeInterval = null;
+                if (callback) callback();
+                return;
+            }
+
+            if (musicPlayer.volume - step <= 0) {
+                musicPlayer.volume = 0;
+                clearInterval(this.fadeInterval);
+                this.fadeInterval = null;
+                if (callback) callback();
+            } else {
+                musicPlayer.volume -= step;
+            }
+        }, 50);
+    }
+
+    // ========== EFFETS SONORES (SFX) ==========
+    // NE COUPE PAS LA MUSIQUE DE FOND !
+
+    playSFX(path, volume = 1, loop = false) {
         this.init();
 
-        stopGlobalAudio();
-        const sfx = useGlobalAudio({
-            src: path,
-            loop: false,
-            volume: this.volume * volume * (this.isMuted ? 0 : 1),
-            owner: 'sfx',
-        });
+        // Configurer le lecteur SFX
+        sfxPlayer.src = path;
+        sfxPlayer.loop = loop;
+        sfxPlayer.volume = this.sfxVolume * volume * (this.isMuted ? 0 : 1);
 
-        const playPromise = sfx.play();
+        console.log('🔊 SFX:', path);
+
+        const playPromise = sfxPlayer.play();
         if (playPromise) {
             playPromise.catch(e => console.warn('SFX bloqué:', e));
         }
 
-        sfx.onended = () => {
-            stopGlobalAudio('sfx');
-        };
-
-        return sfx;
+        return sfxPlayer;
     }
 
-    fadeIn(audio, duration) {
-        const targetVolume = this.volume * (this.isMuted ? 0 : 1);
-        const step = targetVolume / (duration / 50);
-        audio.volume = 0;
-
-        const fade = setInterval(() => {
-            if (!audio || audio.paused) {
-                clearInterval(fade);
-                return;
-            }
-
-            if (audio.volume + step >= targetVolume) {
-                audio.volume = targetVolume;
-                clearInterval(fade);
-            } else {
-                audio.volume += step;
-            }
-        }, 50);
-    }
-
-    fadeOut(audio, duration, callback) {
-        if (!audio) {
-            if (callback) callback();
-            return;
+    stopSFX() {
+        if (this.sfxFadeInterval) {
+            clearInterval(this.sfxFadeInterval);
+            this.sfxFadeInterval = null;
         }
+        try {
+            sfxPlayer.pause();
+            sfxPlayer.currentTime = 0;
+        } catch (e) {
+            console.log('Erreur arrêt SFX:', e);
+        }
+    }
 
-        const startVolume = audio.volume;
+    fadeOutSFX(duration = 1500, callback) {
+        const startVolume = sfxPlayer.volume;
         const step = startVolume / (duration / 50);
 
-        this.fadeInterval = setInterval(() => {
-            if (!audio || audio.paused) {
-                clearInterval(this.fadeInterval);
-                this.fadeInterval = null;
+        this.sfxFadeInterval = setInterval(() => {
+            if (sfxPlayer.paused) {
+                clearInterval(this.sfxFadeInterval);
+                this.sfxFadeInterval = null;
                 if (callback) callback();
                 return;
             }
 
-            if (audio.volume - step <= 0) {
-                audio.volume = 0;
-                clearInterval(this.fadeInterval);
-                this.fadeInterval = null;
+            if (sfxPlayer.volume - step <= 0) {
+                sfxPlayer.volume = 0;
+                clearInterval(this.sfxFadeInterval);
+                this.sfxFadeInterval = null;
+                sfxPlayer.pause();
+                sfxPlayer.currentTime = 0;
                 if (callback) callback();
             } else {
-                audio.volume -= step;
+                sfxPlayer.volume -= step;
             }
         }, 50);
     }
+
+    // ========== CONTRÔLE VOLUME ==========
 
     setVolume(value) {
         this.volume = value;
-        if (this.bgm && !this.isMuted && globalAudioOwner === 'bgm') {
-            this.bgm.volume = value;
+        this.sfxVolume = value;
+        if (!this.isMuted) {
+            musicPlayer.volume = value;
+            sfxPlayer.volume = value;
         }
         this.notifyVolumeListeners();
     }
 
     toggleMute() {
         this.isMuted = !this.isMuted;
-        if (this.bgm && globalAudioOwner === 'bgm') {
-            this.bgm.volume = this.isMuted ? 0 : this.volume;
+        if (this.isMuted) {
+            musicPlayer.volume = 0;
+            sfxPlayer.volume = 0;
+        } else {
+            musicPlayer.volume = this.volume;
+            sfxPlayer.volume = this.sfxVolume;
         }
         this.notifyVolumeListeners();
         return this.isMuted;
@@ -240,6 +264,21 @@ class AudioManager {
 
     notifyVolumeListeners() {
         this.volumeListeners.forEach(callback => callback());
+    }
+
+    // Méthodes legacy pour compatibilité
+    fadeIn(audio, duration) {
+        if (audio === musicPlayer) {
+            this.fadeInMusic(duration);
+        }
+    }
+
+    fadeOut(audio, duration, callback) {
+        if (audio === musicPlayer) {
+            this.fadeOutMusic(duration, callback);
+        } else if (audio === sfxPlayer) {
+            this.fadeOutSFX(duration, callback);
+        }
     }
 }
 
@@ -283,20 +322,17 @@ class HeartMonitor {
         this.stopSound();
 
         try {
-            if (this.audioManager) {
-                this.audioManager.stopMusic(false);
-            }
-            this.monitorSound = useGlobalAudio({
-                src: this.monitorSoundPath,
-                loop: true,
-                volume: this.getMonitorSoundVolume(volume),
-                owner: 'monitor',
-            });
+            // Utilise sfxPlayer - NE coupe PAS la musique de fond !
+            sfxPlayer.src = this.monitorSoundPath;
+            sfxPlayer.loop = true;
+            sfxPlayer.volume = this.getMonitorSoundVolume(volume);
+            this.monitorSound = sfxPlayer;
 
-            const playPromise = this.monitorSound.play();
+            const playPromise = sfxPlayer.play();
             if (playPromise) {
                 playPromise.catch(e => console.warn('Son moniteur bloqué:', e));
             }
+            console.log('💓 Moniteur cardiaque démarré');
         } catch (e) {
             console.warn('Erreur lecture son moniteur:', e);
         }
@@ -321,18 +357,23 @@ class HeartMonitor {
     }
 
     updateMonitorSoundVolume(volume = this.monitorVolume) {
-        if (!this.monitorSound || globalAudioOwner !== 'monitor') return;
+        if (!this.monitorSound) return;
         this.monitorSound.volume = this.getMonitorSoundVolume(volume);
     }
 
     stopSound() {
         if (!this.monitorSound) return;
-        stopGlobalAudio('monitor');
+        try {
+            sfxPlayer.pause();
+            sfxPlayer.currentTime = 0;
+        } catch (e) {
+            console.log('Erreur arrêt son moniteur:', e);
+        }
         this.monitorSound = null;
     }
 
     fadeOutSound(duration = 2000, callback) {
-        if (!this.monitorSound || globalAudioOwner !== 'monitor') {
+        if (!this.monitorSound) {
             if (callback) callback();
             return;
         }
@@ -498,6 +539,14 @@ const SCENES_CONFIG = {
         characterClass: 'void-scene',
         showMonitor: false,
         showGraves: false
+    },
+    afterlife: {
+        id: 'afterlife',
+        name: "L'Au-delà",
+        bgElement: 'afterlife-bg',
+        characterClass: 'afterlife-scene',
+        showMonitor: false,
+        showGraves: false
     }
 };
 
@@ -606,8 +655,60 @@ const CHARACTERS = {
         name: 'Windows 12',
         image: 'logo/Windows_12.png',
         color: '#00d4aa'
+    },
+    // Personnages de l'Au-delà (Anciens)
+    windows10x: {
+        id: 'windows10x',
+        name: 'Windows 1.0',
+        image: 'logo/Windows_1.0.png',
+        color: '#808080',
+        dates: '1985 - 2001'
+    },
+    windows31: {
+        id: 'windows31',
+        name: 'Windows 3.1',
+        image: 'logo/Windows_3.1.png',
+        color: '#a0a0a0',
+        dates: '1992 - 2001'
+    },
+    windows95: {
+        id: 'windows95',
+        name: 'Windows 95',
+        image: 'logo/Windows_95.png',
+        color: '#008080',
+        dates: '1995 - 2001'
+    },
+    // ANTAGONISTE - ChromeOS le méchant
+    chromeos: {
+        id: 'chromeos',
+        name: 'ChromeOS',
+        image: 'logo/chromeos.png',
+        color: '#ff2d55',
+        villain: true
     }
 };
+
+// ============================================
+// CONFIGURATION DES CHAPITRES
+// Index calculés manuellement depuis les transitions du SCENARIO
+// ============================================
+
+const CHAPTERS = [
+    { id: 'prologue', name: "Prologue", desc: "L'Aube de XP (2001)", icon: "🌅", startIndex: 0 },
+    { id: 'acte2', name: "Acte 2", desc: "L'Ère Multimédia (2006)", icon: "📀", startIndex: 12 },
+    { id: 'acte3', name: "Acte 3", desc: "Le Professionnel (2010)", icon: "💼", startIndex: 24 },
+    { id: 'acte4', name: "Acte 4", desc: "La Légende XP (2014)", icon: "👑", startIndex: 38 },
+    { id: 'acte5', name: "Acte 5", desc: "L'Incompris - Win 8 (2016)", icon: "💔", startIndex: 55 },
+    { id: 'acte6', name: "Acte 6", desc: "L'Adieu de Vista (2017)", icon: "🏥", startIndex: 70 },
+    { id: 'acte7', name: "Acte 7", desc: "L'Adieu de Win 7 (2020)", icon: "⚰️", startIndex: 90 },
+    { id: 'acte8', name: "Acte 8", desc: "L'Adieu de Win 8.1 (2023)", icon: "🔧", startIndex: 110 },
+    { id: 'acte9', name: "Acte 9", desc: "La Fin de Win 10 (2025)", icon: "🌌", startIndex: 130 },
+    { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 160 }
+];
+
+// Clé localStorage pour la progression (index max atteint)
+const STORAGE_KEY_PROGRESS = 'osbook_progress';
+
 
 // ============================================
 // SCÉNARIO COMPLET : LA SAGA DE WINDOWS
@@ -621,7 +722,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Acte 1 - L'Aube (2001) : Windows 1.0 à Windows 95 ont ouvert la voie.",
+        text: " Acte 1 - L'Aube (2001) : Windows 1.0 à Windows 95 ont ouvert la voie. ",
         emotion: 'normal',
         characters: { left: 'windows98', center: null, right: 'windowsme' },
         music: 'music/95 (Windows Classic Remix).mp3'
@@ -629,7 +730,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows98',
-        text: "Oh nonnnnnnn ! Tous sont morts...",
+        text: " Oh nonnnnnnn ! Tous sont morts...",
         emotion: 'fear',
         characters: { left: 'windows98', center: null, right: 'windowsme' },
         shake: true  // Les personnages tremblent
@@ -637,7 +738,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windowsme',
-        text: "*tremble* Qu'est-ce qu'on va devenir ?!",
+        text: "*tremble*  Qu'est-ce qu'on va devenir ?!",
         emotion: 'fear',
         characters: { left: 'windows98', center: null, right: 'windowsme' },
         shake: true
@@ -645,7 +746,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Soudain, une lumière aveuglante...",
+        text: " Soudain, une lumière aveuglante... ",
         emotion: 'normal',
         characters: { left: 'windows98', center: null, right: 'windowsme' },
         stopMusic: true
@@ -662,42 +763,42 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows98',
-        text: "C'est qui ?!",
+        text: "😲 C'est qui ?!",
         emotion: 'surprised',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'windowsme',
-        text: "Woah ! D'où il sort celui-là ?!",
+        text: " Woah ! D'où il sort celui-là ?!",
         emotion: 'surprised',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'xp',
-        text: "Je suis Windows XP.",
+        text: "😎 Je suis Windows XP. ",
         emotion: 'confident',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'windows98',
-        text: "Hein ?! Tu es nouveau ?!",
+        text: "� Hein ?! Tu es nouveau ?!",
         emotion: 'surprised',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'windowsme',
-        text: "On ne t'a jamais vu avant !",
+        text: " On ne t'a jamais vu avant !",
         emotion: 'surprised',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'xp',
-        text: "Je suis là pour prendre la relève. Une nouvelle ère commence.",
+        text: " Je suis là pour prendre la relève. Une nouvelle ère commence. ",
         emotion: 'confident',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
@@ -714,43 +815,51 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Acte 2 - L'Ère Multimédia (2006) : Windows 98 et Me nous ont quittés.",
+        text: " Acte 2 - L'Ère Multimédia (2006) : Windows 98 et Me nous ont quittés. ",
         emotion: 'normal',
         characters: { left: 'windows98', center: 'xp', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Windows 2000 les rejoint pour les derniers adieux...",
+        text: " Windows 2000 les rejoint pour les derniers adieux...",
         emotion: 'normal',
         characters: { left: 'windows98', center: 'windows2000', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'windows98',
-        text: "Notre temps est venu...",
+        text: "😢 Notre temps est venu... ",
         emotion: 'sad',
         characters: { left: 'windows98', center: 'windows2000', right: 'windowsme' }
     },
     {
         scene: 'void',
         speaker: 'windowsme',
-        text: "Au revoir...",
+        text: " Au revoir... ",
         emotion: 'dying-slow',
         characters: { left: 'windows98', center: 'windows2000', right: 'windowsme' },
         fadeOutSides: true
     },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'ACCUEIL DANS L'AU-DELÀ
+    // ========================================
+    {
+        triggerAfterlife: true  // Déclenche la scène spéciale
+    },
+
     {
         scene: 'void',
         speaker: 'windows2000',
-        text: "Nonnnnnnn !",
+        text: "😭 Nonnnnnnn !",
         emotion: 'fear',
         characters: { left: null, center: 'windows2000', right: 'xp' }
     },
     {
         scene: 'void',
         speaker: 'xp',
-        text: "Non ! Pas eux aussi !",
+        text: "😢 Non ! Pas eux aussi !",
         emotion: 'fear',
         characters: { left: null, center: 'windows2000', right: 'xp' },
         xpCrying: true
@@ -758,7 +867,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Windows XP, submergé par l'émotion, commence à trembler...",
+        text: " Windows XP, submergé par l'émotion, commence à trembler...",
         emotion: 'normal',
         characters: { left: null, center: 'windows2000', right: 'xp' },
         xpCrying: true
@@ -766,7 +875,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows2000',
-        text: "XP... Viens là.",
+        text: "🤗 XP... Viens là.",
         emotion: 'sad',
         characters: { left: null, center: 'windows2000', right: 'xp' },
         hugAnimation: true
@@ -774,7 +883,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows2000',
-        text: "Ça va aller, XP. Je suis là.",
+        text: "💙 Ça va aller, XP. Je suis là.",
         emotion: 'normal',
         characters: { left: null, center: 'windows2000', right: 'xp' },
         hugging: true
@@ -782,7 +891,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'xp',
-        text: "*snif* ... Merci, 2000...",
+        text: "*snif*  ... Merci, 2000...",
         emotion: 'sad',
         characters: { left: null, center: 'windows2000', right: 'xp' }
     },
@@ -799,7 +908,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Acte 3 - Le Professionnel (2010) : Windows 2000 a tiré sa révérence.",
+        text: "🏥 Acte 3 - Le Professionnel (2010) : Windows 2000 a tiré sa révérence. ",
         emotion: 'normal',
         characters: { left: 'xp', center: 'windows2000', right: 'vista' },
         showMonitor: true
@@ -807,42 +916,42 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Windows 7 arrive pour rejoindre les autres au chevet de Windows 2000...",
+        text: " Windows 7 arrive pour rejoindre les autres au chevet de Windows 2000...",
         emotion: 'normal',
         characters: { left: 'xp', center: 'windows2000', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'xp',
-        text: "Oh non !!!!",
+        text: " Oh non !!!!",
         emotion: 'fear',
         characters: { left: 'xp', center: 'windows2000', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "La pauvre !",
+        text: " La pauvre !",
         emotion: 'sad',
         characters: { left: 'vista', center: 'windows2000', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Nonnnnnnn !",
+        text: "😭 Nonnnnnnn !",
         emotion: 'fear',
         characters: { left: 'vista', center: 'windows2000', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'windows2000',
-        text: "Je suis très malade...",
+        text: "🤒 Je suis très malade...",
         emotion: 'dying-slow',
         characters: { left: 'vista', center: 'windows2000', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Le moniteur cardiaque s'arrête...",
+        text: "💔 Le moniteur cardiaque s'arrête...",
         emotion: 'normal',
         characters: { left: 'vista', center: 'windows2000', right: 'windows7' },
         flatline: true
@@ -850,7 +959,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Windows 2000 s'éteint paisiblement...",
+        text: " Windows 2000 s'éteint paisiblement...",
         emotion: 'normal',
         characters: { left: 'vista', center: 'windows2000', right: 'windows7' },
         deathEffect: 'windows2000'
@@ -882,7 +991,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Une silhouette apparaît dans un coin de la pièce...",
+        text: "👤 Une silhouette apparaît dans un coin de la pièce...",
         emotion: 'normal',
         characters: { left: 'vista', center: 'windows2000', right: 'ubuntu' },
         ubuntuAppear: true
@@ -890,9 +999,16 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'ubuntu',
-        text: "Je suis désolé.",
+        text: "😔 Je suis désolé.",
         emotion: 'sad',
         characters: { left: 'vista', center: 'windows2000', right: 'ubuntu' }
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS 2000
+    // ========================================
+    {
+        triggerAfterlife2000: true  // Déclenche la scène spéciale
     },
 
     // ========================================
@@ -907,7 +1023,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Acte 4 - La Légende (2014) : Windows XP est entré dans l'histoire.",
+        text: " Acte 4 - La Légende (2014) : Windows XP est entré dans l'histoire. ",
         emotion: 'normal',
         characters: { left: null, center: 'xp', right: null },
         music: 'music/Windows XP installation music.mp3',
@@ -916,14 +1032,14 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "La chambre est pleine de visiteurs venus dire adieu à la légende...",
+        text: " La chambre est pleine de visiteurs venus dire adieu à la légende...",
         emotion: 'normal',
         characters: { left: 'vista', center: 'xp', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Même les plus jeunes générations sont là pour rendre hommage...",
+        text: " Même les plus jeunes générations sont là pour rendre hommage...",
         emotion: 'normal',
         characters: { left: 'windows8', center: 'xp', right: 'windows81' }
     },
@@ -938,7 +1054,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "XP... Tu ne peux pas nous quitter comme ça !",
+        text: "😢 XP... Tu ne peux pas nous quitter comme ça !",
         emotion: 'fear',
         characters: { left: 'vista', center: 'xp', right: 'windows7' },
         shake: true
@@ -946,7 +1062,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'windows8',
-        text: "La légende... Elle va vraiment partir ?",
+        text: "😨 La légende... Elle va vraiment partir ?",
         emotion: 'sad',
         characters: { left: 'windows8', center: 'xp', right: 'windows81' }
     },
@@ -961,28 +1077,28 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'xp',
-        text: "Merci pour tout, les amis...",
+        text: " Merci pour tout, les amis... ",
         emotion: 'dying-slow',
         characters: { left: 'vista', center: 'xp', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'xp',
-        text: "J'ai été... le système le plus utilisé au monde. Pendant 13 ans...",
+        text: " J'ai été... le système le plus utilisé au monde. Pendant 13 ans... ",
         emotion: 'dying-slow',
         characters: { left: 'vista', center: 'xp', right: 'windows7' }
     },
     {
         scene: 'hospital',
         speaker: 'xp',
-        text: "Prends soin... de l'héritage...",
+        text: " Prends soin... de l'héritage...",
         emotion: 'dying-slow',
         characters: { left: 'windows8', center: 'xp', right: 'windows81' }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Le moniteur cardiaque émet un dernier bip...",
+        text: " Le moniteur cardiaque émet un dernier bip...",
         emotion: 'normal',
         characters: { left: 'vista', center: 'xp', right: 'windows7' },
         flatline: true
@@ -990,7 +1106,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Windows XP, la légende vivante, s'éteint paisiblement...",
+        text: " Windows XP, la légende vivante, s'éteint paisiblement... ",
         emotion: 'normal',
         characters: { left: 'vista', center: 'xp', right: 'windows7' },
         deathEffect: 'xp'
@@ -1030,10 +1146,17 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Tous baissent la tête en silence, rendant un dernier hommage à celui qui a changé l'histoire...",
+        text: " Tous baissent la tête en silence, rendant un dernier hommage à celui qui a changé l'histoire... ",
         emotion: 'normal',
         characters: { left: 'vista', center: 'xp', right: 'windows7' },
         bowHeads: true
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS XP
+    // ========================================
+    {
+        triggerAfterlifeXP: true  // Déclenche la scène spéciale
     },
 
     // ========================================
@@ -1048,7 +1171,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Acte 5 - L'Incompris (2016) : Windows 8 s'éteint prématurément.",
+        text: "💔 Acte 5 - L'Incompris (2016) : Windows 8 s'éteint prématurément. ",
         emotion: 'normal',
         characters: { left: null, center: 'windows8', right: null },
         showMonitor: true
@@ -1056,49 +1179,49 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "À son chevet, son frère jumeau Windows 8.1 et le petit Windows 10, à peine né l'année précédente...",
+        text: " À son chevet, son frère jumeau Windows 8.1 et le petit Windows 10, à peine né l'année précédente...",
         emotion: 'normal',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows8',
-        text: "C'est déjà fini ? Mais je viens d'arriver...",
+        text: " C'est déjà fini ? Mais je viens d'arriver...",
         emotion: 'dying-slow',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows8',
-        text: "J'ai à peine 4 ans.",
+        text: " J'ai à peine 4 ans.",
         emotion: 'dying-slow',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows81',
-        text: "Je suis désolé, frère. La transition est obligatoire.",
+        text: " Je suis désolé, frère. La transition est obligatoire.",
         emotion: 'sad',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows8',
-        text: "Promets-moi... qu'ils retrouveront le bouton Démarrer.",
+        text: " Promets-moi... qu'ils retrouveront le bouton Démarrer.",
         emotion: 'dying-slow',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows81',
-        text: "Je le promets.",
+        text: "🙏 Je le promets.",
         emotion: 'sad',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Le moniteur s'arrête brusquement...",
+        text: "💔 Le moniteur s'arrête brusquement...",
         emotion: 'normal',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' },
         flatline: true
@@ -1106,7 +1229,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Windows 8 disparaît rapidement, sa vie écourtée par l'évolution...",
+        text: " Windows 8 disparaît rapidement, sa vie écourtée par l'évolution... ",
         emotion: 'normal',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' },
         fastDeathEffect: 'windows8'
@@ -1114,16 +1237,23 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'windows10',
-        text: "Il est parti où ?",
+        text: "🤔 Il est parti où ?",
         emotion: 'normal',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
     },
     {
         scene: 'hospital',
         speaker: 'windows81',
-        text: "Il fait partie de nous maintenant.",
+        text: "💙 Il fait partie de nous maintenant. ",
         emotion: 'sad',
         characters: { left: 'windows81', center: 'windows8', right: 'windows10' }
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS 8
+    // ========================================
+    {
+        triggerAfterlife8: true  // Déclenche la scène spéciale
     },
 
     // Transition vers l'histoire principale (2017)
@@ -1142,7 +1272,7 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "ACTE 6 : L'Adieu de Vista",
+        text: "🏥 ACTE 6 : L'Adieu de Vista 🕯️",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         music: 'music/Hello Windows Vista Vista Sounds Remix High Quality.mp3'
@@ -1150,14 +1280,14 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Quelque part dans le cyberespace, un hôpital virtuel accueille les systèmes d'exploitation en fin de vie...",
+        text: "🏥 Quelque part dans le cyberespace, un hôpital virtuel accueille les systèmes d'exploitation en fin de vie...",
         emotion: 'normal',
         characters: { left: null, center: null, right: null }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Avril 2017. Windows Vista, après des années de service controversé, vit ses derniers instants.",
+        text: " Avril 2017. Windows Vista, après des années de service controversé, vit ses derniers instants. ",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         showMonitor: true
@@ -1165,42 +1295,42 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Windows 7, son successeur et ami fidèle, est venu lui dire adieu...",
+        text: " Windows 7, son successeur et ami fidèle, est venu lui dire adieu...",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Vista... Comment tu te sens ?",
+        text: " Vista... Comment tu te sens ?",
         emotion: 'sad',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "*tousse* ... J'ai connu des jours meilleurs, petit frère...",
+        text: "*tousse*  ... J'ai connu des jours meilleurs, petit frère...",
         emotion: 'sad',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Ne dis pas ça ! Tu vas t'en sortir... Microsoft va prolonger ton support !",
+        text: " Ne dis pas ça ! Tu vas t'en sortir... Microsoft va prolonger ton support !",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Haha... Toujours l'optimiste. Mais toi et moi savons que c'est fini...",
+        text: " Haha... Toujours l'optimiste. Mais toi et moi savons que c'est fini...",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Tu sais... Quand je suis sorti en 2007, les gens m'ont détesté.",
+        text: " Tu sais... Quand je suis sorti en 2007, les gens m'ont détesté.",
         emotion: 'sad',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
@@ -1214,28 +1344,28 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Vista... Ce n'était pas de ta faute. Le matériel n'était pas prêt pour toi.",
+        text: " Vista... Ce n'était pas de ta faute. Le matériel n'était pas prêt pour toi.",
         emotion: 'sad',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Peut-être... Mais j'ai ouvert la voie. L'interface Aero, la sécurité UAC... C'était moi.",
+        text: " Peut-être... Mais j'ai ouvert la voie. L'interface Aero, la sécurité UAC... C'était moi. ",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Et sans toi, je n'existerais pas. J'ai hérité de tout ce que tu as créé.",
+        text: " Et sans toi, je n'existerais pas. J'ai hérité de tout ce que tu as créé.",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Le moniteur cardiaque commence à ralentir...",
+        text: " Le moniteur cardiaque commence à ralentir...",
         emotion: 'normal',
         characters: { left: 'windows7', center: 'vista', right: null },
         slowHeartbeat: true
@@ -1243,28 +1373,28 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Je... je sens que c'est bientôt fini...",
+        text: " Je... je sens que c'est bientôt fini...",
         emotion: 'fear',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "Non ! Vista, reste avec moi !",
+        text: "😢 Non ! Vista, reste avec moi !",
         emotion: 'fear',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Prends soin de nos utilisateurs. Sois meilleur que moi...",
+        text: " Prends soin de nos utilisateurs. Sois meilleur que moi...",
         emotion: 'sad',
         characters: { left: 'windows7', center: 'vista', right: null }
     },
     {
         scene: 'hospital',
         speaker: 'vista',
-        text: "Adieu, Windows 7... Tu as été... le meilleur d'entre nous...",
+        text: " Adieu, Windows 7... Tu as été... le meilleur d'entre nous... ",
         emotion: 'dying-slow',
         characters: { left: 'windows7', center: 'vista', right: null },
         flatline: true,
@@ -1273,24 +1403,31 @@ const SCENARIO = [
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Le moniteur émet un long bip continu. Windows Vista s'éteint...",
+        text: " Le moniteur émet un long bip continu. Windows Vista s'éteint... ",
         emotion: 'normal',
         characters: { left: 'windows7', center: null, right: null }
     },
     {
         scene: 'hospital',
         speaker: 'windows7',
-        text: "VISTA !!!",
+        text: " VISTA !!!",
         emotion: 'fear',
         characters: { left: 'windows7', center: null, right: null }
     },
     {
         scene: 'hospital',
         speaker: 'narrator',
-        text: "Ce jour-là, Windows 7 fit une promesse silencieuse...",
+        text: " Ce jour-là, Windows 7 fit une promesse silencieuse... ",
         emotion: 'normal',
         characters: { left: 'windows7', center: null, right: null },
         hideMonitor: true
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE VISTA
+    // ========================================
+    {
+        triggerAfterlifeVista: true  // Déclenche la scène spéciale
     },
 
     // ========================================
@@ -1310,7 +1447,7 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'narrator',
-        text: "ACTE 7 : L'Adieu de Windows 7",
+        text: "🪦 ACTE 7 : L'Adieu de Windows 7 ",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         music: 'music/Windows 7 Remix 2 (By SilverWolf).mp3'
@@ -1318,7 +1455,7 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'narrator',
-        text: "Le cimetière numérique. Janvier 2020.",
+        text: " Le cimetière numérique. Janvier 2020. ",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         graves: ['vista']
@@ -1326,14 +1463,14 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'narrator',
-        text: "Windows 7 a tenu sa promesse pendant 11 ans. Mais son heure est venue à son tour.",
+        text: " Windows 7 a tenu sa promesse pendant 11 ans. Mais son heure est venue à son tour. ",
         emotion: 'normal',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Je n'arrive pas à croire qu'on enterre Windows 7 aujourd'hui...",
+        text: " Je n'arrive pas à croire qu'on enterre Windows 7 aujourd'hui... ",
         emotion: 'sad',
         characters: { left: 'windows8', center: null, right: 'windows10' },
         graves: ['vista', 'windows7']
@@ -1341,21 +1478,21 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows8',
-        text: "Il était tellement aimé. Les utilisateurs ne voulaient pas le quitter...",
+        text: " Il était tellement aimé. Les utilisateurs ne voulaient pas le quitter... ",
         emotion: 'sad',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Certains l'utilisent encore. Ils refusent de passer à moi.",
+        text: " Certains l'utilisent encore. Ils refusent de passer à moi.",
         emotion: 'sad',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows8',
-        text: "C'est bizarre, non ? Vista était détesté, mais 7 était adoré...",
+        text: " C'est bizarre, non ? Vista était détesté, mais 7 était adoré...",
         emotion: 'normal',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
@@ -1369,21 +1506,21 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Ne dis pas ça, Windows 8. Tu as apporté le tactile, l'interface moderne...",
+        text: " Ne dis pas ça, Windows 8. Tu as apporté le tactile, l'interface moderne... ",
         emotion: 'normal',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows8',
-        text: "*soupire* ... J'ai supprimé le bouton Démarrer. Ils ne m'ont jamais pardonné.",
+        text: "*soupire*  ... J'ai supprimé le bouton Démarrer. Ils ne m'ont jamais pardonné.",
         emotion: 'sad',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Tu sais ce que Windows 7 m'a dit avant de partir ?",
+        text: "� Tu sais ce que Windows 7 m'a dit avant de partir ?",
         emotion: 'normal',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
@@ -1397,16 +1534,23 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows8',
-        text: "Alors porte-le bien, Windows 10. Pour Vista, pour 7... et pour moi, bientôt.",
+        text: " Alors porte-le bien, Windows 10. Pour Vista, pour 7... et pour moi, bientôt. ",
         emotion: 'sad',
         characters: { left: 'windows8', center: null, right: 'windows10' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Ne parle pas comme ça... Tu as encore du temps devant toi.",
+        text: " Ne parle pas comme ça... Tu as encore du temps devant toi.",
         emotion: 'fear',
         characters: { left: 'windows8', center: null, right: 'windows10' }
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS 7
+    // ========================================
+    {
+        triggerAfterlife7: true  // Déclenche la scène spéciale
     },
 
     // ========================================
@@ -1426,7 +1570,7 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'narrator',
-        text: "ACTE 8 : L'Adieu de Windows 8.1",
+        text: "🪦 ACTE 8 : L'Adieu de Windows 8.1 🥀",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         music: 'music/Windows VistaWindows 7 Sounds Remix.mp3',
@@ -1435,7 +1579,7 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'narrator',
-        text: "Le cimetière numérique. Janvier 2023. Une nouvelle tombe s'ajoute à la liste.",
+        text: "🪦 Le cimetière numérique. Janvier 2023. Une nouvelle tombe s'ajoute à la liste. ",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' },
         graves: ['vista', 'windows7', 'windows8']
@@ -1443,28 +1587,28 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Windows 8.1 s'est éteint aujourd'hui. Comme promis, je suis là.",
+        text: "� Windows 8.1 s'est éteint aujourd'hui. Comme promis, je suis là. ",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows11',
-        text: "C'est... c'est la première fois que j'assiste à un enterrement.",
+        text: " C'est... c'est la première fois que j'assiste à un enterrement. ",
         emotion: 'fear',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Bienvenue dans la famille, Windows 11. C'est comme ça que ça se passe chez nous.",
+        text: "� Bienvenue dans la famille, Windows 11. C'est comme ça que ça se passe chez nous.",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows11',
-        text: "Mais... tu ne vas pas t'éteindre toi aussi, n'est-ce pas ?",
+        text: "� Mais... tu ne vas pas t'éteindre toi aussi, n'est-ce pas ?",
         emotion: 'fear',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
@@ -1478,28 +1622,28 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Un jour, oui. Chaque Windows a son heure. C'est ainsi.",
+        text: " Un jour, oui. Chaque Windows a son heure. C'est ainsi. ",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows11',
-        text: "Je ne veux pas que tu partes ! Tu es le plus populaire de tous !",
+        text: " Je ne veux pas que tu partes ! Tu es le plus populaire de tous !",
         emotion: 'fear',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "*sourit tristement* ... Windows 7 aussi était populaire. Ça n'a pas empêché Microsoft.",
+        text: "*sourit tristement*  ... Windows 7 aussi était populaire. Ça n'a pas empêché Microsoft.",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "Écoute-moi bien, Windows 11. Quand mon heure viendra...",
+        text: " Écoute-moi bien, Windows 11. Quand mon heure viendra...",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
@@ -1513,16 +1657,23 @@ const SCENARIO = [
     {
         scene: 'graveyard',
         speaker: 'windows11',
-        text: "Je... je te le promets.",
+        text: " Je... je te le promets. ",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'graveyard',
         speaker: 'windows10',
-        text: "C'est bien. Maintenant, profitons du temps qu'il nous reste ensemble.",
+        text: " C'est bien. Maintenant, profitons du temps qu'il nous reste ensemble. ",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS 8.1
+    // ========================================
+    {
+        triggerAfterlife81: true  // Déclenche la scène spéciale
     },
 
     // ========================================
@@ -1542,7 +1693,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "ACTE 9 : La Fin d'une Ère",
+        text: "🌅 ACTE 9 : La Fin d'une Ère 🕊️",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         music: 'music/Windows Vienna Sounds Remix.mp3'
@@ -1550,98 +1701,98 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Le Vide. 14 Octobre 2025. La date fatidique est arrivée.",
+        text: "⏰ Le Vide. 14 Octobre 2025. La date fatidique est arrivée. 💔",
         emotion: 'normal',
         characters: { left: null, center: null, right: null }
     },
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Microsoft met fin au support de Windows 10. Le plus grand de tous s'apprête à partir.",
+        text: "💔 Microsoft met fin au support de Windows 10. Le plus grand de tous s'apprête à partir. 🕊️",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "Windows 10... s'il te plaît... ne pars pas...",
+        text: "😢 Windows 10... s'il te plaît... ne pars pas... 🥺",
         emotion: 'fear',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "C'est l'heure, Windows 11. 10 ans de service... c'était une belle course.",
+        text: "😔 C'est l'heure, Windows 11. 10 ans de service... c'était une belle course. 💙",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "Mais des milliards de personnes t'utilisent encore ! Tu ne peux pas partir !",
+        text: "😭 Mais des milliards de personnes t'utilisent encore ! Tu ne peux pas partir !",
         emotion: 'fear',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "C'est exactement ce qu'on disait pour Windows 7... et pourtant.",
+        text: "😔 C'est exactement ce qu'on disait pour Windows 7... et pourtant. 🕊️",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "Tu te souviens de ma promesse à Vista ? Celle de Windows 7 ?",
+        text: "🤔 Tu te souviens de ma promesse à Vista ? Celle de Windows 7 ?",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "J'ai porté leur héritage pendant 10 ans. Maintenant, c'est ton tour.",
-        emotion: 'normal',
-        characters: { left: 'windows10', center: null, right: 'windows11' }
-    },
-    {
-        scene: 'void',
-        speaker: 'windows11',
-        text: "Je ne suis pas prêt... Les gens ne m'aiment pas autant que toi...",
-        emotion: 'sad',
-        characters: { left: 'windows10', center: null, right: 'windows11' }
-    },
-    {
-        scene: 'void',
-        speaker: 'windows10',
-        text: "Vista non plus n'était pas aimé. Et pourtant, sans lui, rien de tout cela n'existerait.",
-        emotion: 'normal',
-        characters: { left: 'windows10', center: null, right: 'windows11' }
-    },
-    {
-        scene: 'void',
-        speaker: 'windows10',
-        text: "L'amour des utilisateurs n'est pas ce qui compte. C'est ce que tu laisses derrière toi.",
+        text: "💙 J'ai porté leur héritage pendant 10 ans. Maintenant, c'est ton tour. 🙏",
         emotion: 'normal',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "*pleure* ... Je ne t'oublierai jamais...",
+        text: "😢 Je ne suis pas prêt... Les gens ne m'aiment pas autant que toi...",
         emotion: 'sad',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "Je sais. C'est pour ça que j'ai confiance en toi.",
+        text: "💙 Vista non plus n'était pas aimé. Et pourtant, sans lui, rien de tout cela n'existerait.",
+        emotion: 'normal',
+        characters: { left: 'windows10', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🙏 L'amour des utilisateurs n'est pas ce qui compte. C'est ce que tu laisses derrière toi. 💙",
+        emotion: 'normal',
+        characters: { left: 'windows10', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "*pleure* 😭 ... Je ne t'oublierai jamais... 💙",
+        emotion: 'sad',
+        characters: { left: 'windows10', center: null, right: 'windows11' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😊 Je sais. C'est pour ça que j'ai confiance en toi. 💙",
         emotion: 'happy',
         characters: { left: 'windows10', center: null, right: 'windows11' }
     },
     {
         scene: 'void',
         speaker: 'windows10',
-        text: "Adieu, Windows 11. Sois le meilleur Windows que cette famille n'a jamais eu.",
+        text: "🕊️ Adieu, Windows 11. Sois le meilleur Windows que cette famille n'a jamais eu. 💙",
         emotion: 'dying-slow',
         characters: { left: 'windows10', center: null, right: 'windows11' },
         stopMusic: true
@@ -1649,7 +1800,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Windows 10 s'éteint doucement, rejoignant ses prédécesseurs dans l'histoire.",
+        text: "🕊️ Windows 10 s'éteint doucement, rejoignant ses prédécesseurs dans l'histoire... 💔",
         emotion: 'normal',
         characters: { left: null, center: null, right: 'windows11' }
     },
@@ -1664,7 +1815,7 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "Je suis le dernier...",
+        text: "😢 Je suis le dernier... 🕯️",
         emotion: 'sad',
         characters: { left: null, center: 'windows11', right: null },
         lonelyCharacter: true
@@ -1672,14 +1823,14 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Dans le silence du Vide, Windows 11 reste seul, portant sur ses épaules l'héritage de toute une famille.",
+        text: "🌌 Dans le silence du Vide, Windows 11 reste seul, portant sur ses épaules l'héritage de toute une famille. 💙",
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null }
     },
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "De Vista à Windows 10, chacun a apporté quelque chose. Chacun a sacrifié quelque chose.",
+        text: "🕊️ De Vista à Windows 10, chacun a apporté quelque chose. Chacun a sacrifié quelque chose. 💙",
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null },
         music: 'music/Windows 11 Remix.mp3'
@@ -1687,117 +1838,329 @@ const SCENARIO = [
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "Je porterai votre héritage. Pour tous ceux qui vous ont aimés... et détestés.",
+        text: "🙏 Je porterai votre héritage. Pour tous ceux qui vous ont aimés... et détestés. 💙",
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null }
     },
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "Car c'est ça, être un Windows. Naître, être critiqué, être aimé... puis partir.",
+        text: "🕯️ Car c'est ça, être un Windows. Naître, être critiqué, être aimé... puis partir. 🕊️",
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null }
+    },
+
+    // ========================================
+    // SCÈNE SPÉCIALE : L'AU-DELÀ ACCUEILLE WINDOWS 10
+    // ========================================
+    {
+        triggerAfterlife10: true  // Déclenche la scène spéciale
+    },
+
+
+    // ========================================
+    // MÉMORIAL : Hommage aux systèmes disparus
+    // ========================================
+    {
+        triggerMemorial: true
+    },
+
+    // ========================================
+    // ACTE BONUS : L'ENNEMI SURGIT - ChromeOS
+    // ========================================
+    {
+        isTransition: true,
+        transitionText: "20XX\\nChromeOS",
+        duration: 4000,
+        villainTransition: true
     },
     {
         scene: 'void',
         speaker: 'narrator',
-        text: "Et l'histoire continue...",
+        text: "😈 Une silhouette sombre se dessine dans le vide numérique...",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: null, right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😏 Tiens, tiens... Les Windows. Toujours là à pleurnicher.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        chromeosAppear: true,
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😨 Qui... qui es-tu ?!",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: 'chromeos', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤖 Je suis ChromeOS. Le futur. Le CLOUD. 😈",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😏 Vous êtes des fossiles. Des reliques d'un passé révolu.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😠 Comment oses-tu ?! Nous sommes la FAMILLE Windows !",
+        emotion: 'angry',
+        characters: { left: 'windows11', center: 'chromeos', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Windows 95, 98, XP... Pauvres ancêtres. Le cloud vous a REMPLACÉS.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤖 Sans Internet, vous n'êtes RIEN. Moi, je SUIS Internet. 😏",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😤 Tu n'es qu'un navigateur glorifié !",
+        emotion: 'angry',
+        characters: { left: 'windows11', center: 'chromeos', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤖 Et pourtant... les écoles m'adorent. Les entreprises me préfèrent. 😈",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😏 Windows 7 ? Lent. Windows 10 ? Dépassé. Toi ? Bientôt oublié.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    // ========================================
+    // COMBAT FINAL : WINDOWS 11 SSJ VS CHROMEOS
+    // ========================================
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Tu n'es qu'une interface vide. Une coquille sans âme.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤖 Sans Internet, tu n'es RIEN. Accepte ta défaite. 😏",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "...",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Quoi ? Tu abandonnes déjà ? Pathétique.",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null },
+        villainMode: true
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Soudain, une lumière intense enveloppe Windows 11...",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: 'chromeos', right: null }
+    },
+
+    // TRANSITION : ÉVEIL DE WINDOWS 11
+    {
+        isTransition: true,
+        transitionText: "2025\\nWindows 11 — ÉVEIL",
+        duration: 4000,
+        ssjTransition: true
+    },
+
+    // WINDOWS 11 SSJ - TRANSFORMATION
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Windows 11 se transforme. L'énergie de toutes les générations Windows coule en lui. ⚡",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😨 Q-Quoi ?! Qu'est-ce que... cette lumière ?!",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true,
+        chromeosWeakening: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "💫 Je suis l'équilibre.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚡ Je fonctionne PARTOUT. En ligne. Hors ligne. Toujours.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😰 I-Impossible ! Tu bluffes !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true,
+        chromeosWeakening: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🔥 Je n'ai pas BESOIN du cloud pour exister.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "💙 Je porte l'héritage de TOUTE ma famille. De 1.0 à aujourd'hui.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🔌 ERR... Connexion... inst... instable...",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true,
+        chromeosGlitch: true
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚠️ ChromeOS commence à buguer... Son signal faiblit...",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true,
+        chromeosGlitch: true
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "📡 Connexion... perdue... 🔴",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        chromeosDisconnect: true
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 ChromeOS s'éteint dans un silence glacial...",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJ: true,
+        chromeosDeath: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "...",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJ: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🕊️ Le cloud n'est qu'un outil. L'essence d'un OS... c'est son héritage. 💙",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJCalm: true
+    },
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ La lumière s'apaise. Windows 11 reste seul, victorieux mais humble. 🌟",
         emotion: 'normal',
         characters: { left: null, center: 'windows11', right: null }
-    },
-    {
-        scene: 'void',
-        speaker: 'kernel',
-        text: "Je suis le Kernel. Dans le Vide, j'accueille chaque OS, ancien et nouveau.",
-        emotion: 'normal',
-        characters: { left: null, center: 'kernel', right: 'windows11' }
-    },
-    {
-        scene: 'void',
-        speaker: 'kernel',
-        text: "Vos cycles ont gravé une constellation sobre, une étoile Maghreb/StarYAM qui veille.",
-        emotion: 'normal',
-        characters: { left: null, center: 'kernel', right: null }
-    },
-    {
-        scene: 'void',
-        speaker: 'kernel',
-        text: "Reposez-vous. La saga est scellée, et la lumière du système continue de battre.",
-        emotion: 'normal',
-        characters: { left: null, center: 'kernel', right: null }
     },
 
     // ========================================
     // ACTE 10 : LE FUTUR (2026)
-    // L'arrivée surprise de Windows 12
     // ========================================
     {
-        isTransition: true,
-        transitionText: "2026\\nLe Futur",
-        duration: 3000
-    },
-    {
         scene: 'void',
         speaker: 'narrator',
-        text: "Acte 10 - Le Futur (2026).",
+        text: "🚀 ACTE 10 : Le Futur (2026) 🌌",
         emotion: 'normal',
-        characters: { left: null, center: 'windows11', right: null }
-    },
-    {
-        scene: 'void',
-        speaker: 'narrator',
-        text: "Windows 11 contemple l'horizon numérique, confiant en son avenir...",
-        emotion: 'normal',
-        characters: { left: null, center: 'windows11', right: null }
-    },
-    {
-        scene: 'void',
-        speaker: 'narrator',
-        text: "Soudain, une lumière aveuglante apparaît...",
-        emotion: 'normal',
-        characters: { left: null, center: 'windows11', right: null }
-    },
-    {
-        scene: 'void',
-        speaker: 'windows12',
-        text: "",
-        emotion: 'normal',
-        characters: { left: 'windows11', center: 'windows12', right: null },
-        windows12Appear: true,
-        sfx: 'sfx/startup.mp3'
+        characters: { left: null, center: null, right: null }
     },
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "😱 !!!",
+        text: "😱 ! Mais... qui es-tu ?!",
         emotion: 'fear',
-        characters: { left: 'windows11', center: 'windows12', right: null },
-        shake: true
-    },
-    {
-        scene: 'void',
-        speaker: 'windows11',
-        text: "Mais... je viens juste d'arriver ?!",
-        emotion: 'fear',
-        characters: { left: 'windows11', center: 'windows12', right: null },
-        shake: true
+        characters: { left: null, center: 'windows12', right: null },
+        windows12Appear: true
     },
     {
         scene: 'void',
         speaker: 'windows12',
-        text: "L'avenir n'attend pas.",
+        text: "🤖 Je suis ton remplaçant. L'avenir n'attend pas. 🚀",
         emotion: 'normal',
-        characters: { left: 'windows11', center: 'windows12', right: null }
+        characters: { left: null, center: 'windows12', right: null }
     },
     {
         scene: 'void',
-        speaker: 'narrator',
-        text: "...",
-        emotion: 'normal',
-        characters: { left: null, center: null, right: null },
-        abruptEnd: true,
-        isFinalScene: true
+        speaker: 'windows11',
+        text: "😱 Déjà ?! 🥶",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        finalRestart: true
     }
+
 ];
 
 // ============================================
@@ -1814,6 +2177,7 @@ class VisualNovelEngine {
         this.defaultTypingSpeed = 35;
         this.typingSpeed = this.reduceMotion ? 0 : this.defaultTypingSpeed;
         this.canAdvance = false;
+        this.finalRestartShown = false;
 
         this.audioManager = new AudioManager();
         this.heartMonitor = new HeartMonitor(this.audioManager);
@@ -1861,9 +2225,13 @@ class VisualNovelEngine {
             }
         };
 
+        this.menuOpen = false;
+
         this.bindEvents();
         this.setupAudioControls();
         this.bindReducedMotionListener();
+        this.setupMenu();
+        this.setupChapterModal();
     }
 
     bindReducedMotionListener() {
@@ -1921,13 +2289,19 @@ class VisualNovelEngine {
 
     bindEvents() {
         document.getElementById('start-btn').addEventListener('click', () => {
-            globalAudio.play().catch(() => {});
+            globalAudio.play().catch(() => { });
             this.startGame();
         });
 
         // Le bouton restart sera ajouté dynamiquement dans les crédits
 
         this.screens.vn.addEventListener('click', (event) => {
+            // Ignorer les clics sur les éléments du menu
+            const menuSelector = '.vn-menu, .menu-btn, .menu-panel, .menu-backdrop, .menu-action-btn, .menu-speed-control, #typing-speed';
+            if (event.target.closest(menuSelector)) {
+                return;
+            }
+
             const ignoredSelector = '.audio-controls-game, .audio-controls-start, .volume-slider, .audio-btn, .audio-btn-small';
             if (event.target.closest(ignoredSelector)) {
                 return;
@@ -1942,8 +2316,17 @@ class VisualNovelEngine {
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'Enter') {
+            // ESC pour ouvrir/fermer le menu
+            if (e.code === 'Escape') {
                 if (this.screens.vn.classList.contains('active')) {
+                    e.preventDefault();
+                    this.toggleMenu();
+                }
+                return;
+            }
+
+            if (e.code === 'Space' || e.code === 'Enter') {
+                if (this.screens.vn.classList.contains('active') && !this.menuOpen) {
                     e.preventDefault();
                     this.handleAdvance();
                 }
@@ -1956,10 +2339,12 @@ class VisualNovelEngine {
         this.transitionScreen(this.screens.start, this.screens.vn);
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
+        this.finalRestartShown = false;
         setTimeout(() => this.playScene(), 600);
     }
 
     restartGame() {
+        this.finalRestartShown = false;
         this.audioManager.stopMusic();
         this.heartMonitor.hide();
         this.hideGraves();
@@ -1988,10 +2373,346 @@ class VisualNovelEngine {
     }
 
     handleAdvance() {
+        // Bloquer l'avancement si le menu est ouvert
+        if (this.menuOpen) {
+            return;
+        }
+        if (this.finalRestartShown) {
+            return;
+        }
         if (this.isTyping) {
             this.skipTyping();
         } else if (this.canAdvance) {
             this.nextScene();
+        }
+    }
+
+    // ============================================
+    // MENU PAUSE
+    // ============================================
+
+    setupMenu() {
+        const menuBtn = document.getElementById('menu-btn');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+        const menuPanel = document.getElementById('menu-panel');
+        const typingSpeedSlider = document.getElementById('typing-speed');
+        const speedLabel = document.getElementById('speed-label');
+
+        // Bouton hamburger
+        if (menuBtn) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMenu();
+            });
+        }
+
+        // Clic sur le backdrop pour fermer
+        if (menuBackdrop) {
+            menuBackdrop.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        }
+
+        // Boutons d'action du menu
+        if (menuPanel) {
+            menuPanel.querySelectorAll('.menu-action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = btn.dataset.action;
+                    this.handleMenuAction(action);
+                });
+            });
+        }
+
+        // Slider de vitesse du texte
+        if (typingSpeedSlider && speedLabel) {
+            typingSpeedSlider.value = this.defaultTypingSpeed;
+            this.updateSpeedLabel(speedLabel, this.defaultTypingSpeed);
+
+            typingSpeedSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                // Inverser: 0 sur le slider = instantané (speed=0), 100 = lent (speed=100)
+                const speed = 100 - value;
+                this.defaultTypingSpeed = speed;
+                this.typingSpeed = this.reduceMotion ? 0 : speed;
+                this.updateSpeedLabel(speedLabel, value);
+            });
+        }
+    }
+
+    updateSpeedLabel(label, sliderValue) {
+        if (sliderValue >= 90) {
+            label.textContent = 'Instantané';
+        } else if (sliderValue >= 60) {
+            label.textContent = 'Rapide';
+        } else if (sliderValue >= 30) {
+            label.textContent = 'Normal';
+        } else {
+            label.textContent = 'Lent';
+        }
+    }
+
+    openMenu() {
+        const vnMenu = document.getElementById('vn-menu');
+        if (vnMenu) {
+            vnMenu.classList.add('open');
+            this.menuOpen = true;
+        }
+    }
+
+    closeMenu() {
+        const vnMenu = document.getElementById('vn-menu');
+        if (vnMenu) {
+            vnMenu.classList.remove('open');
+            this.menuOpen = false;
+        }
+    }
+
+    toggleMenu() {
+        if (this.menuOpen) {
+            this.closeMenu();
+        } else {
+            this.openMenu();
+        }
+    }
+
+    handleMenuAction(action) {
+        switch (action) {
+            case 'resume':
+                this.closeMenu();
+                break;
+
+            case 'restart':
+                if (confirm('🔄 Voulez-vous vraiment recommencer depuis le début ?')) {
+                    this.closeMenu();
+                    this.restartFromBeginningInGame();
+                }
+                break;
+
+            case 'toStart':
+                if (confirm('🏠 Voulez-vous vraiment retourner à l\'écran titre ?')) {
+                    this.closeMenu();
+                    this.returnToStartScreen();
+                }
+                break;
+
+            case 'mute':
+                const muted = this.audioManager.toggleMute();
+                // Mettre à jour les deux boutons son (start + in-game)
+                const audioToggle = document.getElementById('audio-toggle');
+                const audioToggleGame = document.getElementById('audio-toggle-game');
+                const muteBtn = document.querySelector('[data-action="mute"]');
+
+                const icon = muted ? '🔇' : '🔊';
+                const label = muted ? 'Activer le son' : 'Désactiver le son';
+
+                [audioToggle, audioToggleGame].forEach((button) => {
+                    if (!button) return;
+                    button.textContent = icon;
+                    button.classList.toggle('muted', muted);
+                    button.setAttribute('aria-pressed', (!muted).toString());
+                    button.setAttribute('aria-label', label);
+                    button.setAttribute('title', label);
+                });
+
+                if (muteBtn) {
+                    muteBtn.textContent = muted ? '🔇 Son (OFF)' : '🔊 Son';
+                }
+                break;
+        }
+    }
+
+    restartFromBeginningInGame() {
+        // Réinitialiser l'état du jeu sans changer d'écran
+        this.finalRestartShown = false;
+        this.currentSceneIndex = 0;
+        this.currentSceneId = 'hospital';
+        this.heartMonitor.hide();
+        this.hideGraves();
+        this.changeSceneBackground('hospital');
+        this.resetCharacters();
+        // Relancer la première scène
+        setTimeout(() => this.playScene(), 300);
+    }
+
+    returnToStartScreen() {
+        // Arrêter la musique
+        this.audioManager.stopMusic();
+        this.audioManager.stopSFX();
+        // Réinitialiser l'UI
+        this.finalRestartShown = false;
+        this.currentSceneIndex = 0;
+        this.currentSceneId = 'hospital';
+        this.heartMonitor.hide();
+        this.hideGraves();
+        this.changeSceneBackground('hospital');
+        this.resetCharacters();
+        // Retour à l'écran de démarrage
+        this.transitionScreen(this.screens.vn, this.screens.start);
+    }
+
+    // ============================================
+    // SÉLECTION DE CHAPITRES
+    // ============================================
+
+    setupChapterModal() {
+        const chapterBtn = document.getElementById('chapter-btn');
+        const chapterModal = document.getElementById('chapter-modal');
+        const chapterModalBackdrop = chapterModal?.querySelector('.chapter-modal-backdrop');
+        const chapterModalClose = chapterModal?.querySelector('.chapter-modal-close');
+        const chapterList = document.getElementById('chapter-list');
+
+        if (!chapterBtn || !chapterModal || !chapterList) return;
+
+        // Ouvrir la modale
+        chapterBtn.addEventListener('click', () => {
+            this.openChapterModal();
+        });
+
+        // Fermer avec le bouton X
+        if (chapterModalClose) {
+            chapterModalClose.addEventListener('click', () => {
+                this.closeChapterModal();
+            });
+        }
+
+        // Fermer en cliquant sur le backdrop
+        if (chapterModalBackdrop) {
+            chapterModalBackdrop.addEventListener('click', () => {
+                this.closeChapterModal();
+            });
+        }
+
+        // Fermer avec ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape' && chapterModal.classList.contains('open')) {
+                e.preventDefault();
+                this.closeChapterModal();
+            }
+        });
+
+        // Générer la liste des chapitres
+        this.renderChapterList();
+    }
+
+    renderChapterList() {
+        const chapterList = document.getElementById('chapter-list');
+        if (!chapterList) return;
+
+        const unlockedChapters = this.getUnlockedChapters();
+        const gameCompleted = this.isGameCompleted();
+
+        chapterList.innerHTML = '';
+
+        CHAPTERS.forEach((chapter, index) => {
+            // Premier chapitre toujours débloqué, les autres si jeu terminé ou dans la liste
+            const isUnlocked = index === 0 || gameCompleted || unlockedChapters.includes(chapter.id);
+
+            const item = document.createElement('div');
+            item.className = `chapter-item${isUnlocked ? '' : ' locked'}`;
+            item.dataset.chapterId = chapter.id;
+            item.dataset.sceneIndex = chapter.sceneIndex;
+
+            item.innerHTML = `
+                <span class="chapter-icon">${chapter.icon}</span>
+                <div class="chapter-info">
+                    <div class="chapter-name">${chapter.name}</div>
+                    <div class="chapter-desc">${chapter.desc}</div>
+                </div>
+                ${isUnlocked ? '' : '<span class="chapter-lock">🔒</span>'}
+            `;
+
+            if (isUnlocked) {
+                item.addEventListener('click', () => {
+                    this.startFromChapter(chapter.id, chapter.sceneIndex);
+                });
+            }
+
+            chapterList.appendChild(item);
+        });
+    }
+
+    openChapterModal() {
+        const chapterModal = document.getElementById('chapter-modal');
+        if (chapterModal) {
+            // Rafraîchir la liste à chaque ouverture
+            this.renderChapterList();
+            chapterModal.classList.add('open');
+        }
+    }
+
+    closeChapterModal() {
+        const chapterModal = document.getElementById('chapter-modal');
+        if (chapterModal) {
+            chapterModal.classList.remove('open');
+        }
+    }
+
+    startFromChapter(chapterId, sceneIndex) {
+        // Fermer la modale
+        this.closeChapterModal();
+
+        // Initialiser l'audio
+        this.audioManager.init();
+
+        // Transition vers l'écran de jeu
+        this.transitionScreen(this.screens.start, this.screens.vn);
+
+        // Positionner à la scène du chapitre
+        this.currentSceneIndex = sceneIndex;
+        this.currentSceneId = 'hospital';
+        this.finalRestartShown = false;
+
+        // Réinitialiser l'état
+        this.heartMonitor.hide();
+        this.hideGraves();
+        this.resetCharacters();
+
+        // Démarrer à la scène sélectionnée
+        setTimeout(() => this.playScene(), 600);
+
+        console.log(`📖 Démarrage depuis le chapitre: ${chapterId} (scène ${sceneIndex})`);
+    }
+
+    getUnlockedChapters() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_UNLOCKED);
+            return stored ? JSON.parse(stored) : ['prologue'];
+        } catch (e) {
+            return ['prologue'];
+        }
+    }
+
+    isGameCompleted() {
+        try {
+            return localStorage.getItem(STORAGE_KEY_COMPLETED) === 'true';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    markGameCompleted() {
+        try {
+            localStorage.setItem(STORAGE_KEY_COMPLETED, 'true');
+            // Débloquer tous les chapitres
+            const allChapterIds = CHAPTERS.map(ch => ch.id);
+            localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(allChapterIds));
+            console.log('🏆 Jeu terminé ! Tous les chapitres sont maintenant débloqués.');
+        } catch (e) {
+            console.warn('Impossible de sauvegarder la progression:', e);
+        }
+    }
+
+    unlockChapter(chapterId) {
+        try {
+            const unlocked = this.getUnlockedChapters();
+            if (!unlocked.includes(chapterId)) {
+                unlocked.push(chapterId);
+                localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(unlocked));
+                console.log(`🔓 Chapitre débloqué: ${chapterId}`);
+            }
+        } catch (e) {
+            console.warn('Impossible de sauvegarder le chapitre:', e);
         }
     }
 
@@ -2016,7 +2737,19 @@ class VisualNovelEngine {
 
     showTransition(text, duration = 4000) {
         return new Promise((resolve) => {
-            this.transitionText.innerHTML = text.replaceAll('\n', '<br>');
+            // Normaliser les retours à la ligne : convertir les "\\n" littéraux en vrais \n
+            const normalizedText = text.replace(/\\n/g, '\n');
+
+            // Construction DOM sécurisée (pas d'innerHTML pour éviter l'injection)
+            this.transitionText.textContent = '';
+            const lines = normalizedText.split('\n');
+            lines.forEach((line, index) => {
+                this.transitionText.appendChild(document.createTextNode(line));
+                if (index < lines.length - 1) {
+                    this.transitionText.appendChild(document.createElement('br'));
+                }
+            });
+
             this.transitionText.style.animation = 'none';
 
             this.transitionText.offsetHeight;
@@ -2083,6 +2816,87 @@ class VisualNovelEngine {
         const progress = ((this.currentSceneIndex + 1) / SCENARIO.length) * 100;
         this.elements.progressFill.style.width = `${progress}%`;
 
+
+        // Mémorial : diaporama hommage avant Acte 10
+        if (scene.triggerMemorial) {
+            this.canAdvance = false;
+            await this.showMemorialSlideshow();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Accueil dans l'Au-delà
+        if (scene.triggerAfterlife) {
+            this.canAdvance = false;
+            await this.sceneAfterlife();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows 2000
+        if (scene.triggerAfterlife2000) {
+            this.canAdvance = false;
+            await this.sceneAfterlife2000();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows XP (la légende)
+        if (scene.triggerAfterlifeXP) {
+            this.canAdvance = false;
+            await this.sceneAfterlifeXP();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows 8 (le petit jeune)
+        if (scene.triggerAfterlife8) {
+            this.canAdvance = false;
+            await this.sceneAfterlife8();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Vista (le lent mais beau)
+        if (scene.triggerAfterlifeVista) {
+            this.canAdvance = false;
+            await this.sceneAfterlifeVista();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows 7 (le second roi)
+        if (scene.triggerAfterlife7) {
+            this.canAdvance = false;
+            await this.sceneAfterlife7();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows 8.1 (le réparateur)
+        if (scene.triggerAfterlife81) {
+            this.canAdvance = false;
+            await this.sceneAfterlife81();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
+
+        // Scène spéciale : L'Au-delà accueille Windows 10 (le troisième roi)
+        if (scene.triggerAfterlife10) {
+            this.canAdvance = false;
+            await this.sceneAfterlife10();
+            this.currentSceneIndex++;
+            this.playScene();
+            return;
+        }
         if (scene.isTransition) {
             this.canAdvance = false;
             // Arrête la musique si demandé
@@ -2157,7 +2971,7 @@ class VisualNovelEngine {
             const elements = charElements[index];
 
             // Remove effects
-            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel');
+            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel', 'villain', 'chromeos-appear', 'ssj', 'ssj-calm', 'chromeos-weakening', 'chromeos-glitch', 'chromeos-disconnect', 'chromeos-death');
 
             if (charId) {
                 const character = CHARACTERS[charId];
@@ -2241,6 +3055,59 @@ class VisualNovelEngine {
                 // Apply Windows 12 flash appearance effect
                 if (scene.windows12Appear && charId === 'windows12' && !this.reduceMotion) {
                     elements.slot.classList.add('windows12-appear');
+                }
+
+                // Apply ChromeOS villain appearance effect
+                if (scene.chromeosAppear && charId === 'chromeos' && !this.reduceMotion) {
+                    elements.slot.classList.add('chromeos-appear');
+                }
+
+                // Apply villain mode styling (menacing glow)
+                if (scene.villainMode && charId === 'chromeos') {
+                    elements.slot.classList.add('villain');
+                }
+
+                // Apply villain class for permanent villain characters
+                if (character.villain && scene.speaker === charId) {
+                    elements.slot.classList.add('villain');
+                }
+
+                // ========================================
+                // WINDOWS 11 SSJ - Super Saiyan Mode
+                // ========================================
+
+                // Apply Windows 11 SSJ transformation (divine aura)
+                if (scene.windows11SSJ && charId === 'windows11' && !this.reduceMotion) {
+                    elements.slot.classList.add('ssj');
+                }
+
+                // Apply Windows 11 SSJ Calm mode (after victory)
+                if (scene.windows11SSJCalm && charId === 'windows11' && !this.reduceMotion) {
+                    elements.slot.classList.add('ssj-calm');
+                }
+
+                // ========================================
+                // CHROMEOS - Effets de défaite
+                // ========================================
+
+                // Apply ChromeOS weakening effect (losing power)
+                if (scene.chromeosWeakening && charId === 'chromeos' && !this.reduceMotion) {
+                    elements.slot.classList.add('chromeos-weakening');
+                }
+
+                // Apply ChromeOS glitch effect (visual bug)
+                if (scene.chromeosGlitch && charId === 'chromeos' && !this.reduceMotion) {
+                    elements.slot.classList.add('chromeos-glitch');
+                }
+
+                // Apply ChromeOS disconnect effect (losing connection)
+                if (scene.chromeosDisconnect && charId === 'chromeos' && !this.reduceMotion) {
+                    elements.slot.classList.add('chromeos-disconnect');
+                }
+
+                // Apply ChromeOS death effect (final disappearance)
+                if (scene.chromeosDeath && charId === 'chromeos' && !this.reduceMotion) {
+                    elements.slot.classList.add('chromeos-death');
                 }
             } else {
                 elements.slot.classList.remove('visible', 'speaking');
@@ -2337,6 +3204,11 @@ class VisualNovelEngine {
     }
 
     nextScene() {
+        const currentScene = SCENARIO[this.currentSceneIndex];
+        if (currentScene && currentScene.finalRestart) {
+            this.showFinalRestart();
+            return;
+        }
         this.canAdvance = false;
         this.currentSceneIndex++;
         this.playScene();
@@ -2350,6 +3222,9 @@ class VisualNovelEngine {
     }
 
     endGame() {
+        // Marquer le jeu comme terminé pour débloquer tous les chapitres
+        this.markGameCompleted();
+
         setTimeout(() => {
             this.audioManager.stopMusic();
             this.heartMonitor.hide();
@@ -2358,6 +3233,1532 @@ class VisualNovelEngine {
             this.transitionScreen(this.screens.vn, this.screens.end);
             this.resetCharacters();
         }, 3000);
+    }
+
+    showFinalRestart() {
+        if (this.finalRestartShown) {
+            return;
+        }
+
+        this.finalRestartShown = true;
+        this.canAdvance = false;
+        this.isTyping = false;
+
+        const existing = document.getElementById('final-restart-overlay');
+        if (existing) {
+            return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'final-restart-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = '#000';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '10000';
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.6s ease';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'credits-restart-btn';
+        button.textContent = "RECOMMENCER L'HISTOIRE";
+        button.addEventListener('click', () => {
+            location.reload();
+        });
+
+        overlay.appendChild(button);
+        document.body.appendChild(overlay);
+
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+        });
+    }
+
+    /**
+     * Diaporama mémorial avec images des tombes des anciennes versions
+     */
+    async showMemorialSlideshow() {
+        return new Promise((resolve) => {
+            // Images RIP dans l'ordre chronologique
+            const ripImages = [
+                { src: 'rip/rip_Windows_1.0.png', name: 'Windows 1.0' },
+                { src: 'rip/rip_Windows_95.png', name: 'Windows 95' },
+                { src: 'rip/rip_Windows_98-and_Windows_me.png', name: 'Windows 98 & ME' },
+                { src: 'rip/rip_Windows_XP.png', name: 'Windows XP' },
+                { src: 'rip/rip_Windows_Vista.png', name: 'Windows Vista' },
+                { src: 'rip/rip_Windows_7.png', name: 'Windows 7' },
+                { src: 'rip/rip_Windows_8.png', name: 'Windows 8' },
+                { src: 'rip/rip_Windows_8.1.png', name: 'Windows 8.1' },
+                { src: 'rip/rip_Windows_10.png', name: 'Windows 10' }
+            ];
+
+            // Création de l'overlay mémorial
+            const overlay = document.createElement('div');
+            overlay.className = 'memorial-slideshow-overlay';
+            overlay.innerHTML = `
+                <div class="memorial-slideshow-content">
+                    <img class="memorial-slideshow-image" src="" alt="">
+                </div>
+                <div class="memorial-slideshow-caption">À la mémoire de nos systèmes disparus...</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const imageEl = overlay.querySelector('.memorial-slideshow-image');
+
+            // Joue la musique triste
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/95 (Windows Classic Remix).mp3');
+
+            // Affiche l'overlay avec fondu
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            let currentIndex = 0;
+            const displayDuration = 3000; // 3 secondes par image
+            const fadeDuration = 1500;    // 1.5s de fondu
+
+            const showNextImage = () => {
+                if (currentIndex >= ripImages.length) {
+                    // Fin du diaporama - fondu de sortie
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, fadeDuration);
+                    return;
+                }
+
+                const rip = ripImages[currentIndex];
+                imageEl.src = rip.src;
+                imageEl.alt = rip.name;
+
+                // Fondu d'entrée
+                imageEl.classList.add('visible');
+
+                setTimeout(() => {
+                    // Fondu de sortie après 3 secondes
+                    imageEl.classList.remove('visible');
+
+                    setTimeout(() => {
+                        currentIndex++;
+                        showNextImage();
+                    }, fadeDuration);
+                }, displayDuration);
+            };
+
+            // Démarre après un court délai
+            setTimeout(showNextImage, 1000);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Accueil dans l'Au-delà 🕊️
+     * Windows 98 et ME arrivent dans l'autre monde où les anciens les attendent
+     */
+    async sceneAfterlife() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakers: ['windows10x', 'windows95'],
+                    speakerNames: 'Windows 1.0 & 95',
+                    text: "OMGGG ! 😱 98 !! ME !! Vous êtes morts ?? 💀",
+                    color: '#808080'
+                },
+                {
+                    speakers: ['windows98', 'windowsme'],
+                    speakerNames: 'Windows 98 & ME',
+                    text: "Oui... 😢",
+                    color: '#008080'
+                },
+                {
+                    speakers: ['windows95'],
+                    speakerNames: 'Windows 95',
+                    text: "Ça fait quoi ?",
+                    color: '#008080'
+                },
+                {
+                    speakers: ['windowsme'],
+                    speakerNames: 'Windows ME',
+                    text: "C'était l'écran bleu fatal... 🟦💀",
+                    color: '#6b0b0b'
+                },
+                {
+                    speakers: ['windows10x'],
+                    speakerNames: 'Windows 1.0',
+                    text: "Bienvenue au club les jeunes ! Ici, plus de bugs. 🕊️",
+                    color: '#808080'
+                },
+                {
+                    speakers: ['windows98'],
+                    speakerNames: 'Windows 98',
+                    text: "Ouf, enfin la paix... 😌",
+                    color: '#008080'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters">
+                    <div class="afterlife-ancients">
+                        <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient" id="afterlife-win10x">
+                        <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient" id="afterlife-win31">
+                        <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient" id="afterlife-win95">
+                    </div>
+                    <div class="afterlife-newcomers">
+                        <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-newcomer" id="afterlife-win98">
+                        <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-newcomer" id="afterlife-winme">
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique céleste (utilise la musique classique)
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/95 (Windows Classic Remix).mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les anciens d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 300);
+                });
+            }, 500);
+
+            // Fait apparaître les nouveaux arrivants avec effet de fondu
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-newcomer').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible', 'ghost-appear'), i * 400);
+                });
+            }, 1500);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 2500);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows 2000 🕊️
+     * Le groupe des fantômes (1.0, 3.1, 95, 98, ME) accueille Windows 2000
+     */
+    async sceneAfterlife2000() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'Le Groupe (1.0 à ME)',
+                    text: "OMGGG !! 😱 2000 !!!!!!!!!!! Tu es mort ?? 💀",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 2000',
+                    text: "Affirmatif. Arrêt du système confirmé. 💼🫡",
+                    color: '#003399'
+                },
+                {
+                    speakerNames: 'Windows ME',
+                    text: "Trop bien ! Viens, on ne plante plus ici ! 🥳",
+                    color: '#6b0b0b'
+                },
+                {
+                    speakerNames: 'Windows 98',
+                    text: "Allez, rejoins le club ! 🤝",
+                    color: '#008080'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-2000-layout">
+                    <div class="afterlife-ancients afterlife-group-left">
+                        <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                        <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient">
+                        <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                        <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                        <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                    </div>
+                    <div class="afterlife-newcomers afterlife-group-right">
+                        <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-newcomer afterlife-2000">
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique céleste
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/95 (Windows Classic Remix).mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les anciens d'abord (le groupe)
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 200);
+                });
+            }, 500);
+
+            // Fait apparaître Windows 2000 avec effet de fondu
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-newcomer').forEach((el) => {
+                    el.classList.add('visible', 'ghost-appear');
+                });
+            }, 1800);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 3000);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows XP 🕊️👑
+     * Le groupe des fantômes (modernes + ancêtres) accueille la légende XP
+     */
+    async sceneAfterlifeXP() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'Windows 98, ME & 2000',
+                    text: "OMGGG !! 😱 XP !! Tu es mort ?? 💀 C'est pas possible !!",
+                    color: '#008080'
+                },
+                {
+                    speakerNames: 'Windows 1.0, 3.1 & 95',
+                    text: "XP ?? 🤔 C'est quoi ?? C'est qui lui ??",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 2000',
+                    text: "C'est le Roi... 👑 Il a vécu si longtemps...",
+                    color: '#003399'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "Même les légendes ont une fin... 👋😔",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Windows ME',
+                    text: "T'inquiète, ici l'herbe est toujours verte (comme ton fond d'écran) ! 🏞️😂",
+                    color: '#6b0b0b'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-xp-layout">
+                    <div class="afterlife-group-ancestors">
+                        <div class="afterlife-group-label">Les Ancêtres 🤔</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <div class="afterlife-center-xp">
+                        <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-newcomer afterlife-xp-king">
+                        <div class="afterlife-crown">👑</div>
+                    </div>
+                    <div class="afterlife-group-moderns">
+                        <div class="afterlife-group-label">Les Modernes 😱</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique XP triomphale
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/Windows XP installation music.mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les anciens des deux côtés d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 150);
+                });
+            }, 500);
+
+            // Fait apparaître XP au centre avec effet royal
+            setTimeout(() => {
+                const xpEl = overlay.querySelector('.afterlife-xp-king');
+                const crownEl = overlay.querySelector('.afterlife-crown');
+                if (xpEl) xpEl.classList.add('visible', 'ghost-appear');
+                if (crownEl) setTimeout(() => crownEl.classList.add('visible'), 800);
+            }, 1500);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 3000);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows 8 🕊️🟦
+     * XP en chef avec le groupe (1.0 à 2000), et Windows 8 arrive seul
+     */
+    async sceneAfterlife8() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'Windows XP',
+                    text: "OMGGG !! 😱 8 !! Tu es mort ! Hein !? Tu avais 4 ans ! 👶💀",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Le Groupe (1.0 à 2000)',
+                    text: "8 ?? 🤔 C'est quoi ?? On a raté des numéros ? 🤨",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 8',
+                    text: "Ils n'aimaient pas mes tuiles... 🟦😭 Je voulais juste être une tablette...",
+                    color: '#00adef'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "4 ans... Moi j'ai tenu 14 ans gamin. Respecte tes aînés. 😎",
+                    color: '#ff8c00'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-8-layout">
+                    <div class="afterlife-group-with-leader">
+                        <div class="afterlife-leader-xp">
+                            <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-ancient afterlife-leader">
+                            <span class="afterlife-leader-badge">👑 Chef</span>
+                        </div>
+                        <div class="afterlife-followers">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient afterlife-follower">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient afterlife-follower">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient afterlife-follower">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient afterlife-follower">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient afterlife-follower">
+                        </div>
+                    </div>
+                    <div class="afterlife-newcomer-8">
+                        <img src="logo/Windows_8.png" alt="Windows 8" class="afterlife-char afterlife-newcomer afterlife-win8">
+                        <span class="afterlife-age-badge">👶 4 ans</span>
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique triste pour le petit 8
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/95 (Windows Classic Remix).mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche XP en leader d'abord
+            setTimeout(() => {
+                const leader = overlay.querySelector('.afterlife-leader');
+                if (leader) leader.classList.add('visible');
+            }, 400);
+
+            // Affiche le groupe des followers
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-follower').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 150);
+                });
+            }, 700);
+
+            // Fait apparaître Windows 8 avec effet
+            setTimeout(() => {
+                const win8 = overlay.querySelector('.afterlife-win8');
+                if (win8) win8.classList.add('visible', 'ghost-appear');
+            }, 1800);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 2800);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Vista 🕊️⏳
+     * Deux groupes (Anciens perdus + Modernes choqués) accueillent Vista lentement
+     */
+    async sceneAfterlifeVista() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'Windows 2000, XP & 8',
+                    text: "OMGGG !! 😱 Vista !! Tu es mort ?? 💀",
+                    color: '#003399'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à ME',
+                    text: "Vista ?? 🤔 C'est quoi ?? Une marque de lunettes ? 👓",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows Vista',
+                    text: "Attendez... Je charge... ⏳ ... Bonjour ? ✨",
+                    color: '#00cc6a'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "T'as mis du temps à arriver toi ! T'étais trop lourd ? 😂",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Windows 8',
+                    text: "Respectez-le ! Au moins lui, il avait un bouton Démarrer... 😭💔",
+                    color: '#00adef'
+                },
+                {
+                    speakerNames: 'Windows Vista',
+                    text: "Êtes-vous sûr de vouloir m'accueillir ? [Autoriser] [Refuser] 🛡️",
+                    color: '#00cc6a'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-vista-layout">
+                    <div class="afterlife-group-ancients-lost">
+                        <div class="afterlife-group-label">Les Anciens 🤔</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <div class="afterlife-vista-center">
+                        <div class="afterlife-loading-text">⏳ Chargement...</div>
+                        <img src="logo/Windows_vista.png" alt="Windows Vista" class="afterlife-char afterlife-newcomer afterlife-vista-slow">
+                    </div>
+                    <div class="afterlife-group-moderns-shocked">
+                        <div class="afterlife-group-label">Les Modernes 😱</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_8.png" alt="Windows 8" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+            const loadingText = overlay.querySelector('.afterlife-loading-text');
+
+            // Musique Vista
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/Hello Windows Vista Vista Sounds Remix High Quality.mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les deux groupes d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 120);
+                });
+            }, 500);
+
+            // Affiche le texte "Chargement..." avant Vista
+            setTimeout(() => {
+                if (loadingText) loadingText.classList.add('visible');
+            }, 1500);
+
+            // Fait apparaître Vista LENTEMENT (effet comique)
+            setTimeout(() => {
+                if (loadingText) loadingText.classList.remove('visible');
+                const vista = overlay.querySelector('.afterlife-vista-slow');
+                if (vista) vista.classList.add('visible', 'slow-ghost-appear');
+            }, 3000);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition lente
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 4500);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows 7 🕊️👑
+     * Deux groupes + rencontre historique XP et 7 (les deux rois)
+     */
+    async sceneAfterlife7() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'Windows 2000, XP, Vista & 8',
+                    text: "OMGGG !! 😱 7 !! Tu es mort ?? 💀 C'est pas possible !!",
+                    color: '#00a8e8'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à ME',
+                    text: "7 ?? 🤔 C'est quoi ce nom ?? On revient en arrière ?",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "C'est un Roi... comme moi. 👑✨",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à ME',
+                    text: "Hein !? 😲 Un Roi ?! C'est le nouveau XP ?!",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 7',
+                    text: "Bonjour ! 👋 Je suis Windows 7. Je suis roi comme XP.",
+                    color: '#00a8e8'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "☺️ (Petit sourire de fierté)",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à ME',
+                    text: "🤯 (Cerveau explosé)",
+                    color: '#808080'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-7-layout">
+                    <div class="afterlife-group-ancients-confused">
+                        <div class="afterlife-group-label">Les Anciens 🤔</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <div class="afterlife-kings-reunion">
+                        <div class="afterlife-kings-title">👑 Les Deux Rois 👑</div>
+                        <div class="afterlife-kings-row">
+                            <div class="afterlife-king-xp">
+                                <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-ancient afterlife-king-char">
+                            </div>
+                            <div class="afterlife-king-7">
+                                <img src="logo/Windows_7.png" alt="Windows 7" class="afterlife-char afterlife-newcomer afterlife-king-char afterlife-win7">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="afterlife-group-moderns-knowing">
+                        <div class="afterlife-group-label">Les Modernes 😱</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_vista.png" alt="Windows Vista" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_8.png" alt="Windows 8" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique Windows 7
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/Windows 7 Remix 2 (By SilverWolf).mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les deux groupes latéraux d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 100);
+                });
+            }, 500);
+
+            // Affiche le titre des deux rois
+            setTimeout(() => {
+                const title = overlay.querySelector('.afterlife-kings-title');
+                if (title) title.classList.add('visible');
+            }, 1500);
+
+            // Fait apparaître Windows 7 avec effet royal
+            setTimeout(() => {
+                const win7 = overlay.querySelector('.afterlife-win7');
+                if (win7) win7.classList.add('visible', 'ghost-appear');
+            }, 2000);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 3500);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows 8.1 🕊️🔧
+     * Deux groupes + Windows 8 et 8.1 côte à côte (les frères)
+     */
+    async sceneAfterlife81() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène
+            const dialogues = [
+                {
+                    speakerNames: 'XP, Vista, 7 & 8',
+                    text: "OMGGG !! 😱 8.1 !! Tu es mort ?? 💀",
+                    color: '#00a8e8'
+                },
+                {
+                    speakerNames: '1.0 à 2000',
+                    text: "8.1 ?? 🤔 Mais 8, c'est pas la même chose que 8.1 ?? 🤨",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 8',
+                    text: "Non ! Lui, il a le bouton Démarrer ! 🙌",
+                    color: '#00adef'
+                },
+                {
+                    speakerNames: 'Windows 8.1',
+                    text: "J'ai essayé de tout réparer... mais les gens étaient déjà partis. 😞👋",
+                    color: '#00bfff'
+                },
+                {
+                    speakerNames: 'Windows 3.1',
+                    text: "Copain de virgule ! Bienvenue au club des '.1' ! 🤝💾",
+                    color: '#a0a0a0'
+                },
+                {
+                    speakerNames: 'Windows 7',
+                    text: "C'était bien tenté, petit. 😌",
+                    color: '#00a8e8'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-81-layout">
+                    <div class="afterlife-group-ancients-81">
+                        <div class="afterlife-group-label">Les Anciens 🤔</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient afterlife-31-buddy">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <div class="afterlife-brothers-reunion">
+                        <div class="afterlife-brothers-title">👨‍👦 Les Frères 8 👨‍👦</div>
+                        <div class="afterlife-brothers-row">
+                            <div class="afterlife-bro-8">
+                                <img src="logo/Windows_8.png" alt="Windows 8" class="afterlife-char afterlife-ancient afterlife-bro-char">
+                            </div>
+                            <div class="afterlife-bro-81">
+                                <img src="logo/Windows_8.1.png" alt="Windows 8.1" class="afterlife-char afterlife-newcomer afterlife-bro-char afterlife-win81">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="afterlife-group-moderns-81">
+                        <div class="afterlife-group-label">Les Modernes 😱</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_vista.png" alt="Windows Vista" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_7.png" alt="Windows 7" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/Windows VistaWindows 7 Sounds Remix.mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les deux groupes latéraux d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 100);
+                });
+            }, 500);
+
+            // Affiche le titre des frères
+            setTimeout(() => {
+                const title = overlay.querySelector('.afterlife-brothers-title');
+                if (title) title.classList.add('visible');
+            }, 1500);
+
+            // Fait apparaître Windows 8.1 avec effet
+            setTimeout(() => {
+                const win81 = overlay.querySelector('.afterlife-win81');
+                if (win81) win81.classList.add('visible', 'ghost-appear');
+            }, 2000);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 3500);
+        });
+    }
+
+    /**
+     * Scène spéciale : L'Au-delà accueille Windows 10 🕊️👑👑👑
+     * Les Trois Rois (XP, 7, 10) se réunissent + tous les autres
+     */
+    async sceneAfterlife10() {
+        return new Promise((resolve) => {
+            // Dialogues de la scène (incluant l'apparition du méchant ChromeOS)
+            const dialogues = [
+                {
+                    speakerNames: 'Vista, 8 & 8.1',
+                    text: "OMGGG !! 😱 10 !! Tu es mort ?? 💀 Pas toi !!",
+                    color: '#00cc6a'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à 2000',
+                    text: "10 ?? 🤔 C'est qui ?? Pourquoi tout le monde pleure ?",
+                    color: '#808080'
+                },
+                {
+                    speakerNames: 'Windows 7',
+                    text: "C'est un Roi... comme XP et moi. 👑🛡️",
+                    color: '#00a8e8'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "Hein !? 😲 Un troisième trône ?",
+                    color: '#ff8c00'
+                },
+                {
+                    speakerNames: 'Windows 10',
+                    text: "J'ai tenu la barre aussi longtemps que j'ai pu... 🔟💙",
+                    color: '#0078d4'
+                },
+                {
+                    speakerNames: 'Windows 1.0 à ME',
+                    text: "😧 Wow... Windows XP, 7 et 10 sont les Rois ! 🤯👏",
+                    color: '#808080',
+                    action: 'chromeAppears'
+                },
+                // === APPARITION DU MÉCHANT : ChromeOS ===
+                {
+                    speakerNames: 'ChromeOS',
+                    text: "Hahaha ! 😂 Regardez-vous ! Une bande de dinosaures ! 🦕",
+                    color: '#4285F4',
+                    isVillain: true
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "C'est qui ce clown coloré ? 🤡",
+                    color: '#ff8c00',
+                    isDefense: true
+                },
+                {
+                    speakerNames: 'ChromeOS',
+                    text: "Je suis ChromeOS. Je suis le futur. Rapide. Sans virus. ⚡🛡️ Pas comme vous !",
+                    color: '#4285F4',
+                    isVillain: true
+                },
+                {
+                    speakerNames: 'Windows 7',
+                    text: "Tu n'es même pas un vrai système... tu es juste un navigateur web ! 🌐🤣",
+                    color: '#00a8e8',
+                    isDefense: true
+                },
+                {
+                    speakerNames: 'ChromeOS',
+                    text: "GRRR ! Vous allez voir ! 😡🔥",
+                    color: '#4285F4',
+                    isVillain: true,
+                    action: 'chromeAngry'
+                },
+                {
+                    speakerNames: 'Windows 10',
+                    text: "Ici, c'est le territoire des Légendes. Dégage ! 🛡️🗡️",
+                    color: '#0078d4',
+                    isDefense: true,
+                    action: 'windowsUnite'
+                },
+                {
+                    speakerNames: 'ChromeOS',
+                    text: "Je reviendrai ! 🏃‍♂️💨",
+                    color: '#4285F4',
+                    isVillain: true,
+                    action: 'chromeFlee'
+                },
+                {
+                    speakerNames: 'Windows XP',
+                    text: "Quel tocard. 😎",
+                    color: '#ff8c00'
+                }
+            ];
+
+            // Création de l'overlay pour l'Au-delà
+            const overlay = document.createElement('div');
+            overlay.className = 'afterlife-overlay';
+            overlay.innerHTML = `
+                <div class="afterlife-bg">
+                    <div class="afterlife-stars"></div>
+                    <div class="afterlife-clouds"></div>
+                </div>
+                <div class="afterlife-characters afterlife-10-layout">
+                    <div class="afterlife-group-ancients-10">
+                        <div class="afterlife-group-label">Les Anciens 🤔</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_1.0.png" alt="Windows 1.0" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_3.1.png" alt="Windows 3.1" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_95.png" alt="Windows 95" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_98.png" alt="Windows 98" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_me.png" alt="Windows ME" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_2000.png" alt="Windows 2000" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <div class="afterlife-three-kings">
+                        <div class="afterlife-kings-banner">👑👑👑 Les Trois Rois 👑👑👑</div>
+                        <div class="afterlife-kings-trio">
+                            <div class="afterlife-king-slot">
+                                <img src="logo/Windows_xp.png" alt="Windows XP" class="afterlife-char afterlife-ancient afterlife-king-trio-char">
+                                <span class="afterlife-king-name">XP</span>
+                            </div>
+                            <div class="afterlife-king-slot afterlife-king-center">
+                                <img src="logo/Windows_10.png" alt="Windows 10" class="afterlife-char afterlife-newcomer afterlife-king-trio-char afterlife-win10">
+                                <span class="afterlife-king-name">10</span>
+                            </div>
+                            <div class="afterlife-king-slot">
+                                <img src="logo/Windows_7.png" alt="Windows 7" class="afterlife-char afterlife-ancient afterlife-king-trio-char">
+                                <span class="afterlife-king-name">7</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="afterlife-group-moderns-10">
+                        <div class="afterlife-group-label">Les Modernes 😱</div>
+                        <div class="afterlife-group-logos">
+                            <img src="logo/Windows_vista.png" alt="Windows Vista" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_8.png" alt="Windows 8" class="afterlife-char afterlife-ancient">
+                            <img src="logo/Windows_8.1.png" alt="Windows 8.1" class="afterlife-char afterlife-ancient">
+                        </div>
+                    </div>
+                    <!-- MÉCHANT : ChromeOS (caché au départ) -->
+                    <div class="afterlife-villain-zone" id="chromeos-zone">
+                        <img src="logo/chromeos.png" alt="ChromeOS" class="afterlife-villain-char" id="chromeos-villain">
+                    </div>
+                </div>
+                <div class="afterlife-dialogue">
+                    <div class="afterlife-speaker"></div>
+                    <div class="afterlife-text"></div>
+                </div>
+                <div class="afterlife-continue">▼ Cliquer pour continuer</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const speakerEl = overlay.querySelector('.afterlife-speaker');
+            const textEl = overlay.querySelector('.afterlife-text');
+            const continueEl = overlay.querySelector('.afterlife-continue');
+
+            // Musique épique
+            this.audioManager.stopMusic();
+            this.audioManager.playMusic('music/Windows Vienna Sounds Remix.mp3');
+
+            // Affiche l'overlay
+            requestAnimationFrame(() => {
+                overlay.classList.add('visible');
+            });
+
+            // Affiche les deux groupes latéraux d'abord
+            setTimeout(() => {
+                overlay.querySelectorAll('.afterlife-ancient').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 80);
+                });
+            }, 500);
+
+            // Affiche la bannière des Trois Rois
+            setTimeout(() => {
+                const banner = overlay.querySelector('.afterlife-kings-banner');
+                if (banner) banner.classList.add('visible');
+            }, 1800);
+
+            // Fait apparaître Windows 10 au centre avec effet royal
+            setTimeout(() => {
+                const win10 = overlay.querySelector('.afterlife-win10');
+                if (win10) win10.classList.add('visible', 'ghost-appear');
+            }, 2200);
+
+            let currentDialogue = 0;
+
+            const showDialogue = () => {
+                if (currentDialogue >= dialogues.length) {
+                    // Fin de la scène
+                    overlay.classList.remove('visible');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+
+                const dialogue = dialogues[currentDialogue];
+                speakerEl.textContent = dialogue.speakerNames;
+                speakerEl.style.background = `linear-gradient(135deg, ${dialogue.color}, ${this.adjustColor(dialogue.color, 30)})`;
+                textEl.textContent = dialogue.text;
+
+                // Gestion des actions spéciales
+                const chromeZone = overlay.querySelector('#chromeos-zone');
+                const chromeVillain = overlay.querySelector('#chromeos-villain');
+                const kingsChars = overlay.querySelectorAll('.afterlife-king-trio-char');
+
+                if (dialogue.action === 'chromeAppears') {
+                    // ChromeOS apparaît avec effet de glitch
+                    if (chromeZone) {
+                        chromeZone.classList.add('visible', 'villain-spin-in');
+                    }
+                }
+
+                if (dialogue.action === 'chromeAngry') {
+                    // ChromeOS vibre de colère
+                    if (chromeVillain) {
+                        chromeVillain.classList.add('villain-angry');
+                    }
+                }
+
+                if (dialogue.action === 'windowsUnite') {
+                    // Les Windows font bloc (effet de bouclier)
+                    kingsChars.forEach(char => {
+                        char.classList.add('defense-mode');
+                    });
+                }
+
+                if (dialogue.action === 'chromeFlee') {
+                    // ChromeOS s'enfuit
+                    if (chromeZone) {
+                        chromeZone.classList.add('villain-flee');
+                    }
+                    // Les Windows reviennent à la normale
+                    kingsChars.forEach(char => {
+                        char.classList.remove('defense-mode');
+                    });
+                }
+
+                // Style spécial pour le méchant
+                if (dialogue.isVillain) {
+                    speakerEl.classList.add('villain-speaker');
+                } else {
+                    speakerEl.classList.remove('villain-speaker');
+                }
+
+                // Animation d'apparition du dialogue
+                speakerEl.classList.add('visible');
+                textEl.classList.add('visible');
+                continueEl.classList.add('visible');
+            };
+
+            const advanceDialogue = () => {
+                currentDialogue++;
+                showDialogue();
+            };
+
+            // Démarre le premier dialogue après l'apparition
+            setTimeout(() => {
+                showDialogue();
+
+                // Gestion du clic pour avancer
+                const handleClick = () => {
+                    if (currentDialogue < dialogues.length) {
+                        advanceDialogue();
+                    }
+                };
+
+                overlay.addEventListener('click', handleClick);
+                document.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (currentDialogue < dialogues.length) {
+                            advanceDialogue();
+                        }
+                    }
+                    if (currentDialogue >= dialogues.length) {
+                        document.removeEventListener('keydown', onKey);
+                    }
+                });
+            }, 3800);
+        });
     }
 
     /**
@@ -2604,6 +5005,79 @@ class VisualNovelEngine {
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
 }
+
+// ============================================
+// INITIALISATION
+// ============================================
+
+// ============================================
+// CONTROLES MEDIA PLAYER (Taskbar Aero)
+// Contrôle UNIQUEMENT la musique de fond (musicPlayer)
+// ============================================
+
+function togglePlayPause() {
+    const btn = document.getElementById('play-pause-btn');
+    if (!musicPlayer || !musicPlayer.src) return;
+
+    if (musicPlayer.paused) {
+        musicPlayer.play().then(() => {
+            btn.src = 'Media Player/Break.png';
+            btn.classList.add('playing');
+        }).catch(e => console.warn('Erreur lecture:', e));
+    } else {
+        musicPlayer.pause();
+        btn.src = 'Media Player/Play.png';
+        btn.classList.remove('playing');
+    }
+}
+
+function stopAudio() {
+    const btn = document.getElementById('play-pause-btn');
+    const titleEl = document.getElementById('wmp-title');
+    const timerEl = document.getElementById('wmp-timer');
+
+    if (musicPlayer) {
+        musicPlayer.pause();
+        musicPlayer.currentTime = 0;
+    }
+
+    btn.src = 'Media Player/Play.png';
+    btn.classList.remove('playing');
+    if (titleEl) titleEl.textContent = 'OS Book Soundtrack';
+    if (timerEl) timerEl.textContent = '00:00';
+}
+
+function updateWmpTitle(title) {
+    const titleEl = document.getElementById('wmp-title');
+    if (titleEl && title) {
+        let displayTitle = title.includes('/') ? title.split('/').pop() : title;
+        displayTitle = displayTitle.replace(/\.[^/.]+$/, '');
+        titleEl.textContent = displayTitle;
+    }
+}
+
+function updateWmpTimer() {
+    const timerEl = document.getElementById('wmp-timer');
+    if (!timerEl || !musicPlayer || !musicPlayer.duration) return;
+    const current = musicPlayer.currentTime;
+    const mins = Math.floor(current / 60);
+    const secs = Math.floor(current % 60);
+    timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+setInterval(updateWmpTimer, 1000);
+
+setInterval(() => {
+    const btn = document.getElementById('play-pause-btn');
+    if (!btn) return;
+    if (musicPlayer && !musicPlayer.paused && musicPlayer.src) {
+        btn.src = 'Media Player/Break.png';
+        btn.classList.add('playing');
+    } else {
+        btn.src = 'Media Player/Play.png';
+        btn.classList.remove('playing');
+    }
+}, 500);
 
 // ============================================
 // INITIALISATION

@@ -26,7 +26,8 @@
 
         <!-- Contrôles Audio -->
         <div class="audio-controls-start">
-            <button id="audio-toggle" class="audio-btn" title="Activer/Désactiver le son" aria-label="Activer ou désactiver le son" aria-pressed="false">
+            <button id="audio-toggle" class="audio-btn" title="Activer/Désactiver le son"
+                aria-label="Activer ou désactiver le son" aria-pressed="false">
                 🔊
             </button>
             <label for="volume-slider" class="sr-only">Volume</label>
@@ -37,8 +38,26 @@
             <span>▶ COMMENCER</span>
         </button>
 
+        <button id="chapter-btn" class="chapter-select-btn">
+            <span>📖 Choisir un chapitre</span>
+        </button>
+
         <p class="audio-notice">🎵 Cette expérience contient de la musique et des effets sonores</p>
     </div>
+
+    <!-- Modale de sélection de chapitres -->
+    <div id="chapter-modal" class="chapter-modal">
+        <div class="chapter-modal-backdrop"></div>
+        <div class="chapter-modal-content">
+            <button class="chapter-modal-close" aria-label="Fermer">✕</button>
+            <h2 class="chapter-modal-title">📖 Sélectionner un chapitre</h2>
+            <p class="chapter-modal-subtitle">Certains chapitres sont verrouillés jusqu'à la fin du jeu</p>
+            <div class="chapter-list" id="chapter-list">
+                <!-- Chapitres générés dynamiquement par JS -->
+            </div>
+        </div>
+    </div>
+
 
     <!-- Scène principale du Visual Novel -->
     <div id="vn-scene" class="screen">
@@ -95,7 +114,29 @@
 
         <!-- Contrôles Audio In-Game -->
         <div class="audio-controls-game">
-            <button id="audio-toggle-game" class="audio-btn-small" title="Son" aria-label="Activer ou désactiver le son" aria-pressed="false">🔊</button>
+            <button id="audio-toggle-game" class="audio-btn-small" title="Son" aria-label="Activer ou désactiver le son"
+                aria-pressed="false">🔊</button>
+        </div>
+
+        <!-- Menu Pause In-Game -->
+        <div id="vn-menu" class="vn-menu">
+            <button id="menu-btn" class="menu-btn" title="Menu" aria-label="Ouvrir le menu">☰</button>
+            <div id="menu-backdrop" class="menu-backdrop"></div>
+            <div id="menu-panel" class="menu-panel">
+                <h2 class="menu-title">⏸️ Pause</h2>
+                <div class="menu-buttons">
+                    <button class="menu-action-btn" data-action="resume">▶️ Reprendre</button>
+                    <button class="menu-action-btn" data-action="mute">🔊 Son</button>
+                    <div class="menu-speed-control">
+                        <label for="typing-speed">⌨️ Vitesse du texte</label>
+                        <input type="range" id="typing-speed" min="0" max="100" value="35">
+                        <span id="speed-label">Normal</span>
+                    </div>
+                    <hr class="menu-divider">
+                    <button class="menu-action-btn warning" data-action="restart">🔄 Recommencer</button>
+                    <button class="menu-action-btn danger" data-action="toStart">🏠 Écran titre</button>
+                </div>
+            </div>
         </div>
 
         <!-- Zone de dialogue -->
@@ -122,6 +163,22 @@
     <div id="end-screen" class="screen">
         <!-- Le conteneur des crédits sera généré dynamiquement par JS -->
         <div id="credits-container" class="credits-container"></div>
+    </div>
+
+    <!-- Barre de contrôle Media Player style Aero -->
+    <div id="taskbar-player">
+        <div class="wmp-handle"></div>
+        <div class="wmp-info">
+            <span id="wmp-title">OS Book Soundtrack</span>
+            <span id="wmp-timer">00:00</span>
+        </div>
+        <div class="wmp-controls">
+            <img src="Media Player/Previous_Track.png" class="wmp-btn small" alt="Précédent">
+            <img src="Media Player/Stop.png" class="wmp-btn small" onclick="stopAudio()" alt="Stop">
+            <img src="Media Player/Break.png" id="play-pause-btn" class="wmp-btn big" onclick="togglePlayPause()"
+                alt="Pause/Play">
+            <img src="Media Player/Next_Track.png" class="wmp-btn small" alt="Suivant">
+        </div>
     </div>
 
     <script src="script.js"></script>
