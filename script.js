@@ -689,28 +689,6 @@ const CHARACTERS = {
 };
 
 // ============================================
-// CONFIGURATION DES CHAPITRES
-// Index calculés manuellement depuis les transitions du SCENARIO
-// ============================================
-
-const CHAPTERS = [
-    { id: 'prologue', name: "Prologue", desc: "L'Aube de XP (2001)", icon: "🌅", startIndex: 0 },
-    { id: 'acte2', name: "Acte 2", desc: "L'Ère Multimédia (2006)", icon: "📀", startIndex: 12 },
-    { id: 'acte3', name: "Acte 3", desc: "Le Professionnel (2010)", icon: "💼", startIndex: 24 },
-    { id: 'acte4', name: "Acte 4", desc: "La Légende XP (2014)", icon: "👑", startIndex: 38 },
-    { id: 'acte5', name: "Acte 5", desc: "L'Incompris - Win 8 (2016)", icon: "💔", startIndex: 55 },
-    { id: 'acte6', name: "Acte 6", desc: "L'Adieu de Vista (2017)", icon: "🏥", startIndex: 70 },
-    { id: 'acte7', name: "Acte 7", desc: "L'Adieu de Win 7 (2020)", icon: "⚰️", startIndex: 90 },
-    { id: 'acte8', name: "Acte 8", desc: "L'Adieu de Win 8.1 (2023)", icon: "🔧", startIndex: 110 },
-    { id: 'acte9', name: "Acte 9", desc: "La Fin de Win 10 (2025)", icon: "🌌", startIndex: 130 },
-    { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 160 }
-];
-
-// Clé localStorage pour la progression (index max atteint)
-const STORAGE_KEY_PROGRESS = 'osbook_progress';
-
-
-// ============================================
 // SCÉNARIO COMPLET : LA SAGA DE WINDOWS
 // 4 ACTES CHRONOLOGIQUES (2017-2025)
 // ============================================
@@ -2164,6 +2142,68 @@ const SCENARIO = [
 ];
 
 // ============================================
+// CONFIGURATION DES CHAPITRES (calcul auto)
+// ============================================
+
+// Clé localStorage pour la progression (index max atteint)
+const STORAGE_KEY_PROGRESS = 'osbook_progress';
+
+const readStoredProgress = () => {
+    try {
+        const value = Number(localStorage.getItem(STORAGE_KEY_PROGRESS));
+        return Number.isFinite(value) ? value : 0;
+    } catch (e) {
+        return 0;
+    }
+};
+
+const writeStoredProgress = (value) => {
+    try {
+        localStorage.setItem(STORAGE_KEY_PROGRESS, String(value));
+    } catch (e) {
+        // Ignorer les erreurs de stockage
+    }
+};
+
+const updateStoredProgress = (currentIndex) => {
+    const nextValue = Math.max(readStoredProgress(), currentIndex);
+    writeStoredProgress(nextValue);
+    return nextValue;
+};
+
+const resetStoredProgress = () => {
+    writeStoredProgress(0);
+};
+
+const findSceneIndex = (predicate) => SCENARIO.findIndex(predicate);
+const safeIndex = (index, fallback = 0) => (index >= 0 ? index : fallback);
+const findTransitionIndex = (transitionText) => safeIndex(
+    findSceneIndex(scene => scene.isTransition && scene.transitionText === transitionText)
+);
+const findTextIndex = (pattern) => safeIndex(
+    findSceneIndex(scene => typeof scene.text === 'string' && pattern.test(scene.text))
+);
+
+const INDEX_ACTE2 = findTransitionIndex("2006\nL'Ère Multimédia");
+const INDEX_ACTE3 = findTransitionIndex("2010\nLe Professionnel");
+const INDEX_ACTE4 = findTransitionIndex("2014\nLa Légende");
+const INDEX_FINAL = (() => {
+    const acte9 = findTextIndex(/ACTE 9/i);
+    if (acte9 > 0) return acte9;
+    const acte10 = findTextIndex(/ACTE 10/i);
+    if (acte10 > 0) return acte10;
+    return SCENARIO.length - 1;
+})();
+
+const CHAPTERS = [
+    { id: 'prologue', title: 'Prologue', desc: "L'Aube de XP (2001)", icon: '🌅', start: 0 },
+    { id: 'acte2', title: 'Acte 2', desc: "L'Ère Multimédia (2006)", icon: '📀', start: INDEX_ACTE2 },
+    { id: 'acte3', title: 'Acte 3', desc: 'Le Professionnel (2010)', icon: '💼', start: INDEX_ACTE3 },
+    { id: 'acte4', title: 'Acte 4', desc: 'La Légende (2014)', icon: '👑', start: INDEX_ACTE4 },
+    { id: 'final', title: 'Final', desc: 'La fin d’une ère', icon: '🌌', start: INDEX_FINAL }
+];
+
+// ============================================
 // MOTEUR DU VISUAL NOVEL
 // ============================================
 
@@ -2316,6 +2356,12 @@ class VisualNovelEngine {
         });
 
         document.addEventListener('keydown', (e) => {
+            if (e.shiftKey && e.code === 'KeyU') {
+                e.preventDefault();
+                this.unlockAllChaptersDebug();
+                return;
+            }
+
             // ESC pour ouvrir/fermer le menu
             if (e.code === 'Escape') {
                 if (this.screens.vn.classList.contains('active')) {
@@ -2353,6 +2399,7 @@ class VisualNovelEngine {
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.resetCharacters();
+        resetStoredProgress();
     }
 
     transitionScreen(from, to) {
@@ -2531,6 +2578,7 @@ class VisualNovelEngine {
         this.hideGraves();
         this.changeSceneBackground('hospital');
         this.resetCharacters();
+        resetStoredProgress();
         // Relancer la première scène
         setTimeout(() => this.playScene(), 300);
     }
@@ -2599,32 +2647,35 @@ class VisualNovelEngine {
         const chapterList = document.getElementById('chapter-list');
         if (!chapterList) return;
 
-        const unlockedChapters = this.getUnlockedChapters();
-        const gameCompleted = this.isGameCompleted();
+        const progress = readStoredProgress();
 
         chapterList.innerHTML = '';
 
         CHAPTERS.forEach((chapter, index) => {
-            // Premier chapitre toujours débloqué, les autres si jeu terminé ou dans la liste
-            const isUnlocked = index === 0 || gameCompleted || unlockedChapters.includes(chapter.id);
+            const unlockIndex = Math.max(chapter.start - 1, 0);
+            const isUnlocked = index === 0 || progress >= unlockIndex;
 
             const item = document.createElement('div');
             item.className = `chapter-item${isUnlocked ? '' : ' locked'}`;
             item.dataset.chapterId = chapter.id;
-            item.dataset.sceneIndex = chapter.sceneIndex;
+            item.dataset.sceneIndex = chapter.start;
 
             item.innerHTML = `
                 <span class="chapter-icon">${chapter.icon}</span>
                 <div class="chapter-info">
-                    <div class="chapter-name">${chapter.name}</div>
-                    <div class="chapter-desc">${chapter.desc}</div>
+                    <div class="chapter-name">${chapter.title}</div>
+                    <div class="chapter-desc">${chapter.desc ?? ''}</div>
                 </div>
                 ${isUnlocked ? '' : '<span class="chapter-lock">🔒</span>'}
             `;
 
             if (isUnlocked) {
                 item.addEventListener('click', () => {
-                    this.startFromChapter(chapter.id, chapter.sceneIndex);
+                    this.startFromChapter(chapter.id, chapter.start);
+                });
+            } else {
+                item.addEventListener('click', () => {
+                    this.showLockedChapterFeedback(item);
                 });
             }
 
@@ -2674,46 +2725,64 @@ class VisualNovelEngine {
         console.log(`📖 Démarrage depuis le chapitre: ${chapterId} (scène ${sceneIndex})`);
     }
 
-    getUnlockedChapters() {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY_UNLOCKED);
-            return stored ? JSON.parse(stored) : ['prologue'];
-        } catch (e) {
-            return ['prologue'];
+    showLockedChapterFeedback(target) {
+        if (target && target.animate) {
+            target.animate(
+                [
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-6px)' },
+                    { transform: 'translateX(6px)' },
+                    { transform: 'translateX(0)' }
+                ],
+                { duration: 350, easing: 'ease-in-out' }
+            );
         }
+        this.showToast('🔒 Chapitre verrouillé. Continue l’aventure pour le débloquer.');
     }
 
-    isGameCompleted() {
-        try {
-            return localStorage.getItem(STORAGE_KEY_COMPLETED) === 'true';
-        } catch (e) {
-            return false;
-        }
+    showToast(message) {
+        const existing = document.getElementById('vn-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'vn-toast';
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.left = '50%';
+        toast.style.bottom = '28px';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = 'rgba(9, 17, 28, 0.92)';
+        toast.style.color = '#f7f7f7';
+        toast.style.padding = '0.75rem 1.1rem';
+        toast.style.border = '1px solid rgba(255, 255, 255, 0.12)';
+        toast.style.borderRadius = '999px';
+        toast.style.fontSize = '0.9rem';
+        toast.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.35)';
+        toast.style.zIndex = '9999';
+        toast.style.backdropFilter = 'blur(8px)';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 250);
+        }, 2200);
     }
 
     markGameCompleted() {
-        try {
-            localStorage.setItem(STORAGE_KEY_COMPLETED, 'true');
-            // Débloquer tous les chapitres
-            const allChapterIds = CHAPTERS.map(ch => ch.id);
-            localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(allChapterIds));
-            console.log('🏆 Jeu terminé ! Tous les chapitres sont maintenant débloqués.');
-        } catch (e) {
-            console.warn('Impossible de sauvegarder la progression:', e);
-        }
+        updateStoredProgress(SCENARIO.length);
+        console.log('🏆 Jeu terminé ! Tous les chapitres sont maintenant débloqués.');
     }
 
-    unlockChapter(chapterId) {
-        try {
-            const unlocked = this.getUnlockedChapters();
-            if (!unlocked.includes(chapterId)) {
-                unlocked.push(chapterId);
-                localStorage.setItem(STORAGE_KEY_UNLOCKED, JSON.stringify(unlocked));
-                console.log(`🔓 Chapitre débloqué: ${chapterId}`);
-            }
-        } catch (e) {
-            console.warn('Impossible de sauvegarder le chapitre:', e);
-        }
+    unlockAllChaptersDebug() {
+        updateStoredProgress(SCENARIO.length);
+        this.renderChapterList();
+        this.showToast('✨ Debug activé : tous les chapitres sont débloqués.');
     }
 
     changeSceneBackground(sceneId) {
@@ -2810,6 +2879,8 @@ class VisualNovelEngine {
             this.endGame();
             return;
         }
+
+        updateStoredProgress(this.currentSceneIndex);
 
         const scene = SCENARIO[this.currentSceneIndex];
 
@@ -3266,6 +3337,7 @@ class VisualNovelEngine {
         button.className = 'credits-restart-btn';
         button.textContent = "RECOMMENCER L'HISTOIRE";
         button.addEventListener('click', () => {
+            resetStoredProgress();
             location.reload();
         });
 
