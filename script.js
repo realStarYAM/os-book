@@ -10,6 +10,8 @@
 // GESTIONNAIRE AUDIO
 // ============================================
 
+let currentAudio = null;
+
 class AudioManager {
     constructor() {
         this.bgm = null;
@@ -44,17 +46,17 @@ class AudioManager {
             this.fadeInterval = null;
         }
 
-        if (this.bgm) {
+        if (currentAudio) {
             try {
-                this.bgm.pause();
-                this.bgm.currentTime = 0;
-                this.bgm.src = '';
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
             } catch (e) {
                 console.warn('Erreur arrêt musique:', e);
             }
-            this.bgm = null;
-            this.currentBgmPath = null;
         }
+        this.bgm = null;
+        this.currentBgmPath = null;
     }
 
     playMusic(path, fadeIn = true) {
@@ -67,6 +69,7 @@ class AudioManager {
         this.stopCurrentMusicImmediately();
 
         this.bgm = new Audio(path);
+        currentAudio = this.bgm;
         this.bgm.loop = true;
         this.bgm.volume = fadeIn ? 0 : this.volume * (this.isMuted ? 0 : 1);
         this.currentBgmPath = path;
@@ -95,12 +98,14 @@ class AudioManager {
             const audioToStop = this.bgm;
 
             this.fadeOut(audioToStop, 1500, () => {
-                try {
-                    audioToStop.pause();
-                    audioToStop.currentTime = 0;
-                    audioToStop.src = '';
-                } catch (e) {
-                    console.warn('Erreur arrêt musique fade:', e);
+                if (currentAudio) {
+                    try {
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0;
+                        currentAudio = null;
+                    } catch (e) {
+                        console.warn('Erreur arrêt musique fade:', e);
+                    }
                 }
             });
 
