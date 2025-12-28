@@ -3014,15 +3014,81 @@ const CHARACTERS = {
         image: 'logo/Kernel.svg',
         color: '#ffffff',
         divine: true
-    },
-    // Windows Vista (pour l'Arc 4 Chapitre 6)
-    vista: {
-        id: 'vista',
-        name: 'Windows Vista',
-        image: 'logo/Windows_Vista.png',
-        color: '#00a8e8'
     }
 };
+
+const ASSETS = {
+    'windows vista': 'logo/Windows_vista.png',
+    'vista': 'logo/Windows_vista.png',
+    'windows 7': 'logo/Windows_7.png',
+    'windows7': 'logo/Windows_7.png',
+    'windows 10': 'logo/Windows_10.png',
+    'windows10': 'logo/Windows_10.png',
+    'windows 8': 'logo/Windows_8.png',
+    'windows8': 'logo/Windows_8.png',
+    'windows 8.1': 'logo/Windows_8.1.png',
+    'windows8.1': 'logo/Windows_8.1.png',
+    'windows81': 'logo/Windows_8.1.png',
+    'windows 11': 'logo/Windows_11.png',
+    'windows11': 'logo/Windows_11.png',
+    'windows xp': 'logo/Windows_xp.png',
+    'xp': 'logo/Windows_xp.png',
+    'windows 98': 'logo/Windows_98.png',
+    'windows98': 'logo/Windows_98.png',
+    'windows me': 'logo/Windows_me.png',
+    'windowsme': 'logo/Windows_me.png',
+    'windows 2000': 'logo/Windows_2000.png',
+    'windows2000': 'logo/Windows_2000.png',
+    'kernel': 'logo/Kernel.svg',
+    'le kernel': 'logo/Kernel.svg',
+    'macos': 'logo/macOS_Big_Sur.png',
+    'ubuntu': 'logo/Ubuntu-2006.png',
+    'windows 12': 'logo/Windows_12.png',
+    'windows12': 'logo/Windows_12.png',
+    'windows 1.0': 'logo/Windows_1.0.png',
+    'windows1.0': 'logo/Windows_1.0.png',
+    'windows 3.1': 'logo/Windows_3.1.png',
+    'windows3.1': 'logo/Windows_3.1.png',
+    'windows 95': 'logo/Windows_95.png',
+    'windows95': 'logo/Windows_95.png',
+    'chromeos': 'logo/chromeos.png'
+};
+
+function normalizeCharacterName(name) {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ');
+}
+
+function getCharacterImage(name, fallbackPath = null) {
+    if (!name) return fallbackPath;
+    const normalized = normalizeCharacterName(name);
+    const asset = ASSETS[normalized];
+    if (asset) return asset;
+    console.warn(`⚠️ Image non mappée pour "${name}". Chemin fallback: ${fallbackPath || 'aucun'}`);
+    return fallbackPath;
+}
+
+function applyCharacterImage(elements, character) {
+    const imagePath = getCharacterImage(character.name, character.image);
+    elements.slot.classList.remove('image-missing');
+    if (!imagePath) {
+        elements.img.removeAttribute('src');
+        elements.slot.classList.add('image-missing');
+        console.warn(`⚠️ Image introuvable pour "${character.name}". Aucun chemin valide.`);
+        return;
+    }
+
+    elements.img.onload = () => elements.slot.classList.remove('image-missing');
+    elements.img.onerror = () => {
+        elements.img.removeAttribute('src');
+        elements.slot.classList.add('image-missing');
+        console.warn(`⚠️ Image introuvable pour "${character.name}". Chemin testé: ${imagePath}`);
+    };
+    elements.img.src = imagePath;
+}
 
 // ============================================
 // CONFIGURATION DES CHAPITRES
@@ -9071,17 +9137,20 @@ class VisualNovelEngine {
             charLeft: {
                 slot: document.getElementById('character-left'),
                 img: document.getElementById('char-left-img'),
-                name: document.getElementById('char-left-name')
+                name: document.getElementById('char-left-name'),
+                fallback: document.getElementById('char-left-fallback')
             },
             charCenter: {
                 slot: document.getElementById('character-center'),
                 img: document.getElementById('char-center-img'),
-                name: document.getElementById('char-center-name')
+                name: document.getElementById('char-center-name'),
+                fallback: document.getElementById('char-center-fallback')
             },
             charRight: {
                 slot: document.getElementById('character-right'),
                 img: document.getElementById('char-right-img'),
-                name: document.getElementById('char-right-name')
+                name: document.getElementById('char-right-name'),
+                fallback: document.getElementById('char-right-fallback')
             }
         };
 
@@ -9929,12 +9998,37 @@ class VisualNovelEngine {
             if (character && character.image) {
                 const grave = document.createElement('div');
                 grave.className = 'grave';
-                grave.innerHTML = `
-                    <span class="grave-cross">✝</span>
-                    <img src="${character.image}" alt="${character.name}" class="grave-image">
-                    <span class="grave-name">${character.name}</span>
-                    <span class="grave-dates">${character.dates || ''}</span>
-                `;
+
+                const cross = document.createElement('span');
+                cross.className = 'grave-cross';
+                cross.textContent = '✝';
+
+                const image = document.createElement('img');
+                image.className = 'grave-image';
+                image.alt = character.name;
+
+                const imagePath = getCharacterImage(character.name, character.image);
+                if (!imagePath) {
+                    grave.classList.add('image-missing');
+                    console.warn(`⚠️ Image introuvable pour "${character.name}". Aucun chemin valide.`);
+                } else {
+                    image.onerror = () => {
+                        image.remove();
+                        grave.classList.add('image-missing');
+                        console.warn(`⚠️ Image introuvable pour "${character.name}". Chemin testé: ${imagePath}`);
+                    };
+                    image.src = imagePath;
+                }
+
+                const name = document.createElement('span');
+                name.className = 'grave-name';
+                name.textContent = character.name;
+
+                const dates = document.createElement('span');
+                dates.className = 'grave-dates';
+                dates.textContent = character.dates || '';
+
+                grave.append(cross, image, name, dates);
                 this.gravesContainer.appendChild(grave);
             }
         });
@@ -10254,6 +10348,8 @@ class VisualNovelEngine {
             // Cacher tous les personnages si pas de characters défini
             charElements.forEach(elements => {
                 elements.slot.classList.remove('visible', 'speaking');
+                elements.slot.classList.remove('image-missing');
+                elements.img.removeAttribute('src');
             });
             return;
         }
@@ -10269,7 +10365,7 @@ class VisualNovelEngine {
                 const character = CHARACTERS[charId];
 
                 elements.slot.classList.add('visible');
-                elements.img.src = character.image;
+                applyCharacterImage(elements, character);
                 elements.img.alt = character.name;
                 elements.name.textContent = character.name;
                 if (charId === 'kernel') {
