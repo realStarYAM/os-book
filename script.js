@@ -3167,57 +3167,76 @@ const CHARACTERS = {
 };
 
 const ASSETS = {
-    'windows vista': 'logo/Windows_vista.png',
-    'vista': 'logo/Windows_vista.png',
-    'windows 7': 'logo/Windows_7.png',
-    'windows7': 'logo/Windows_7.png',
-    'windows 10': 'logo/Windows_10.png',
-    'windows10': 'logo/Windows_10.png',
-    'windows 8': 'logo/Windows_8.png',
-    'windows8': 'logo/Windows_8.png',
-    'windows 8.1': 'logo/Windows_8.1.png',
-    'windows8.1': 'logo/Windows_8.1.png',
-    'windows81': 'logo/Windows_8.1.png',
-    'windows 11': 'logo/Windows_11.png',
-    'windows11': 'logo/Windows_11.png',
-    'windows xp': 'logo/Windows_xp.png',
-    'xp': 'logo/Windows_xp.png',
-    'windows 98': 'logo/Windows_98.png',
-    'windows98': 'logo/Windows_98.png',
-    'windows me': 'logo/Windows_me.png',
-    'windowsme': 'logo/Windows_me.png',
-    'windows 2000': 'logo/Windows_2000.png',
-    'windows2000': 'logo/Windows_2000.png',
-    'kernel': 'logo/Kernel.svg',
-    'le kernel': 'logo/Kernel.svg',
-    'macos': 'logo/macOS_Big_Sur.png',
-    'ubuntu': 'logo/Ubuntu-2006.png',
-    'windows 12': 'logo/Windows_12.png',
-    'windows12': 'logo/Windows_12.png',
-    'windows 1.0': 'logo/Windows_1.0.png',
-    'windows1.0': 'logo/Windows_1.0.png',
-    'windows 3.1': 'logo/Windows_3.1.png',
-    'windows3.1': 'logo/Windows_3.1.png',
-    'windows 95': 'logo/Windows_95.png',
-    'windows95': 'logo/Windows_95.png',
-    'chromeos': 'logo/chromeos.png'
+    windows_vista: 'logo/Windows_vista.png',
+    windows_7: 'logo/Windows_7.png',
+    windows_10: 'logo/Windows_10.png',
+    windows_8: 'logo/Windows_8.png',
+    'windows_8.1': 'logo/Windows_8.1.png',
+    windows_11: 'logo/Windows_11.png',
+    windows_xp: 'logo/Windows_xp.png',
+    windows_98: 'logo/Windows_98.png',
+    windows_me: 'logo/Windows_me.png',
+    windows_2000: 'logo/Windows_2000.png',
+    kernel: 'logo/Kernel.svg',
+    macos: 'logo/macOS_Big_Sur.png',
+    ubuntu: 'logo/Ubuntu-2006.png',
+    windows_12: 'logo/Windows_12.png',
+    'windows_1.0': 'logo/Windows_1.0.png',
+    'windows_3.1': 'logo/Windows_3.1.png',
+    windows_95: 'logo/Windows_95.png',
+    chromeos: 'logo/chromeos.png'
+};
+
+const CHARACTER_NAME_ALIASES = {
+    vista: 'windows_vista',
+    windowsvista: 'windows_vista',
+    windows7: 'windows_7',
+    windows10: 'windows_10',
+    windows8: 'windows_8',
+    windows81: 'windows_8.1',
+    windows8.1: 'windows_8.1',
+    windows11: 'windows_11',
+    windows12: 'windows_12',
+    windows1.0: 'windows_1.0',
+    windows3.1: 'windows_3.1',
+    windows95: 'windows_95',
+    windows98: 'windows_98',
+    windowsme: 'windows_me',
+    windows2000: 'windows_2000',
+    windowsxp: 'windows_xp',
+    xp: 'windows_xp',
+    le_kernel: 'kernel'
+};
+
+// GitHub Pages est sensible à la casse : un simple Windows_Vista.png casse l'image.
+const KNOWN_PATH_FIXES = {
+    'logo/Windows_Vista.png': 'logo/Windows_vista.png',
+    'logo/windows_vista.png': 'logo/Windows_vista.png'
 };
 
 function normalizeCharacterName(name) {
     return name
         .toLowerCase()
         .trim()
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ');
+        .replace(/[\s-]+/g, '_')
+        .replace(/_+/g, '_');
+}
+
+function normalizeAssetPath(path) {
+    if (!path) return null;
+    const cleaned = path.trim().replace(/\\/g, '/');
+    return KNOWN_PATH_FIXES[cleaned] || cleaned;
 }
 
 function getCharacterImage(name, fallbackPath = null) {
-    if (!name) return fallbackPath;
+    const normalizedFallback = normalizeAssetPath(fallbackPath);
+    if (!name) return normalizedFallback;
     const normalized = normalizeCharacterName(name);
-    const asset = ASSETS[normalized];
+    const resolvedKey = CHARACTER_NAME_ALIASES[normalized] || normalized;
+    const asset = ASSETS[resolvedKey];
     if (asset) return asset;
-    console.warn(`⚠️ Image non mappée pour "${name}". Chemin fallback: ${fallbackPath || 'aucun'}`);
-    return fallbackPath;
+    console.warn(`⚠️ Image non mappée pour "${name}". Chemin fallback: ${normalizedFallback || 'aucun'}`);
+    return normalizedFallback || null;
 }
 
 function applyCharacterImage(elements, character) {
