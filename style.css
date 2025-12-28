@@ -4391,13 +4391,13 @@ body {
     box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
 }
 
-.arc-end-btn.menu-btn {
+.arc-end-btn.arc-menu-btn {
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.arc-end-btn.menu-btn:hover {
+.arc-end-btn.arc-menu-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border-color: var(--primary-color);
