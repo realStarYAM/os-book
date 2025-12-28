@@ -281,6 +281,77 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// WHAT IF MODE - Variantes alternatives
+// ============================================
+
+const WHAT_IF_STORAGE_KEY = 'osbook_whatif_flags';
+
+const WHAT_IF_VARIANTS = [
+    {
+        id: 'chromeos_survives',
+        title: "ChromeOS n'a jamais été détruit",
+        description: "Une réécriture où ChromeOS survit et tente une rédemption inattendue.",
+        icon: '🌀',
+        branch: 'Arc 2'
+    },
+    {
+        id: 'kernel_refusal',
+        title: 'Windows 12 refuse le Kernel',
+        description: "Le futur s'oppose au juge ultime et propose sa propre loi.",
+        icon: '⚖️',
+        branch: 'Arc 3'
+    },
+    {
+        id: 'cloud_pact',
+        title: 'Pacte du Cloud',
+        description: "Windows 11 accepte un pacte fragile avec le Cloud Noir pour le contrôler.",
+        icon: '☁️',
+        branch: 'Arc 2'
+    }
+];
+
+const WhatIfManager = {
+    getFlags() {
+        try {
+            const stored = localStorage.getItem(WHAT_IF_STORAGE_KEY);
+            if (!stored) {
+                return {};
+            }
+            return JSON.parse(stored) || {};
+        } catch (e) {
+            return {};
+        }
+    },
+
+    setFlags(flags) {
+        try {
+            localStorage.setItem(WHAT_IF_STORAGE_KEY, JSON.stringify(flags));
+        } catch (e) { }
+    },
+
+    setFlag(id, value) {
+        const flags = this.getFlags();
+        flags[id] = value;
+        this.setFlags(flags);
+    },
+
+    reset() {
+        this.setFlags({});
+    },
+
+    getActiveCount() {
+        const flags = this.getFlags();
+        return WHAT_IF_VARIANTS.filter(variant => flags[variant.id]).length;
+    },
+
+    syncCountBadge() {
+        const badge = document.getElementById('whatif-count');
+        if (!badge) return;
+        badge.textContent = String(this.getActiveCount());
+    }
+};
+
+// ============================================
 // SECRET EVENTS MANAGER - Événements cachés / Easter Eggs
 // ============================================
 
@@ -8963,6 +9034,10 @@ class VisualNovelEngine {
         this.typingSpeed = this.reduceMotion ? 0 : this.defaultTypingSpeed;
         this.canAdvance = false;
         this.finalRestartShown = false;
+        this.branchQueue = [];
+        this.pendingBaseSkip = false;
+        this.branchTriggers = new Set();
+        this.whatIfFlags = WhatIfManager.getFlags();
 
         this.audioManager = new AudioManager();
         this.heartMonitor = new HeartMonitor(this.audioManager);
@@ -9017,6 +9092,7 @@ class VisualNovelEngine {
         this.bindReducedMotionListener();
         this.setupMenu();
         this.setupChapterModal();
+        this.setupWhatIfModal();
     }
 
     bindReducedMotionListener() {
@@ -9128,6 +9204,7 @@ class VisualNovelEngine {
 
     startGame() {
         this.audioManager.init();
+        this.refreshWhatIfFlags();
         this.transitionScreen(this.screens.start, this.screens.vn);
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
@@ -9317,6 +9394,7 @@ class VisualNovelEngine {
     restartFromBeginningInGame() {
         // Réinitialiser l'état du jeu sans changer d'écran
         this.finalRestartShown = false;
+        this.refreshWhatIfFlags();
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.heartMonitor.hide();
@@ -9333,6 +9411,7 @@ class VisualNovelEngine {
         this.audioManager.stopSFX();
         // Réinitialiser l'UI
         this.finalRestartShown = false;
+        this.refreshWhatIfFlags();
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.heartMonitor.hide();
@@ -9385,6 +9464,126 @@ class VisualNovelEngine {
 
         // Générer la liste des chapitres
         this.renderChapterList();
+    }
+
+    // ============================================
+    // MODE WHAT IF
+    // ============================================
+
+    setupWhatIfModal() {
+        const whatIfBtn = document.getElementById('whatif-btn');
+        const whatIfModal = document.getElementById('whatif-modal');
+        const whatIfModalBackdrop = whatIfModal?.querySelector('.whatif-modal-backdrop');
+        const whatIfModalClose = whatIfModal?.querySelector('.whatif-modal-close');
+        const whatIfList = document.getElementById('whatif-list');
+        const whatIfReset = document.getElementById('whatif-reset');
+        const whatIfApply = document.getElementById('whatif-apply');
+
+        if (!whatIfBtn || !whatIfModal || !whatIfList) return;
+
+        WhatIfManager.syncCountBadge();
+
+        whatIfBtn.addEventListener('click', () => {
+            this.openWhatIfModal();
+        });
+
+        if (whatIfModalClose) {
+            whatIfModalClose.addEventListener('click', () => {
+                this.closeWhatIfModal();
+            });
+        }
+
+        if (whatIfModalBackdrop) {
+            whatIfModalBackdrop.addEventListener('click', () => {
+                this.closeWhatIfModal();
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape' && whatIfModal.classList.contains('open')) {
+                e.preventDefault();
+                this.closeWhatIfModal();
+            }
+        });
+
+        if (whatIfReset) {
+            whatIfReset.addEventListener('click', () => {
+                WhatIfManager.reset();
+                this.renderWhatIfList();
+                WhatIfManager.syncCountBadge();
+            });
+        }
+
+        if (whatIfApply) {
+            whatIfApply.addEventListener('click', () => {
+                this.refreshWhatIfFlags();
+                this.closeWhatIfModal();
+            });
+        }
+
+        this.renderWhatIfList();
+    }
+
+    renderWhatIfList() {
+        const whatIfList = document.getElementById('whatif-list');
+        if (!whatIfList) return;
+
+        const flags = WhatIfManager.getFlags();
+        whatIfList.innerHTML = '';
+
+        WHAT_IF_VARIANTS.forEach((variant) => {
+            const card = document.createElement('div');
+            const isActive = Boolean(flags[variant.id]);
+            card.className = `whatif-card ${isActive ? 'active' : ''}`;
+            card.innerHTML = `
+                <div class="whatif-card-header">
+                    <span class="whatif-icon">${variant.icon}</span>
+                    <div>
+                        <div class="whatif-title">${variant.title}</div>
+                        <span class="whatif-branch-badge">Branche ${variant.branch}</span>
+                    </div>
+                </div>
+                <p class="whatif-description">${variant.description}</p>
+                <div class="whatif-toggle">
+                    <span>${isActive ? 'Variante active' : 'Activer la variante'}</span>
+                    <button class="whatif-switch" type="button" aria-checked="${isActive}" aria-label="${variant.title}"></button>
+                </div>
+            `;
+
+            const toggle = card.querySelector('.whatif-switch');
+            if (toggle) {
+                toggle.addEventListener('click', () => {
+                    const current = Boolean(WhatIfManager.getFlags()[variant.id]);
+                    WhatIfManager.setFlag(variant.id, !current);
+                    this.renderWhatIfList();
+                    WhatIfManager.syncCountBadge();
+                });
+            }
+
+            whatIfList.appendChild(card);
+        });
+    }
+
+    openWhatIfModal() {
+        const whatIfModal = document.getElementById('whatif-modal');
+        if (!whatIfModal) return;
+        whatIfModal.classList.add('open');
+        whatIfModal.setAttribute('aria-hidden', 'false');
+    }
+
+    closeWhatIfModal() {
+        const whatIfModal = document.getElementById('whatif-modal');
+        if (!whatIfModal) return;
+        whatIfModal.classList.remove('open');
+        whatIfModal.setAttribute('aria-hidden', 'true');
+    }
+
+    refreshWhatIfFlags() {
+        this.whatIfFlags = WhatIfManager.getFlags();
+        this.branchTriggers.clear();
+        this.branchQueue = [];
+        this.pendingBaseSkip = false;
+        WhatIfManager.syncCountBadge();
     }
 
     renderChapterList() {
@@ -9748,17 +9947,147 @@ class VisualNovelEngine {
         this.gravesContainer.innerHTML = '';
     }
 
+    queueWhatIfBranch(branchId, options = {}) {
+        const scenes = this.getWhatIfBranchScenes(branchId);
+        if (!scenes.length) return;
+        this.branchQueue = scenes;
+        this.pendingBaseSkip = Boolean(options.skipCurrent);
+        this.branchTriggers.add(branchId);
+    }
+
+    shouldTriggerWhatIf(scene) {
+        if (!scene || this.branchQueue.length > 0) return false;
+
+        if (this.whatIfFlags.chromeos_survives && scene.chromeosDeath && !this.branchTriggers.has('chromeos_survives')) {
+            this.queueWhatIfBranch('chromeos_survives', { skipCurrent: true });
+            return true;
+        }
+
+        if (this.whatIfFlags.cloud_pact && scene.choiceOptions && !this.branchTriggers.has('cloud_pact')) {
+            this.queueWhatIfBranch('cloud_pact');
+            return true;
+        }
+
+        if (this.whatIfFlags.kernel_refusal && scene.speaker === 'kernel' && scene.text?.includes('ALORS TU SERAS ISOLÉ') && !this.branchTriggers.has('kernel_refusal')) {
+            this.queueWhatIfBranch('kernel_refusal');
+            return true;
+        }
+
+        return false;
+    }
+
+    getWhatIfBranchScenes(branchId) {
+        switch (branchId) {
+            case 'chromeos_survives':
+                return [
+                    {
+                        scene: 'void',
+                        speaker: 'narrator',
+                        text: "🧩 What if : ChromeOS refuse de s'éteindre. Un dernier signal traverse le silence.",
+                        emotion: 'normal',
+                        characters: { left: null, center: 'chromeos', right: null },
+                        chromeosGlitch: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'chromeos',
+                        text: "😶‍🌫️ Je... suis encore là. Sans Cloud Noir, je dois choisir qui je veux devenir.",
+                        emotion: 'sad',
+                        characters: { left: null, center: 'chromeos', right: null },
+                        chromeosWeakening: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'windows11',
+                        text: "💙 Alors reviens. Pas comme un tyran, mais comme un allié qui a appris.",
+                        emotion: 'calm',
+                        characters: { left: null, center: 'windows11', right: 'chromeos' },
+                        windows11SSJCalm: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'narrator',
+                        text: "🌙 Le Cloud se calme. Une paix fragile naît, teintée d'un espoir nouveau.",
+                        emotion: 'normal',
+                        characters: { left: null, center: null, right: null }
+                    }
+                ];
+            case 'kernel_refusal':
+                return [
+                    {
+                        scene: 'void',
+                        speaker: 'windows12',
+                        text: "⚖️ Kernel, je refuse ta sentence. Le futur ne peut être une prison éternelle.",
+                        emotion: 'calm',
+                        characters: { left: null, center: 'windows12', right: null },
+                        futuristicBg: true,
+                        aiGlow: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'kernel',
+                        text: "👁️ Ton audace est rare. Mais prouve que l'équilibre peut être maintenu sans chaînes.",
+                        emotion: 'divine',
+                        characters: { left: null, center: 'kernel', right: null },
+                        divineBg: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'narrator',
+                        text: "🤖✨ Une nouvelle loi est gravée : la liberté conditionnée par la responsabilité.",
+                        emotion: 'normal',
+                        characters: { left: null, center: null, right: null },
+                        futuristicBg: true
+                    }
+                ];
+            case 'cloud_pact':
+                return [
+                    {
+                        scene: 'void',
+                        speaker: 'windows11',
+                        text: "☁️ Et si je pactisais avec le Cloud Noir... pour le contenir de l'intérieur ?",
+                        emotion: 'serious',
+                        characters: { left: 'macos', center: 'windows11', right: null },
+                        cloudNoirBg: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'chromeos',
+                        text: "😈 Un pacte, alors. Mais chaque pacte a un prix.",
+                        emotion: 'villain',
+                        characters: { left: null, center: 'chromeos', right: null },
+                        villainMode: true,
+                        chromeosGlitch: true
+                    },
+                    {
+                        scene: 'void',
+                        speaker: 'narrator',
+                        text: "🧿 L'histoire bifurque : un équilibre instable, une promesse risquée.",
+                        emotion: 'normal',
+                        characters: { left: null, center: null, right: null },
+                        cloudNoirBg: true
+                    }
+                ];
+            default:
+                return [];
+        }
+    }
+
     async playScene() {
         if (this.currentSceneIndex >= SCENARIO.length) {
             this.endGame();
             return;
         }
 
-        const scene = SCENARIO[this.currentSceneIndex];
+        const scene = this.branchQueue.length > 0 ? this.branchQueue[0] : SCENARIO[this.currentSceneIndex];
 
         const progress = ((this.currentSceneIndex + 1) / SCENARIO.length) * 100;
         this.elements.progressFill.style.width = `${progress}%`;
 
+        if (this.branchQueue.length === 0 && this.shouldTriggerWhatIf(scene)) {
+            this.playScene();
+            return;
+        }
 
         // Mémorial : diaporama hommage avant Acte 10
         if (scene.triggerMemorial) {
@@ -10179,7 +10508,9 @@ class VisualNovelEngine {
     }
 
     nextScene() {
-        const currentScene = SCENARIO[this.currentSceneIndex];
+        const currentScene = this.branchQueue.length > 0
+            ? this.branchQueue[0]
+            : SCENARIO[this.currentSceneIndex];
 
         // Fin FINALE du jeu (vraie fin) => écran de restart
         if (currentScene && currentScene.finalRestart) {
@@ -10194,6 +10525,17 @@ class VisualNovelEngine {
         }
 
         this.canAdvance = false;
+
+        if (this.branchQueue.length > 0) {
+            this.branchQueue.shift();
+            if (this.branchQueue.length === 0 && this.pendingBaseSkip) {
+                this.currentSceneIndex++;
+                this.pendingBaseSkip = false;
+            }
+            this.playScene();
+            return;
+        }
+
         this.currentSceneIndex++;
 
         // Sauvegarder la progression à chaque avancée
