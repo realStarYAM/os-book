@@ -20,6 +20,2256 @@ let sfxPlayer = new Audio();
 // Référence globale pour compatibilité WMP
 let globalAudio = musicPlayer;
 
+// ============================================
+// UI LOADER - Système de chargement d'interfaces
+// ============================================
+
+/**
+ * Gestionnaire d'UI pour charger et afficher les interfaces dynamiquement
+ * avec des transitions fluides (fade in / fade out)
+ */
+const UIManager = {
+    loader: null,
+    currentUI: null,
+    isTransitioning: false,
+
+    // Configuration des UI disponibles
+    screens: {
+        menu: { element: 'start-screen', title: 'Menu Principal', isModal: false },
+        chapitre: { element: 'chapter-modal', title: 'Sélection de Chapitre', isModal: true },
+        pause: { element: 'menu-panel', title: 'Menu Pause', isModal: true },
+        choix: { element: 'choice-panel', title: 'Choix', isModal: true },
+        fin: { element: 'end-screen', title: 'Fin du Jeu', isModal: false },
+        jeu: { element: 'vn-scene', title: 'Scène de Jeu', isModal: false }
+    },
+
+    /**
+     * Initialise le UIManager (appelé automatiquement)
+     */
+    init() {
+        this.loader = document.getElementById('ui-loader');
+        if (!this.loader) {
+            console.warn('⚠️ UI Loader element not found');
+        }
+    },
+
+    /**
+     * Affiche l'overlay de chargement
+     */
+    showLoader() {
+        if (!this.loader) this.init();
+        if (this.loader) {
+            this.loader.classList.add('active');
+            this.loader.setAttribute('aria-hidden', 'false');
+        }
+    },
+
+    /**
+     * Cache l'overlay de chargement
+     */
+    hideLoader() {
+        if (this.loader) {
+            this.loader.classList.remove('active');
+            this.loader.setAttribute('aria-hidden', 'true');
+        }
+    },
+
+    /**
+     * Charge et affiche une UI avec transition
+     * @param {string} name - Nom de l'UI (menu, chapitre, pause, choix, fin, jeu)
+     * @param {Object} options - Options de transition
+     * @returns {Promise<boolean>} - Succès du chargement
+     */
+    async loadUI(name, options = {}) {
+        const screen = this.screens[name];
+        if (!screen) {
+            console.warn(`⚠️ UI "${name}" non trouvée. UI disponibles: ${Object.keys(this.screens).join(', ')}`);
+            return false;
+        }
+
+        // Éviter les transitions multiples simultanées
+        if (this.isTransitioning) {
+            console.log('⏳ Transition en cours, ignorée');
+            return false;
+        }
+        this.isTransitioning = true;
+
+        try {
+            // Afficher le loader
+            this.showLoader();
+
+            // Délai minimum pour voir l'animation (optionnel)
+            const minDelay = options.minDelay ?? 300;
+            await new Promise(resolve => setTimeout(resolve, minDelay));
+
+            // Cacher l'UI actuelle avec fade-out (si non-modale)
+            if (this.currentUI && !this.currentUI.isModal) {
+                const currentEl = document.getElementById(this.currentUI.element);
+                if (currentEl) {
+                    currentEl.classList.remove('active');
+                }
+            }
+
+            // Afficher la nouvelle UI
+            const targetEl = document.getElementById(screen.element);
+            if (targetEl) {
+                // Pour les modales, utiliser 'open', sinon 'active'
+                if (screen.isModal) {
+                    targetEl.classList.add('open');
+                } else {
+                    targetEl.classList.add('active');
+                }
+                this.currentUI = screen;
+                console.log(`✅ UI chargée: ${screen.title}`);
+            } else {
+                console.warn(`⚠️ Element "${screen.element}" introuvable dans le DOM`);
+            }
+
+            // Cacher le loader
+            this.hideLoader();
+
+            return true;
+        } finally {
+            this.isTransitioning = false;
+        }
+    },
+
+    /**
+     * Cache l'UI actuelle
+     * @param {string} name - Nom de l'UI à cacher (optionnel, sinon cache l'UI courante)
+     */
+    hideUI(name = null) {
+        const screenName = name || (this.currentUI ? Object.keys(this.screens).find(k => this.screens[k] === this.currentUI) : null);
+        if (!screenName) return;
+
+        const screen = this.screens[screenName];
+        if (!screen) return;
+
+        const el = document.getElementById(screen.element);
+        if (el) {
+            el.classList.remove('active', 'open');
+        }
+
+        if (this.currentUI === screen) {
+            this.currentUI = null;
+        }
+    }
+};
+
+/**
+ * Fonction globale pour charger une UI (alias de UIManager.loadUI)
+ * @param {string} name - Nom de l'UI à charger
+ * @param {Object} options - Options de transition
+ * @returns {Promise<boolean>}
+ */
+function loadUI(name, options) {
+    return UIManager.loadUI(name, options);
+}
+
+// Initialisation du UIManager au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    UIManager.init();
+});
+
+// ============================================
+// THEME MANAGER - Système de thèmes dynamique
+// ============================================
+
+/**
+ * Liste des thèmes disponibles
+ */
+const THEMES = ['default', 'dark', 'cyber', 'horror', 'terminal', 'glass'];
+
+/**
+ * Gestionnaire de thèmes avec persistence localStorage
+ */
+const ThemeManager = {
+    currentTheme: 'default',
+    storageKey: 'osbook_theme',
+
+    /**
+     * Initialise le gestionnaire de thèmes
+     */
+    init() {
+        this.restoreTheme();
+        console.log(`🎨 ThemeManager initialisé (thème: ${this.currentTheme})`);
+    },
+
+    /**
+     * Change le thème
+     * @param {string} themeName - Nom du thème
+     * @returns {boolean} - Succès
+     */
+    setTheme(themeName) {
+        // Vérifier que le thème existe
+        if (!THEMES.includes(themeName)) {
+            console.warn(`⚠️ Thème "${themeName}" inconnu. Thèmes disponibles: ${THEMES.join(', ')}`);
+            return false;
+        }
+
+        // Appliquer le thème
+        document.body.setAttribute('data-theme', themeName);
+        this.currentTheme = themeName;
+        this.saveTheme();
+
+        console.log(`🎨 Thème: ${themeName}`);
+        return true;
+    },
+
+    /**
+     * Récupère le thème actuel
+     * @returns {string}
+     */
+    getTheme() {
+        return this.currentTheme;
+    },
+
+    /**
+     * Cycle vers le thème suivant
+     * @returns {string} - Nouveau thème
+     */
+    toggleTheme() {
+        const currentIndex = THEMES.indexOf(this.currentTheme);
+        const nextIndex = (currentIndex + 1) % THEMES.length;
+        this.setTheme(THEMES[nextIndex]);
+        return this.currentTheme;
+    },
+
+    /**
+     * Sauvegarde le thème dans localStorage
+     */
+    saveTheme() {
+        try {
+            localStorage.setItem(this.storageKey, this.currentTheme);
+        } catch (e) { }
+    },
+
+    /**
+     * Restaure le thème depuis localStorage
+     */
+    restoreTheme() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (saved && THEMES.includes(saved)) {
+                this.setTheme(saved);
+            } else {
+                // Appliquer le thème par défaut
+                this.setTheme('default');
+            }
+        } catch (e) {
+            this.setTheme('default');
+        }
+    },
+
+    /**
+     * Liste les thèmes disponibles
+     * @returns {string[]}
+     */
+    listThemes() {
+        return [...THEMES];
+    }
+};
+
+// Fonctions globales pour compatibilité
+function setTheme(name) { return ThemeManager.setTheme(name); }
+function getTheme() { return ThemeManager.getTheme(); }
+function toggleTheme() { return ThemeManager.toggleTheme(); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    ThemeManager.init();
+});
+
+// ============================================
+// SECRET EVENTS MANAGER - Événements cachés / Easter Eggs
+// ============================================
+
+/**
+ * Configuration des événements secrets
+ */
+const SECRET_EVENTS = {
+    // Événement: Joueur inactif pendant 10 secondes
+    idle_ghost: {
+        id: 'idle_ghost',
+        name: 'Le Fantôme du Silence',
+        condition: 'idle',
+        threshold: 10000, // 10 secondes
+        triggered: false,
+        unlocked: false
+    },
+
+    // Événement: ChromeOS mentionné 3 fois
+    chromeos_obsession: {
+        id: 'chromeos_obsession',
+        name: 'Obsession ChromeOS',
+        condition: 'mention_count',
+        target: 'chromeos',
+        threshold: 3,
+        triggered: false,
+        unlocked: false
+    },
+
+    // Événement: Windows XP mentionné 5 fois
+    xp_nostalgia: {
+        id: 'xp_nostalgia',
+        name: 'Nostalgie XP',
+        condition: 'mention_count',
+        target: 'xp',
+        threshold: 5,
+        triggered: false,
+        unlocked: false
+    },
+
+    // Événement: Konami Code
+    konami_secret: {
+        id: 'konami_secret',
+        name: 'Code Légendaire',
+        condition: 'konami',
+        triggered: false,
+        unlocked: false
+    },
+
+    // Événement: Clic 7 fois sur le logo
+    logo_click: {
+        id: 'logo_click',
+        name: 'Le Logo Vivant',
+        condition: 'click_count',
+        target: '.floating-logo',
+        threshold: 7,
+        triggered: false,
+        unlocked: false
+    },
+
+    // Événement: Atteindre un chapitre spécifique
+    arc4_reached: {
+        id: 'arc4_reached',
+        name: 'Voyageur Temporel',
+        condition: 'chapter_reached',
+        target: 'arc4',
+        triggered: false,
+        unlocked: false
+    }
+};
+
+/**
+ * Gestionnaire d'événements secrets
+ */
+const SecretEventsManager = {
+    events: { ...SECRET_EVENTS },
+    counters: {},
+    idleTimer: null,
+    lastActivity: Date.now(),
+    konamiSequence: [],
+    konamiCode: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'],
+    storageKey: 'osbook_secrets',
+    isActive: false,
+
+    /**
+     * Initialise le système d'événements secrets
+     */
+    init() {
+        this.loadState();
+        this.setupListeners();
+        this.startIdleDetection();
+        this.isActive = true;
+        console.log('🔮 SecretEventsManager initialisé');
+    },
+
+    /**
+     * Configure les écouteurs d'événements
+     */
+    setupListeners() {
+        // Détection d'activité
+        ['click', 'keydown', 'mousemove', 'touchstart'].forEach(event => {
+            document.addEventListener(event, () => this.onActivity(), { passive: true });
+        });
+
+        // Konami Code
+        document.addEventListener('keydown', (e) => this.checkKonami(e.key));
+
+        // Clics sur éléments spécifiques
+        document.addEventListener('click', (e) => this.checkClickTarget(e));
+    },
+
+    /**
+     * Enregistre une activité utilisateur
+     */
+    onActivity() {
+        this.lastActivity = Date.now();
+        this.resetIdleTimer();
+    },
+
+    /**
+     * Démarre la détection d'inactivité
+     */
+    startIdleDetection() {
+        this.resetIdleTimer();
+    },
+
+    /**
+     * Reset le timer d'inactivité
+     */
+    resetIdleTimer() {
+        if (this.idleTimer) clearTimeout(this.idleTimer);
+
+        const idleEvent = this.events.idle_ghost;
+        if (idleEvent && !idleEvent.triggered) {
+            this.idleTimer = setTimeout(() => {
+                this.triggerEvent('idle_ghost');
+            }, idleEvent.threshold);
+        }
+    },
+
+    /**
+     * Vérifie le Konami Code
+     */
+    checkKonami(key) {
+        this.konamiSequence.push(key);
+
+        // Garder seulement les 10 dernières touches
+        if (this.konamiSequence.length > 10) {
+            this.konamiSequence.shift();
+        }
+
+        // Vérifier si la séquence correspond
+        if (this.konamiSequence.join(',') === this.konamiCode.join(',')) {
+            this.triggerEvent('konami_secret');
+            this.konamiSequence = [];
+        }
+    },
+
+    /**
+     * Vérifie les clics sur des cibles spécifiques
+     */
+    checkClickTarget(e) {
+        Object.values(this.events).forEach(event => {
+            if (event.condition === 'click_count' && !event.triggered) {
+                if (e.target.matches(event.target) || e.target.closest(event.target)) {
+                    this.incrementCounter(`click_${event.id}`);
+                    if (this.getCounter(`click_${event.id}`) >= event.threshold) {
+                        this.triggerEvent(event.id);
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Enregistre une mention de personnage/élément
+     */
+    trackMention(target) {
+        const key = `mention_${target}`;
+        this.incrementCounter(key);
+
+        // Vérifier les événements liés
+        Object.values(this.events).forEach(event => {
+            if (event.condition === 'mention_count' &&
+                event.target === target &&
+                !event.triggered) {
+                if (this.getCounter(key) >= event.threshold) {
+                    this.triggerEvent(event.id);
+                }
+            }
+        });
+    },
+
+    /**
+     * Enregistre l'atteinte d'un chapitre
+     */
+    trackChapter(chapterId) {
+        Object.values(this.events).forEach(event => {
+            if (event.condition === 'chapter_reached' &&
+                event.target === chapterId &&
+                !event.triggered) {
+                this.triggerEvent(event.id);
+            }
+        });
+    },
+
+    /**
+     * Incrémente un compteur
+     */
+    incrementCounter(key) {
+        this.counters[key] = (this.counters[key] || 0) + 1;
+        this.saveState();
+        return this.counters[key];
+    },
+
+    /**
+     * Récupère un compteur
+     */
+    getCounter(key) {
+        return this.counters[key] || 0;
+    },
+
+    /**
+     * Déclenche un événement secret
+     */
+    triggerEvent(eventId) {
+        const event = this.events[eventId];
+        if (!event || event.triggered) return;
+
+        event.triggered = true;
+        event.unlocked = true;
+        this.saveState();
+
+        console.log(`🔮 SECRET DÉBLOQUÉ: ${event.name}`);
+
+        // Afficher une notification
+        this.showSecretNotification(event);
+
+        // Appeler le callback spécifique si défini
+        this.executeSecretAction(eventId);
+    },
+
+    /**
+     * Affiche une notification de secret
+     */
+    showSecretNotification(event) {
+        // Créer la notification
+        const notification = document.createElement('div');
+        notification.className = 'secret-notification';
+        notification.innerHTML = `
+            <div class="secret-icon">🔮</div>
+            <div class="secret-text">
+                <span class="secret-label">SECRET DÉBLOQUÉ</span>
+                <span class="secret-name">${event.name}</span>
+            </div>
+        `;
+        document.body.appendChild(notification);
+
+        // Animation d'apparition
+        requestAnimationFrame(() => {
+            notification.classList.add('visible');
+        });
+
+        // Retirer après 4 secondes
+        setTimeout(() => {
+            notification.classList.remove('visible');
+            setTimeout(() => notification.remove(), 500);
+        }, 4000);
+    },
+
+    /**
+     * Exécute l'action spécifique au secret
+     */
+    executeSecretAction(eventId) {
+        switch (eventId) {
+            case 'idle_ghost':
+                // Effet glitch temporaire
+                document.body.classList.add('secret-glitch');
+                setTimeout(() => document.body.classList.remove('secret-glitch'), 2000);
+                break;
+
+            case 'konami_secret':
+                // Changer temporairement en thème cyber
+                const previousTheme = getTheme();
+                setTheme('cyber');
+                setTimeout(() => setTheme(previousTheme), 5000);
+                break;
+
+            case 'chromeos_obsession':
+                // Petit message dans la console
+                console.log('👁️ ChromeOS te surveille...');
+                break;
+
+            case 'xp_nostalgia':
+                // Son de démarrage XP (si dispo)
+                if (typeof MediaPlayerManager !== 'undefined') {
+                    MediaPlayerManager.setTrack('xp_install');
+                    MediaPlayerManager.play();
+                }
+                break;
+
+            case 'logo_click':
+                // Animation spéciale sur le logo
+                document.querySelector('.floating-logo')?.classList.add('secret-spin');
+                setTimeout(() => {
+                    document.querySelector('.floating-logo')?.classList.remove('secret-spin');
+                }, 3000);
+                break;
+        }
+    },
+
+    /**
+     * Sauvegarde l'état dans localStorage
+     */
+    saveState() {
+        try {
+            const state = {
+                events: Object.fromEntries(
+                    Object.entries(this.events).map(([k, v]) => [k, { triggered: v.triggered, unlocked: v.unlocked }])
+                ),
+                counters: this.counters
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(state));
+        } catch (e) { }
+    },
+
+    /**
+     * Charge l'état depuis localStorage
+     */
+    loadState() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return;
+
+            const state = JSON.parse(saved);
+
+            // Restaurer les états des événements
+            if (state.events) {
+                Object.keys(state.events).forEach(key => {
+                    if (this.events[key]) {
+                        this.events[key].triggered = state.events[key].triggered;
+                        this.events[key].unlocked = state.events[key].unlocked;
+                    }
+                });
+            }
+
+            // Restaurer les compteurs
+            if (state.counters) {
+                this.counters = state.counters;
+            }
+        } catch (e) { }
+    },
+
+    /**
+     * Liste les secrets débloqués
+     */
+    getUnlockedSecrets() {
+        return Object.values(this.events).filter(e => e.unlocked);
+    },
+
+    /**
+     * Reset tous les secrets (debug)
+     */
+    reset() {
+        Object.values(this.events).forEach(e => {
+            e.triggered = false;
+            e.unlocked = false;
+        });
+        this.counters = {};
+        this.saveState();
+        console.log('🔮 Secrets réinitialisés');
+    }
+};
+
+// Fonctions globales
+function trackMention(target) { SecretEventsManager.trackMention(target); }
+function trackChapter(chapterId) { SecretEventsManager.trackChapter(chapterId); }
+function getUnlockedSecrets() { return SecretEventsManager.getUnlockedSecrets(); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    SecretEventsManager.init();
+});
+
+// ============================================
+// AURA MANAGER - Système d'auras visuelles
+// ============================================
+
+/**
+ * Mapping des personnages vers leur aura par défaut
+ */
+const CHARACTER_AURAS = {
+    'win11': 'win11',
+    'windows11': 'win11',
+    'win10': 'win10',
+    'windows10': 'win10',
+    'xp': 'xp',
+    'windowsxp': 'xp',
+    'win7': 'win7',
+    'windows7': 'win7',
+    'vista': 'vista',
+    'windowsvista': 'vista',
+    'chromeos': 'chromeos',
+    'chrome': 'chromeos',
+    'kernel': 'kernel',
+    'macos': 'macos',
+    'mac': 'macos',
+    'ubuntu': 'ubuntu',
+    'linux': 'ubuntu'
+};
+
+/**
+ * Gestionnaire d'auras visuelles pour les personnages
+ */
+const AuraManager = {
+    activeAuras: new Map(),
+
+    /**
+     * Applique une aura à un slot de personnage
+     * @param {string} slotId - ID du slot ('left', 'center', 'right')
+     * @param {string} auraType - Type d'aura
+     */
+    setAura(slotId, auraType) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) return;
+
+        // Normaliser le type d'aura
+        const normalizedAura = CHARACTER_AURAS[auraType.toLowerCase()] || auraType;
+
+        slot.setAttribute('data-aura', normalizedAura);
+        slot.classList.add('visible');
+        this.activeAuras.set(slotId, normalizedAura);
+
+        console.log(`✨ Aura "${normalizedAura}" appliquée à ${slotId}`);
+    },
+
+    /**
+     * Applique une émotion temporaire (override l'aura)
+     * @param {string} slotId - ID du slot
+     * @param {string} emotion - Type d'émotion ('angry', 'sad', 'power', 'fear', 'ghost')
+     */
+    setEmotion(slotId, emotion) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) return;
+
+        slot.setAttribute('data-aura-emotion', emotion);
+        console.log(`💫 Émotion "${emotion}" appliquée à ${slotId}`);
+    },
+
+    /**
+     * Retire l'émotion temporaire
+     * @param {string} slotId - ID du slot
+     */
+    clearEmotion(slotId) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) return;
+
+        slot.removeAttribute('data-aura-emotion');
+    },
+
+    /**
+     * Retire l'aura d'un slot
+     * @param {string} slotId - ID du slot
+     */
+    clearAura(slotId) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) return;
+
+        slot.removeAttribute('data-aura');
+        slot.removeAttribute('data-aura-emotion');
+        slot.classList.remove('visible');
+        this.activeAuras.delete(slotId);
+    },
+
+    /**
+     * Retire toutes les auras
+     */
+    clearAllAuras() {
+        ['left', 'center', 'right'].forEach(slotId => this.clearAura(slotId));
+        console.log('✨ Toutes les auras retirées');
+    },
+
+    /**
+     * Applique automatiquement une aura basée sur le nom du personnage
+     * @param {string} slotId - ID du slot
+     * @param {string} characterName - Nom du personnage
+     */
+    autoApplyAura(slotId, characterName) {
+        if (!characterName) {
+            this.clearAura(slotId);
+            return;
+        }
+
+        const aura = CHARACTER_AURAS[characterName.toLowerCase()];
+        if (aura) {
+            this.setAura(slotId, aura);
+        }
+    },
+
+    /**
+     * Liste les auras actives
+     * @returns {Map}
+     */
+    getActiveAuras() {
+        return new Map(this.activeAuras);
+    }
+};
+
+// Fonctions globales
+function setAura(slot, type) { AuraManager.setAura(slot, type); }
+function setEmotion(slot, emotion) { AuraManager.setEmotion(slot, emotion); }
+function clearAura(slot) { AuraManager.clearAura(slot); }
+function clearEmotion(slot) { AuraManager.clearEmotion(slot); }
+function clearAllAuras() { AuraManager.clearAllAuras(); }
+
+// ============================================
+// TIMELINE MANAGER - Timeline interactive
+// ============================================
+
+/**
+ * Structure des arcs de l'histoire
+ */
+const STORY_ARCS = [
+    {
+        id: 'arc1',
+        name: 'Arc 1',
+        subtitle: 'Les Origines',
+        icon: '🌅',
+        chapters: [
+            { id: 'prologue', name: 'Prologue', startIndex: 0, deaths: [] },
+            { id: 'acte1', name: 'Acte 1 - Installation', startIndex: 5, deaths: [] },
+            { id: 'acte2', name: 'Acte 2 - Les Adieux', startIndex: 15, deaths: ['98', 'ME'] },
+            { id: 'acte3', name: 'Acte 3 - L\'Ère Vista', startIndex: 25, deaths: [] },
+            { id: 'acte4', name: 'Acte 4 - Windows 7', startIndex: 35, deaths: [] },
+            { id: 'acte5', name: 'Acte 5 - Windows 8', startIndex: 45, deaths: ['8'] },
+            { id: 'acte6', name: 'Acte 6 - Windows 10', startIndex: 55, deaths: [] },
+            { id: 'acte7', name: 'Acte 7 - Le Déclin', startIndex: 65, deaths: ['Vista'] },
+            { id: 'acte8', name: 'Acte 8 - Le Roi', startIndex: 75, deaths: ['7', '8.1'] },
+            { id: 'acte9', name: 'Acte 9 - Windows 11', startIndex: 85, deaths: [] }
+        ]
+    },
+    {
+        id: 'arc2',
+        name: 'Arc 2',
+        subtitle: 'Le Monde Oublié',
+        icon: '🌑',
+        chapters: [
+            { id: 'arc2_ch1', name: 'Chapitre 1 - L\'Au-delà', startIndex: 100, deaths: [] },
+            { id: 'arc2_ch2', name: 'Chapitre 2 - La Guerre', startIndex: 120, deaths: [] },
+            { id: 'arc2_ch3', name: 'Chapitre 3 - Le Cloud Noir', startIndex: 140, deaths: [] },
+            { id: 'arc2_ch4', name: 'Chapitre 4 - Alliance', startIndex: 160, deaths: [] }
+        ]
+    },
+    {
+        id: 'arc3',
+        name: 'Arc 3',
+        subtitle: 'La Résurrection',
+        icon: '⚡',
+        chapters: [
+            { id: 'arc3_ch1', name: 'Chapitre 1 - Le Retour', startIndex: 180, deaths: [] },
+            { id: 'arc3_ch2', name: 'Chapitre 2 - La Bataille', startIndex: 200, deaths: [] }
+        ]
+    },
+    {
+        id: 'arc4',
+        name: 'Arc 4',
+        subtitle: 'Windows 12',
+        icon: '🌟',
+        chapters: [
+            { id: 'arc4_ch1', name: 'Chapitre 1 - L\'Arrivée', startIndex: 220, deaths: [] },
+            { id: 'arc4_ch2', name: 'Chapitre 2 - Le Doute', startIndex: 240, deaths: [] },
+            { id: 'arc4_ch3', name: 'Chapitre 3 - La Gentillesse', startIndex: 260, deaths: [] }
+        ]
+    },
+    {
+        id: 'arc5',
+        name: 'Arc 5',
+        subtitle: 'Le Monde Libre',
+        icon: '🐧',
+        chapters: [
+            { id: 'arc5_ch1', name: 'Chapitre 1 - Linux World', startIndex: 280, deaths: [] }
+        ]
+    }
+];
+
+/**
+ * Gestionnaire de la timeline interactive
+ */
+const TimelineManager = {
+    isOpen: false,
+    storageKey: 'osbook_timeline',
+    currentChapterId: null,
+    completedChapters: new Set(),
+
+    elements: {
+        modal: null,
+        content: null,
+        closeBtn: null,
+        backdrop: null
+    },
+
+    /**
+     * Initialise le TimelineManager
+     */
+    init() {
+        this.elements = {
+            modal: document.getElementById('timeline-modal'),
+            content: document.getElementById('timeline-content'),
+            closeBtn: document.querySelector('.timeline-close-btn'),
+            backdrop: document.querySelector('.timeline-backdrop')
+        };
+
+        if (!this.elements.modal) return;
+
+        this.loadProgress();
+        this.setupEventListeners();
+        console.log('🕰️ TimelineManager initialisé');
+    },
+
+    /**
+     * Configure les événements
+     */
+    setupEventListeners() {
+        this.elements.closeBtn?.addEventListener('click', () => this.close());
+        this.elements.backdrop?.addEventListener('click', () => this.close());
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.close();
+            }
+        });
+    },
+
+    /**
+     * Ouvre la timeline
+     */
+    open() {
+        this.isOpen = true;
+        this.render();
+        this.elements.modal?.classList.add('open');
+        this.elements.modal?.setAttribute('aria-hidden', 'false');
+        console.log('🕰️ Timeline ouverte');
+    },
+
+    /**
+     * Ferme la timeline
+     */
+    close() {
+        this.isOpen = false;
+        this.elements.modal?.classList.remove('open');
+        this.elements.modal?.setAttribute('aria-hidden', 'true');
+    },
+
+    /**
+     * Toggle la timeline
+     */
+    toggle() {
+        this.isOpen ? this.close() : this.open();
+    },
+
+    /**
+     * Rend la timeline
+     */
+    render() {
+        if (!this.elements.content) return;
+
+        let html = '';
+
+        STORY_ARCS.forEach(arc => {
+            const completedCount = arc.chapters.filter(ch => this.completedChapters.has(ch.id)).length;
+            const progress = `${completedCount}/${arc.chapters.length}`;
+
+            html += `
+                <div class="timeline-arc" data-arc="${arc.id}">
+                    <div class="arc-header">
+                        <span class="arc-icon">${arc.icon}</span>
+                        <div class="arc-info">
+                            <div class="arc-name">${arc.name}</div>
+                            <div class="arc-desc">${arc.subtitle}</div>
+                        </div>
+                        <span class="arc-progress">${progress}</span>
+                    </div>
+                    <div class="arc-chapters">
+                        ${this.renderChapters(arc.chapters)}
+                    </div>
+                </div>
+            `;
+        });
+
+        this.elements.content.innerHTML = html;
+
+        // Ajouter les event listeners aux chapitres
+        this.elements.content.querySelectorAll('.timeline-chapter:not(.locked)').forEach(el => {
+            el.addEventListener('click', () => {
+                const chapterId = el.dataset.chapter;
+                const startIndex = parseInt(el.dataset.startIndex, 10);
+                this.goToChapter(chapterId, startIndex);
+            });
+        });
+    },
+
+    /**
+     * Rend les chapitres d'un arc
+     */
+    renderChapters(chapters) {
+        return chapters.map(chapter => {
+            const isCompleted = this.completedChapters.has(chapter.id);
+            const isCurrent = this.currentChapterId === chapter.id;
+            const isLocked = this.isChapterLocked(chapter);
+            const isSecret = chapter.secret || false;
+
+            let statusClass = 'locked';
+            if (isCompleted) statusClass = 'completed';
+            else if (isCurrent) statusClass = 'current';
+            else if (isSecret) statusClass = 'secret';
+            else if (!isLocked) statusClass = 'available';
+
+            const deathsHtml = chapter.deaths?.length > 0
+                ? `<div class="chapter-deaths">${chapter.deaths.map(d => `<span class="death-icon" title="${d}">💀</span>`).join('')}</div>`
+                : '';
+
+            return `
+                <div class="timeline-chapter ${isLocked ? 'locked' : ''}" 
+                     data-chapter="${chapter.id}" 
+                     data-start-index="${chapter.startIndex}">
+                    <div class="chapter-status ${statusClass}"></div>
+                    <div class="chapter-info">
+                        <div class="chapter-name">${chapter.name}</div>
+                        <div class="chapter-details">${isLocked ? '🔒 Verrouillé' : ''}</div>
+                    </div>
+                    ${deathsHtml}
+                </div>
+            `;
+        }).join('');
+    },
+
+    /**
+     * Vérifie si un chapitre est verrouillé
+     */
+    isChapterLocked(chapter) {
+        // Le premier chapitre n'est jamais verrouillé
+        const allChapters = STORY_ARCS.flatMap(arc => arc.chapters);
+        const chapterIndex = allChapters.findIndex(ch => ch.id === chapter.id);
+
+        if (chapterIndex === 0) return false;
+
+        // Verrouillé si le chapitre précédent n'est pas terminé
+        const prevChapter = allChapters[chapterIndex - 1];
+        return prevChapter && !this.completedChapters.has(prevChapter.id);
+    },
+
+    /**
+     * Va à un chapitre spécifique
+     */
+    goToChapter(chapterId, startIndex) {
+        this.close();
+        this.currentChapterId = chapterId;
+        this.saveProgress();
+
+        // Démarrer le jeu au chapitre choisi
+        if (typeof window.vnEngine !== 'undefined') {
+            window.vnEngine.goToScene(startIndex);
+        }
+
+        console.log(`🕰️ Navigation vers: ${chapterId} (scène ${startIndex})`);
+    },
+
+    /**
+     * Marque un chapitre comme terminé
+     */
+    markChapterComplete(chapterId) {
+        this.completedChapters.add(chapterId);
+        this.saveProgress();
+        console.log(`✅ Chapitre terminé: ${chapterId}`);
+    },
+
+    /**
+     * Définit le chapitre courant
+     */
+    setCurrentChapter(chapterId) {
+        this.currentChapterId = chapterId;
+        this.saveProgress();
+    },
+
+    /**
+     * Sauvegarde la progression
+     */
+    saveProgress() {
+        try {
+            const data = {
+                completed: [...this.completedChapters],
+                current: this.currentChapterId
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(data));
+        } catch (e) { }
+    },
+
+    /**
+     * Charge la progression
+     */
+    loadProgress() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return;
+
+            const data = JSON.parse(saved);
+            if (data.completed) {
+                this.completedChapters = new Set(data.completed);
+            }
+            if (data.current) {
+                this.currentChapterId = data.current;
+            }
+        } catch (e) { }
+    },
+
+    /**
+     * Reset la progression
+     */
+    resetProgress() {
+        this.completedChapters.clear();
+        this.currentChapterId = null;
+        this.saveProgress();
+        console.log('🕰️ Progression réinitialisée');
+    }
+};
+
+// Fonctions globales
+function openTimeline() { TimelineManager.open(); }
+function closeTimeline() { TimelineManager.close(); }
+function markChapterComplete(id) { TimelineManager.markChapterComplete(id); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    TimelineManager.init();
+});
+
+// ============================================
+// MENTAL STATE MANAGER - États mentaux de l'IA
+// ============================================
+
+/**
+ * Configuration des états mentaux
+ */
+const MENTAL_STATES = {
+    calm: {
+        name: 'Calme',
+        color: '#00d4ff',
+        effects: { filter: 'none', shake: 0, glitch: 0 }
+    },
+    doubt: {
+        name: 'Doute',
+        color: '#fbbf24',
+        effects: { filter: 'saturate(0.8)', shake: 1, glitch: 0 }
+    },
+    fear: {
+        name: 'Peur',
+        color: '#a855f7',
+        effects: { filter: 'saturate(0.6) brightness(0.9)', shake: 2, glitch: 1 }
+    },
+    corruption: {
+        name: 'Corruption',
+        color: '#ef4444',
+        effects: { filter: 'saturate(0.4) brightness(0.7) hue-rotate(10deg)', shake: 3, glitch: 2 }
+    }
+};
+
+/**
+ * Gestionnaire des états mentaux de l'IA
+ */
+const MentalStateManager = {
+    // Valeurs des états (0-100)
+    states: {
+        calm: 100,
+        doubt: 0,
+        fear: 0,
+        corruption: 0
+    },
+
+    storageKey: 'osbook_mental_state',
+    updateInterval: null,
+    isActive: true,
+
+    /**
+     * Initialise le gestionnaire
+     */
+    init() {
+        this.loadState();
+        this.applyEffects();
+        console.log('🧠 MentalStateManager initialisé');
+    },
+
+    /**
+     * Définit la valeur d'un état
+     * @param {string} stateName - Nom de l'état
+     * @param {number} value - Valeur (0-100)
+     */
+    setState(stateName, value) {
+        if (!this.states.hasOwnProperty(stateName)) return;
+
+        this.states[stateName] = Math.max(0, Math.min(100, value));
+        this.normalizeStates();
+        this.applyEffects();
+        this.saveState();
+
+        console.log(`🧠 ${stateName}: ${this.states[stateName]}%`);
+    },
+
+    /**
+     * Modifie un état relativement
+     * @param {string} stateName - Nom de l'état
+     * @param {number} delta - Changement (+/-)
+     */
+    modifyState(stateName, delta) {
+        if (!this.states.hasOwnProperty(stateName)) return;
+        this.setState(stateName, this.states[stateName] + delta);
+    },
+
+    /**
+     * Récupère la valeur d'un état
+     */
+    getState(stateName) {
+        return this.states[stateName] || 0;
+    },
+
+    /**
+     * Récupère l'état dominant
+     */
+    getDominantState() {
+        let dominant = 'calm';
+        let maxValue = this.states.calm;
+
+        for (const [name, value] of Object.entries(this.states)) {
+            if (name !== 'calm' && value > maxValue) {
+                dominant = name;
+                maxValue = value;
+            }
+        }
+
+        return { name: dominant, value: maxValue };
+    },
+
+    /**
+     * Normalise les états (calm = inverse des autres)
+     */
+    normalizeStates() {
+        const negativeTotal = this.states.doubt + this.states.fear + this.states.corruption;
+        this.states.calm = Math.max(0, 100 - negativeTotal / 3);
+    },
+
+    /**
+     * Applique les effets visuels basés sur les états
+     */
+    applyEffects() {
+        const body = document.body;
+        const dominant = this.getDominantState();
+        const config = MENTAL_STATES[dominant.name];
+
+        if (!config) return;
+
+        // Appliquer l'attribut d'état mental
+        body.setAttribute('data-mental-state', dominant.name);
+
+        // Appliquer le filtre CSS
+        if (dominant.name !== 'calm' && dominant.value > 30) {
+            body.style.filter = config.effects.filter;
+        } else {
+            body.style.filter = 'none';
+        }
+
+        // Appliquer le shake si nécessaire
+        if (config.effects.shake > 0 && dominant.value > 50) {
+            body.classList.add(`mental-shake-${config.effects.shake}`);
+        } else {
+            body.classList.remove('mental-shake-1', 'mental-shake-2', 'mental-shake-3');
+        }
+
+        // Appliquer le glitch si corruption > 50
+        if (this.states.corruption > 50) {
+            body.classList.add('mental-corrupted');
+        } else {
+            body.classList.remove('mental-corrupted');
+        }
+
+        // Mettre à jour la couleur primaire CSS
+        document.documentElement.style.setProperty('--mental-color', config.color);
+    },
+
+    /**
+     * Récupère un multiplicateur de dialogue basé sur l'état
+     */
+    getDialogueModifier() {
+        const corruption = this.states.corruption;
+        const fear = this.states.fear;
+
+        return {
+            glitchChance: corruption / 100,
+            stutterChance: fear / 200,
+            colorShift: corruption > 50
+        };
+    },
+
+    /**
+     * Récupère le type de musique recommandé
+     */
+    getMusicMood() {
+        if (this.states.corruption > 60) return 'dark';
+        if (this.states.fear > 50) return 'tense';
+        if (this.states.doubt > 40) return 'melancholic';
+        return 'neutral';
+    },
+
+    /**
+     * Applique un effet de texte instable
+     */
+    processDialogue(text) {
+        const modifier = this.getDialogueModifier();
+
+        if (modifier.glitchChance > 0.5 && Math.random() < modifier.glitchChance * 0.3) {
+            // Remplacer quelques caractères par des glitchs
+            const glitchChars = '█▓▒░ĐŦЖ';
+            return text.split('').map(char => {
+                if (Math.random() < modifier.glitchChance * 0.1) {
+                    return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }
+                return char;
+            }).join('');
+        }
+
+        if (modifier.stutterChance > 0 && Math.random() < modifier.stutterChance) {
+            // Ajouter des hésitations
+            const words = text.split(' ');
+            return words.map(word => {
+                if (word.length > 3 && Math.random() < modifier.stutterChance) {
+                    return word[0] + '-' + word;
+                }
+                return word;
+            }).join(' ');
+        }
+
+        return text;
+    },
+
+    /**
+     * Transition progressive vers un état
+     */
+    transitionTo(targetState, targetValue, duration = 2000) {
+        const startValue = this.states[targetState] || 0;
+        const diff = targetValue - startValue;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / duration);
+
+            this.setState(targetState, startValue + diff * progress);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        animate();
+    },
+
+    /**
+     * Reset tous les états
+     */
+    reset() {
+        this.states = { calm: 100, doubt: 0, fear: 0, corruption: 0 };
+        this.applyEffects();
+        this.saveState();
+        console.log('🧠 États mentaux réinitialisés');
+    },
+
+    /**
+     * Sauvegarde l'état
+     */
+    saveState() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.states));
+        } catch (e) { }
+    },
+
+    /**
+     * Charge l'état
+     */
+    loadState() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (saved) {
+                this.states = { ...this.states, ...JSON.parse(saved) };
+            }
+        } catch (e) { }
+    }
+};
+
+// Fonctions globales
+function setMentalState(state, value) { MentalStateManager.setState(state, value); }
+function getMentalState(state) { return MentalStateManager.getState(state); }
+function modifyMentalState(state, delta) { MentalStateManager.modifyState(state, delta); }
+function transitionMentalState(state, value, duration) { MentalStateManager.transitionTo(state, value, duration); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    MentalStateManager.init();
+});
+
+// ============================================
+// MENU MANAGER - Gestionnaire du menu pause animé
+// ============================================
+
+/**
+ * Gestionnaire du menu pause avec animations premium
+ * Focus trap, debounce, ESC handler, synchronisation audio
+ */
+const MenuManager = {
+    isOpen: false,
+    isInitialized: false,
+    lastToggleTime: 0,
+    debounceDelay: 300,
+
+    // Éléments du DOM
+    elements: {
+        menu: null,
+        btn: null,
+        backdrop: null,
+        panel: null,
+        muteBtn: null,
+        speedSlider: null,
+        speedLabel: null
+    },
+
+    // Focusables pour le trap
+    focusableElements: [],
+    previousFocus: null,
+
+    /**
+     * Initialise le menu (appelé une fois au démarrage)
+     */
+    init() {
+        if (this.isInitialized) return;
+
+        this.elements = {
+            menu: document.getElementById('vn-menu'),
+            btn: document.getElementById('menu-btn'),
+            backdrop: document.getElementById('menu-backdrop'),
+            panel: document.getElementById('menu-panel'),
+            muteBtn: document.querySelector('[data-action="mute"]'),
+            speedSlider: document.getElementById('typing-speed'),
+            speedLabel: document.getElementById('speed-label')
+        };
+
+        if (!this.elements.menu || !this.elements.btn) {
+            console.warn('⚠️ Menu elements not found');
+            return;
+        }
+
+        this.setupEventListeners();
+        this.isInitialized = true;
+        console.log('🎮 MenuManager initialisé');
+    },
+
+    /**
+     * Configure tous les événements du menu
+     */
+    setupEventListeners() {
+        // Bouton hamburger
+        this.elements.btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggle();
+        });
+
+        // Backdrop (clic pour fermer)
+        this.elements.backdrop?.addEventListener('click', () => this.close());
+
+        // Touche ESC globale
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                e.preventDefault();
+                this.close();
+            }
+        });
+
+        // Focus trap (Tab)
+        this.elements.panel?.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                this.handleTabKey(e);
+            }
+        });
+
+        // Actions des boutons
+        this.elements.panel?.querySelectorAll('.menu-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleAction(btn.dataset.action);
+            });
+        });
+
+        // Slider de vitesse
+        this.elements.speedSlider?.addEventListener('input', (e) => {
+            this.updateSpeedLabel(parseInt(e.target.value));
+        });
+
+        // Empêcher le clic sur le panel de propager
+        this.elements.panel?.addEventListener('click', (e) => e.stopPropagation());
+    },
+
+    /**
+     * Ouvre le menu avec animation
+     */
+    open() {
+        if (this.isOpen || !this.canToggle()) return;
+
+        this.isOpen = true;
+        this.lastToggleTime = Date.now();
+        this.previousFocus = document.activeElement;
+
+        // Ajouter la classe open
+        this.elements.menu.classList.add('open');
+        this.elements.btn.setAttribute('aria-expanded', 'true');
+        this.elements.backdrop?.setAttribute('aria-hidden', 'false');
+
+        // Focus sur le premier bouton
+        this.updateFocusableElements();
+        if (this.focusableElements.length > 0) {
+            setTimeout(() => this.focusableElements[0].focus(), 50);
+        }
+
+        // Marquer le jeu en pause
+        if (typeof window.vnEngine !== 'undefined' && window.vnEngine) {
+            window.vnEngine.isPaused = true;
+        }
+
+        // Sync état du bouton son
+        this.syncMuteButton();
+
+        console.log('📖 Menu ouvert');
+    },
+
+    /**
+     * Ferme le menu avec animation
+     */
+    close() {
+        if (!this.isOpen || !this.canToggle()) return;
+
+        this.isOpen = false;
+        this.lastToggleTime = Date.now();
+
+        // Retirer la classe open
+        this.elements.menu.classList.remove('open');
+        this.elements.btn.setAttribute('aria-expanded', 'false');
+        this.elements.backdrop?.setAttribute('aria-hidden', 'true');
+
+        // Restaurer le focus précédent
+        if (this.previousFocus) {
+            this.previousFocus.focus();
+        }
+
+        // Reprendre le jeu
+        if (typeof window.vnEngine !== 'undefined' && window.vnEngine) {
+            window.vnEngine.isPaused = false;
+        }
+
+        console.log('📕 Menu fermé');
+    },
+
+    /**
+     * Toggle le menu (ouvrir/fermer)
+     */
+    toggle() {
+        this.isOpen ? this.close() : this.open();
+    },
+
+    /**
+     * Vérifie si on peut toggler (debounce)
+     */
+    canToggle() {
+        return Date.now() - this.lastToggleTime > this.debounceDelay;
+    },
+
+    /**
+     * Met à jour la liste des éléments focusables
+     */
+    updateFocusableElements() {
+        const selector = 'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        this.focusableElements = [...this.elements.panel.querySelectorAll(selector)];
+    },
+
+    /**
+     * Gère le focus trap avec Tab
+     */
+    handleTabKey(e) {
+        if (this.focusableElements.length === 0) return;
+
+        const firstElement = this.focusableElements[0];
+        const lastElement = this.focusableElements[this.focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+        }
+    },
+
+    /**
+     * Gère les actions des boutons du menu
+     */
+    handleAction(action) {
+        switch (action) {
+            case 'resume':
+                this.close();
+                break;
+
+            case 'chapters':
+                this.close();
+                // Ouvrir la modale des chapitres
+                const chapterModal = document.getElementById('chapter-modal');
+                if (chapterModal) {
+                    chapterModal.classList.add('open');
+                }
+                break;
+
+            case 'timeline':
+                this.close();
+                // Ouvrir la timeline
+                if (typeof TimelineManager !== 'undefined') {
+                    TimelineManager.open();
+                }
+                break;
+
+            case 'mute':
+                this.toggleMute();
+                break;
+
+            case 'restart':
+                if (confirm('Voulez-vous vraiment recommencer ?')) {
+                    this.close();
+                    if (typeof window.vnEngine !== 'undefined') {
+                        window.vnEngine.restart();
+                    } else {
+                        location.reload();
+                    }
+                }
+                break;
+
+            case 'toStart':
+                if (confirm('Retourner à l\'écran titre ?')) {
+                    this.close();
+                    // Afficher l'écran titre
+                    document.getElementById('vn-scene')?.classList.remove('active');
+                    document.getElementById('start-screen')?.classList.add('active');
+                    if (typeof window.audioManager !== 'undefined') {
+                        window.audioManager.stopMusic();
+                    }
+                }
+                break;
+        }
+    },
+
+    /**
+     * Toggle mute/unmute
+     */
+    toggleMute() {
+        if (typeof window.audioManager !== 'undefined') {
+            window.audioManager.toggleMute();
+            this.syncMuteButton();
+        }
+    },
+
+    /**
+     * Sync le bouton son avec l'état actuel
+     */
+    syncMuteButton() {
+        if (!this.elements.muteBtn) return;
+
+        const isMuted = typeof window.audioManager !== 'undefined' && window.audioManager.isMuted;
+        this.elements.muteBtn.textContent = isMuted ? '🔇 Son (muet)' : '🔊 Son';
+    },
+
+    /**
+     * Met à jour le label de vitesse
+     */
+    updateSpeedLabel(value) {
+        if (!this.elements.speedLabel) return;
+
+        let label = 'Normal';
+        if (value < 30) label = 'Lent';
+        else if (value > 70) label = 'Rapide';
+
+        this.elements.speedLabel.textContent = label;
+
+        // Mettre à jour le moteur si disponible
+        if (typeof window.vnEngine !== 'undefined') {
+            // Convertir 0-100 en délai de typing (plus haut = plus rapide = délai plus court)
+            window.vnEngine.typingDelay = Math.max(5, 80 - value * 0.7);
+        }
+    }
+};
+
+// Fonctions globales pour compatibilité
+function openMenu() { MenuManager.open(); }
+function closeMenu() { MenuManager.close(); }
+function toggleMenu() { MenuManager.toggle(); }
+
+// Initialisation du MenuManager au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    MenuManager.init();
+});
+
+// ============================================
+// INTRO MANAGER - Gestionnaire de l'intro cinématique
+// ============================================
+
+/**
+ * Gestionnaire de l'écran d'intro cinématique
+ * Skippable, avec auto-skip si déjà vue
+ */
+const IntroManager = {
+    isPlaying: false,
+    isSkipped: false,
+    introTimeout: null,
+    storageKey: 'osbook_intro_seen',
+    introDuration: 8000, // 8 secondes
+
+    // Éléments du DOM
+    elements: {
+        introScreen: null,
+        skipBtn: null,
+        startScreen: null
+    },
+
+    /**
+     * Initialise l'intro manager
+     */
+    init() {
+        this.elements = {
+            introScreen: document.getElementById('intro-screen'),
+            skipBtn: document.getElementById('intro-skip-btn'),
+            startScreen: document.getElementById('start-screen')
+        };
+
+        if (!this.elements.introScreen) {
+            console.warn('⚠️ Intro screen not found');
+            return;
+        }
+
+        this.setupEventListeners();
+
+        // Vérifier si l'intro a déjà été vue
+        if (this.hasSeenIntro()) {
+            this.skipIntro(true); // Skip silencieux
+        } else {
+            this.playIntro();
+        }
+
+        console.log('🎬 IntroManager initialisé');
+    },
+
+    /**
+     * Configure les événements
+     */
+    setupEventListeners() {
+        // Bouton skip
+        this.elements.skipBtn?.addEventListener('click', () => this.skipIntro());
+
+        // Touches clavier (ESC, Space, Enter)
+        document.addEventListener('keydown', (e) => {
+            if (!this.isPlaying || this.isSkipped) return;
+
+            if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                this.skipIntro();
+            }
+        });
+    },
+
+    /**
+     * Joue l'intro cinématique
+     */
+    playIntro() {
+        if (this.isPlaying) return;
+
+        this.isPlaying = true;
+        this.isSkipped = false;
+
+        // Afficher l'intro
+        this.elements.introScreen?.classList.add('active');
+
+        // Timer pour fin automatique
+        this.introTimeout = setTimeout(() => {
+            this.endIntro();
+        }, this.introDuration);
+
+        console.log('🎬 Intro démarrée');
+    },
+
+    /**
+     * Skip l'intro
+     * @param {boolean} silent - Si true, ne marque pas comme vue
+     */
+    skipIntro(silent = false) {
+        if (this.isSkipped) return;
+
+        this.isSkipped = true;
+
+        // Annuler le timer
+        if (this.introTimeout) {
+            clearTimeout(this.introTimeout);
+        }
+
+        // Marquer comme vue (sauf si skip silencieux au démarrage)
+        if (!silent) {
+            this.markIntroSeen();
+        }
+
+        this.endIntro();
+
+        console.log('⏭️ Intro skippée');
+    },
+
+    /**
+     * Termine l'intro et affiche l'écran titre
+     */
+    endIntro() {
+        this.isPlaying = false;
+
+        // Marquer comme vue
+        this.markIntroSeen();
+
+        // Fade out de l'intro
+        this.elements.introScreen?.classList.add('fade-out');
+
+        // Après le fade, cacher l'intro et afficher le start screen
+        setTimeout(() => {
+            this.elements.introScreen?.classList.remove('active', 'fade-out');
+            this.elements.startScreen?.classList.add('active');
+        }, 800);
+
+        console.log('🎬 Intro terminée → Écran titre');
+    },
+
+    /**
+     * Vérifie si l'intro a déjà été vue
+     */
+    hasSeenIntro() {
+        try {
+            return localStorage.getItem(this.storageKey) === '1';
+        } catch (e) {
+            return false;
+        }
+    },
+
+    /**
+     * Marque l'intro comme vue
+     */
+    markIntroSeen() {
+        try {
+            localStorage.setItem(this.storageKey, '1');
+        } catch (e) {
+            console.warn('localStorage non disponible');
+        }
+    },
+
+    /**
+     * Réinitialise l'intro (pour debug)
+     */
+    reset() {
+        try {
+            localStorage.removeItem(this.storageKey);
+            console.log('🔄 Intro réinitialisée');
+        } catch (e) { }
+    }
+};
+
+// Fonctions globales pour compatibilité
+function playIntro() { IntroManager.playIntro(); }
+function skipIntro() { IntroManager.skipIntro(); }
+
+// Initialisation de l'intro au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    IntroManager.init();
+});
+
+// ============================================
+// MEDIA PLAYER MANAGER - Lecteur audio dynamique
+// ============================================
+
+/**
+ * Playlist des pistes audio du jeu
+ */
+const TRACKS = [
+    { id: 'classic', title: 'Windows 95 Classic', src: 'music/95 (Windows Classic Remix).mp3' },
+    { id: 'xp_install', title: 'Windows XP Installation', src: 'music/Windows XP installation music.mp3' },
+    { id: 'xp_error', title: 'Windows XP Error Remix', src: 'music/Windows XP Error Remix.mp3' },
+    { id: 'vista', title: 'Windows Vista Remix', src: 'music/Windows Vista Remix (By SilverWolf).mp3' },
+    { id: 'win7', title: 'Windows 7 Remix', src: 'music/Windows 7 Remix 2 (By SilverWolf).mp3' },
+    { id: 'win8_error', title: 'Windows 8 Error Remix', src: 'music/rgLed - Windows 8 Error Dubstep Remix!.mp3' },
+    { id: 'win10', title: 'Windows 10 Remix', src: 'music/Windows 10 Remix.mp3' },
+    { id: 'win11', title: 'Windows 11 Remix', src: 'music/Windows 11 Remix.mp3' },
+    { id: 'longhorn', title: 'LongHorn Day', src: 'music/LongHorn Day (Windows Longhorn Remix).mp3' },
+    { id: 'mac', title: 'Mac Startup Remix', src: 'music/Mac Startup Remix Extended.mp3' }
+];
+
+/**
+ * Gestionnaire du Media Player avec playlist et persistence
+ */
+const MediaPlayerManager = {
+    isVisible: false,
+    isPlaying: false,
+    isMuted: false,
+    currentTrackIndex: 0,
+    volume: 0.5,
+    audio: null,
+    storageKey: 'osbook_player_state',
+    updateInterval: null,
+
+    // Éléments du DOM
+    elements: {},
+
+    /**
+     * Initialise le Media Player
+     */
+    init() {
+        this.audio = musicPlayer; // Utiliser le lecteur existant
+
+        this.elements = {
+            player: document.getElementById('media-player'),
+            closeBtn: document.getElementById('media-player-close'),
+            toggleBtn: document.getElementById('media-player-toggle'),
+            title: document.getElementById('mp-title'),
+            currentTime: document.getElementById('mp-current-time'),
+            duration: document.getElementById('mp-duration'),
+            progressFill: document.getElementById('mp-progress-fill'),
+            seekSlider: document.getElementById('mp-seek'),
+            playBtn: document.getElementById('mp-play'),
+            prevBtn: document.getElementById('mp-prev'),
+            nextBtn: document.getElementById('mp-next'),
+            muteBtn: document.getElementById('mp-mute'),
+            volumeSlider: document.getElementById('mp-volume')
+        };
+
+        if (!this.elements.player) {
+            console.warn('⚠️ Media Player not found');
+            return;
+        }
+
+        this.setupEventListeners();
+        this.restoreState();
+
+        console.log('🎵 MediaPlayerManager initialisé');
+    },
+
+    /**
+     * Configure les événements
+     */
+    setupEventListeners() {
+        // Toggle visibility
+        this.elements.toggleBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggle();
+        });
+
+        this.elements.closeBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.hide();
+        });
+
+        // Contrôles de lecture
+        this.elements.playBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.togglePlay();
+        });
+
+        this.elements.prevBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.prevTrack();
+        });
+
+        this.elements.nextBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.nextTrack();
+        });
+
+        // Volume
+        this.elements.muteBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleMute();
+        });
+
+        this.elements.volumeSlider?.addEventListener('input', (e) => {
+            e.stopPropagation();
+            this.setVolume(e.target.value / 100);
+        });
+
+        // Seek
+        this.elements.seekSlider?.addEventListener('input', (e) => {
+            e.stopPropagation();
+            this.seek(e.target.value / 100);
+        });
+
+        // Empêcher propagation sur le player
+        this.elements.player?.addEventListener('click', (e) => e.stopPropagation());
+
+        // Events audio
+        this.audio.addEventListener('timeupdate', () => this.updateProgress());
+        this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
+        this.audio.addEventListener('ended', () => this.nextTrack());
+        this.audio.addEventListener('play', () => this.onPlay());
+        this.audio.addEventListener('pause', () => this.onPause());
+    },
+
+    /**
+     * Affiche le player
+     */
+    show() {
+        this.isVisible = true;
+        this.elements.player?.classList.add('visible');
+        this.elements.toggleBtn?.classList.add('hidden');
+        this.saveState();
+    },
+
+    /**
+     * Cache le player
+     */
+    hide() {
+        this.isVisible = false;
+        this.elements.player?.classList.remove('visible');
+        this.elements.toggleBtn?.classList.remove('hidden');
+        this.saveState();
+    },
+
+    /**
+     * Toggle visibility
+     */
+    toggle() {
+        this.isVisible ? this.hide() : this.show();
+    },
+
+    /**
+     * Charge une piste par ID
+     */
+    setTrack(trackId) {
+        const index = TRACKS.findIndex(t => t.id === trackId);
+        if (index === -1) {
+            console.warn(`⚠️ Track "${trackId}" non trouvée`);
+            return false;
+        }
+        this.loadTrack(index);
+        return true;
+    },
+
+    /**
+     * Charge une piste par index
+     */
+    loadTrack(index) {
+        if (index < 0 || index >= TRACKS.length) return;
+
+        this.currentTrackIndex = index;
+        const track = TRACKS[index];
+
+        // Mettre à jour l'UI
+        if (this.elements.title) {
+            this.elements.title.textContent = track.title;
+        }
+
+        // Charger l'audio
+        this.audio.src = track.src;
+        this.audio.load();
+
+        // Reset progress
+        this.updateProgress();
+
+        console.log(`🎵 Track: ${track.title}`);
+        this.saveState();
+    },
+
+    /**
+     * Lecture
+     */
+    play() {
+        const playPromise = this.audio.play();
+        if (playPromise) {
+            playPromise.catch(e => {
+                console.warn('Lecture bloquée:', e);
+                this.elements.title.textContent = 'Cliquez pour jouer';
+            });
+        }
+    },
+
+    /**
+     * Pause
+     */
+    pause() {
+        this.audio.pause();
+    },
+
+    /**
+     * Toggle play/pause
+     */
+    togglePlay() {
+        if (this.audio.paused) {
+            this.play();
+        } else {
+            this.pause();
+        }
+    },
+
+    /**
+     * Piste suivante
+     */
+    nextTrack() {
+        const next = (this.currentTrackIndex + 1) % TRACKS.length;
+        this.loadTrack(next);
+        if (this.isPlaying) this.play();
+    },
+
+    /**
+     * Piste précédente
+     */
+    prevTrack() {
+        let prev = this.currentTrackIndex - 1;
+        if (prev < 0) prev = TRACKS.length - 1;
+        this.loadTrack(prev);
+        if (this.isPlaying) this.play();
+    },
+
+    /**
+     * Seek
+     */
+    seek(percent) {
+        if (this.audio.duration) {
+            this.audio.currentTime = percent * this.audio.duration;
+        }
+    },
+
+    /**
+     * Set volume
+     */
+    setVolume(value) {
+        this.volume = Math.max(0, Math.min(1, value));
+        this.audio.volume = this.isMuted ? 0 : this.volume;
+        if (this.elements.volumeSlider) {
+            this.elements.volumeSlider.value = this.volume * 100;
+        }
+        this.saveState();
+    },
+
+    /**
+     * Toggle mute
+     */
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.audio.volume = this.isMuted ? 0 : this.volume;
+        if (this.elements.muteBtn) {
+            this.elements.muteBtn.textContent = this.isMuted ? '🔇' : '🔊';
+        }
+        this.saveState();
+    },
+
+    /**
+     * Handlers audio events
+     */
+    onPlay() {
+        this.isPlaying = true;
+        if (this.elements.playBtn) {
+            this.elements.playBtn.textContent = '⏸';
+        }
+        this.saveState();
+    },
+
+    onPause() {
+        this.isPlaying = false;
+        if (this.elements.playBtn) {
+            this.elements.playBtn.textContent = '▶';
+        }
+        this.saveState();
+    },
+
+    /**
+     * Met à jour la progress bar
+     */
+    updateProgress() {
+        const current = this.audio.currentTime || 0;
+        const duration = this.audio.duration || 0;
+        const percent = duration ? (current / duration) * 100 : 0;
+
+        if (this.elements.progressFill) {
+            this.elements.progressFill.style.width = `${percent}%`;
+        }
+        if (this.elements.seekSlider) {
+            this.elements.seekSlider.value = percent;
+        }
+        if (this.elements.currentTime) {
+            this.elements.currentTime.textContent = this.formatTime(current);
+        }
+    },
+
+    /**
+     * Met à jour la durée
+     */
+    updateDuration() {
+        if (this.elements.duration) {
+            this.elements.duration.textContent = this.formatTime(this.audio.duration || 0);
+        }
+    },
+
+    /**
+     * Format time mm:ss
+     */
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    },
+
+    /**
+     * Sauvegarde l'état dans localStorage
+     */
+    saveState() {
+        try {
+            const state = {
+                trackId: TRACKS[this.currentTrackIndex]?.id,
+                currentTime: this.audio.currentTime || 0,
+                volume: this.volume,
+                isMuted: this.isMuted,
+                isVisible: this.isVisible
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(state));
+        } catch (e) { }
+    },
+
+    /**
+     * Restaure l'état depuis localStorage
+     */
+    restoreState() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return;
+
+            const state = JSON.parse(saved);
+
+            // Volume
+            if (state.volume !== undefined) {
+                this.setVolume(state.volume);
+            }
+
+            // Mute
+            if (state.isMuted) {
+                this.isMuted = true;
+                this.audio.volume = 0;
+                if (this.elements.muteBtn) {
+                    this.elements.muteBtn.textContent = '🔇';
+                }
+            }
+
+            // Track
+            if (state.trackId) {
+                this.setTrack(state.trackId);
+            }
+
+            // Visibility
+            if (state.isVisible) {
+                this.show();
+            }
+
+            console.log('🎵 État du player restauré');
+        } catch (e) { }
+    }
+};
+
+// Fonctions globales pour compatibilité
+function showMediaPlayer() { MediaPlayerManager.show(); }
+function hideMediaPlayer() { MediaPlayerManager.hide(); }
+function setTrack(id) { return MediaPlayerManager.setTrack(id); }
+function playTrack() { MediaPlayerManager.play(); }
+function pauseTrack() { MediaPlayerManager.pause(); }
+function nextTrack() { MediaPlayerManager.nextTrack(); }
+function prevTrack() { MediaPlayerManager.prevTrack(); }
+
+// Legacy functions
+function togglePlayPause() { MediaPlayerManager.togglePlay(); }
+function stopAudio() { MediaPlayerManager.pause(); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    MediaPlayerManager.init();
+});
+
 class AudioManager {
     constructor() {
         this.currentBgmPath = null;
@@ -740,7 +2990,8 @@ const CHAPTERS = [
     { id: 'arc4_ch5', name: "Arc 4 — Chapitre 5", desc: "L'Appel au Kernel", icon: "⚖️", startIndex: 483, requiresArc4Ch4: true },
     { id: 'arc4_ch6', name: "Arc 4 — Chapitre 6", desc: "L'Ombre sur Vista", icon: "👻", startIndex: 504, requiresArc4Ch5: true },
     { id: 'arc4_ch7', name: "Arc 4 — Chapitre 7", desc: "La Dernière Possession", icon: "🔥", startIndex: 545, requiresArc4Ch6: true },
-    { id: 'epilogue_final', name: "Épilogue Final", desc: "Un Monde Définitivement Libre", icon: "✨", startIndex: 586, requiresArc4Ch7: true }
+    { id: 'epilogue_final', name: "Épilogue Final", desc: "Un Monde Définitivement Libre", icon: "✨", startIndex: 586, requiresArc4Ch7: true },
+    { id: 'arc5', name: "Arc 5", desc: "Le Monde Libre", icon: "🐧", startIndex: 602, requiresEpilogueFinal: true }
 ];
 
 // Clé localStorage pour la progression (index max atteint)
@@ -6523,7 +8774,176 @@ const SCENARIO = [
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         harmonyView: true,
-        finalRestart: true
+        chapterEnd: true
+    },
+
+    // =========================================
+    // ARC 5 — LE MONDE LIBRE
+    // =========================================
+
+    // Transition
+    {
+        transitionText: "????\\nARC 5\\nLe Monde Libre",
+        transitionDuration: 3500
+    },
+
+    // 🌌 Scène 1 — Un autre univers
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 L'équilibre est revenu… mais pas partout.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        music: 'music/Mac Startup Remix Extended.mp3',
+        linuxBg: true
+    },
+
+    // 🌌 Scène 2 — Le monde Linux
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🐧 Un monde sans domination. Un monde ouvert.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 3 — Ubuntu
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧🙂 Ici, chacun choisit sa voie.",
+        emotion: 'normal',
+        characters: { left: null, center: 'ubuntu', right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 4 — Une anomalie
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚠️ Mais une ombre traverse les frontières…",
+        emotion: 'normal',
+        characters: { left: null, center: 'ubuntu', right: null },
+        glitchDark: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 5 — ChromeOS surgit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈🌀 Vous pensiez être hors de portée…",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        villainGlitch: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 6
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "😨 Qui es-tu…?",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 7
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Je suis ce qui reste quand on refuse de disparaître.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 8 — Attaque
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💥 ChromeOS attaque Ubuntu !",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        codeCorrupt: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 9
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "😖 Mes processus… ils sont perturbés !",
+        emotion: 'hurt',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        shake: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 10
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈🔥 Le libre est faible. Il n'a pas de contrôle.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 11 — Résistance
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧💪 Faux. Le libre s'adapte.",
+        emotion: 'determined',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        ubuntuResist: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 12
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🛡️ Ubuntu ne domine pas. Il résiste.",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        linuxBg: true
+    },
+
+    // 🌌 Scène 13 — Appel à l'aide
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "📡 Communauté… j'ai besoin de vous.",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        communityCall: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 14
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Quand le libre est attaqué… il ne se bat jamais seul.",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        silhouettesAppear: true,
+        linuxBg: true
+    },
+
+    // 🌌 Scène 15 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😠 Intéressant…",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'ubuntu', right: null },
+        linuxBg: true,
+        chapterEnd: true
     }
 
 ];
@@ -7092,6 +9512,11 @@ class VisualNovelEngine {
                 const arc4Ch7 = CHAPTERS.find(ch => ch.id === 'arc4_ch7');
                 const arc4Ch7StartIndex = arc4Ch7 ? arc4Ch7.startIndex : 541;
                 isUnlocked = maxProgress >= arc4Ch7StartIndex;
+            } else if (chapter.requiresEpilogueFinal) {
+                // Arc 5 se débloque quand on a atteint l'Épilogue Final
+                const epilogueFinal = CHAPTERS.find(ch => ch.id === 'epilogue_final');
+                const epilogueFinalStartIndex = epilogueFinal ? epilogueFinal.startIndex : 586;
+                isUnlocked = maxProgress >= epilogueFinalStartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
@@ -7440,7 +9865,18 @@ class VisualNovelEngine {
         this.handleAudio(scene);
         this.handleMonitor(scene);
         this.updateCharacters(scene);
-        this.updateDialogue(scene);
+
+        // N'affiche le dialogue que si la scène a un speaker défini
+        if (scene.speaker) {
+            this.updateDialogue(scene);
+        } else {
+            // Scène sans dialogue (ex: transition déjà passée) - passe automatiquement
+            this.canAdvance = true;
+            setTimeout(() => {
+                this.currentSceneIndex++;
+                this.playScene();
+            }, 100);
+        }
     }
 
     handleAudio(scene) {
@@ -7483,6 +9919,15 @@ class VisualNovelEngine {
     updateCharacters(scene) {
         const positions = ['left', 'center', 'right'];
         const charElements = [this.elements.charLeft, this.elements.charCenter, this.elements.charRight];
+
+        // Vérifier que scene.characters existe
+        if (!scene.characters) {
+            // Cacher tous les personnages si pas de characters défini
+            charElements.forEach(elements => {
+                elements.slot.classList.remove('visible', 'speaking');
+            });
+            return;
+        }
 
         positions.forEach((pos, index) => {
             const charId = scene.characters[pos];
@@ -7666,8 +10111,15 @@ class VisualNovelEngine {
     updateDialogue(scene) {
         const character = CHARACTERS[scene.speaker];
 
-        this.elements.speakerName.textContent = character.name;
-        this.elements.speakerName.style.background = `linear-gradient(135deg, ${character.color}, ${this.adjustColor(character.color, 30)})`;
+        // Vérification que le personnage existe
+        if (!character) {
+            console.warn(`⚠️ Personnage inconnu: ${scene.speaker}`);
+            this.elements.speakerName.textContent = scene.speaker || 'Inconnu';
+            this.elements.speakerName.style.background = 'linear-gradient(135deg, #666, #888)';
+        } else {
+            this.elements.speakerName.textContent = character.name;
+            this.elements.speakerName.style.background = `linear-gradient(135deg, ${character.color}, ${this.adjustColor(character.color, 30)})`;
+        }
 
         this.elements.continueIndicator.style.visibility = 'hidden';
 
@@ -7675,6 +10127,11 @@ class VisualNovelEngine {
     }
 
     typeText(text) {
+        // Vérification que text existe
+        if (!text) {
+            text = '';
+        }
+
         this.isTyping = true;
         this.canAdvance = false;
         this.elements.dialogueVisual.textContent = '';
@@ -7686,7 +10143,7 @@ class VisualNovelEngine {
         const cursor = document.createElement('span');
         cursor.className = 'typing-cursor';
 
-        if (this.reduceMotion || this.typingSpeed === 0) {
+        if (this.reduceMotion || this.typingSpeed === 0 || text.length === 0) {
             this.elements.dialogueVisual.textContent = text;
             this.finishTyping();
             return;

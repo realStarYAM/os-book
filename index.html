@@ -13,9 +13,40 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body data-theme="default">
+    <!-- UI Loader Overlay - Système de chargement d'interfaces -->
+    <div id="ui-loader" class="ui-loader" aria-hidden="true" role="alert" aria-live="polite">
+        <div class="loader-backdrop"></div>
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Écran d'intro cinématique -->
+    <div id="intro-screen" class="intro-screen active">
+        <div class="intro-content">
+            <div class="intro-logo">
+                <h1 class="intro-title">OS BOOK</h1>
+                <p class="intro-subtitle">La Guerre des OS</p>
+            </div>
+            <div class="intro-teaser">
+                <span class="teaser-line teaser-1">Windows 11</span>
+                <span class="teaser-vs">vs</span>
+                <span class="teaser-line teaser-2">ChromeOS</span>
+            </div>
+            <div class="intro-loading">
+                <div class="intro-loading-bar"></div>
+            </div>
+        </div>
+        <button id="intro-skip-btn" class="intro-skip-btn" aria-label="Passer l'intro">
+            Passer ▶
+        </button>
+        <p class="intro-skip-hint">Appuyez sur ESPACE ou ENTRÉE pour passer</p>
+    </div>
+
     <!-- Écran de démarrage -->
-    <div id="start-screen" class="screen active">
+    <div id="start-screen" class="screen">
         <div class="title-container">
             <h1 class="main-title">OS BOOK</h1>
             <p class="subtitle">BIENVENUE</p>
@@ -120,21 +151,24 @@
 
         <!-- Menu Pause In-Game -->
         <div id="vn-menu" class="vn-menu">
-            <button id="menu-btn" class="menu-btn" title="Menu" aria-label="Ouvrir le menu">☰</button>
-            <div id="menu-backdrop" class="menu-backdrop"></div>
-            <div id="menu-panel" class="menu-panel">
-                <h2 class="menu-title">⏸️ Pause</h2>
+            <button id="menu-btn" class="menu-btn" title="Menu (ESC)" aria-label="Ouvrir le menu pause"
+                aria-expanded="false" aria-controls="menu-panel">☰</button>
+            <div id="menu-backdrop" class="menu-backdrop" aria-hidden="true"></div>
+            <div id="menu-panel" class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+                <h2 id="menu-title" class="menu-title">⏸️ Pause</h2>
                 <div class="menu-buttons">
-                    <button class="menu-action-btn" data-action="resume">▶️ Reprendre</button>
-                    <button class="menu-action-btn" data-action="mute">🔊 Son</button>
+                    <button class="menu-action-btn" data-action="resume" tabindex="0">▶️ Reprendre</button>
+                    <button class="menu-action-btn" data-action="chapters" tabindex="0">📖 Choisir un chapitre</button>
+                    <button class="menu-action-btn" data-action="timeline" tabindex="0">🕰️ Timeline</button>
+                    <button class="menu-action-btn" data-action="mute" tabindex="0">🔊 Son</button>
                     <div class="menu-speed-control">
                         <label for="typing-speed">⌨️ Vitesse du texte</label>
-                        <input type="range" id="typing-speed" min="0" max="100" value="35">
+                        <input type="range" id="typing-speed" min="0" max="100" value="35" tabindex="0">
                         <span id="speed-label">Normal</span>
                     </div>
                     <hr class="menu-divider">
-                    <button class="menu-action-btn warning" data-action="restart">🔄 Recommencer</button>
-                    <button class="menu-action-btn danger" data-action="toStart">🏠 Écran titre</button>
+                    <button class="menu-action-btn warning" data-action="restart" tabindex="0">🔄 Recommencer</button>
+                    <button class="menu-action-btn danger" data-action="toStart" tabindex="0">🏠 Écran titre</button>
                 </div>
             </div>
         </div>
@@ -165,19 +199,61 @@
         <div id="credits-container" class="credits-container"></div>
     </div>
 
-    <!-- Barre de contrôle Media Player style Aero -->
-    <div id="taskbar-player">
-        <div class="wmp-handle"></div>
-        <div class="wmp-info">
-            <span id="wmp-title">OS Book Soundtrack</span>
-            <span id="wmp-timer">00:00</span>
+    <!-- Media Player - Lecteur audio dynamique -->
+    <div id="media-player" class="media-player" aria-label="Lecteur audio">
+        <button id="media-player-close" class="mp-close-btn" aria-label="Fermer le lecteur">×</button>
+
+        <div class="mp-info">
+            <span id="mp-title" class="mp-title">OS Book Soundtrack</span>
+            <div class="mp-time">
+                <span id="mp-current-time">0:00</span>
+                <span class="mp-separator">/</span>
+                <span id="mp-duration">0:00</span>
+            </div>
         </div>
-        <div class="wmp-controls">
-            <img src="Media Player/Previous_Track.png" class="wmp-btn small" alt="Précédent">
-            <img src="Media Player/Stop.png" class="wmp-btn small" onclick="stopAudio()" alt="Stop">
-            <img src="Media Player/Break.png" id="play-pause-btn" class="wmp-btn big" onclick="togglePlayPause()"
-                alt="Pause/Play">
-            <img src="Media Player/Next_Track.png" class="wmp-btn small" alt="Suivant">
+
+        <div class="mp-progress-container">
+            <div class="mp-progress-bar">
+                <div id="mp-progress-fill" class="mp-progress-fill"></div>
+                <input type="range" id="mp-seek" class="mp-seek-slider" min="0" max="100" value="0"
+                    aria-label="Position">
+            </div>
+        </div>
+
+        <div class="mp-controls">
+            <button id="mp-prev" class="mp-btn" aria-label="Piste précédente">⏮</button>
+            <button id="mp-play" class="mp-btn mp-play-btn" aria-label="Lecture/Pause">▶</button>
+            <button id="mp-next" class="mp-btn" aria-label="Piste suivante">⏭</button>
+
+            <div class="mp-volume-control">
+                <button id="mp-mute" class="mp-btn mp-mute-btn" aria-label="Muet">🔊</button>
+                <input type="range" id="mp-volume" class="mp-volume-slider" min="0" max="100" value="50"
+                    aria-label="Volume">
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton flottant pour ouvrir le player -->
+    <button id="media-player-toggle" class="mp-toggle-btn" aria-label="Ouvrir le lecteur audio">🎵</button>
+
+    <!-- Timeline Interactive Modal -->
+    <div id="timeline-modal" class="timeline-modal" aria-hidden="true">
+        <div class="timeline-backdrop"></div>
+        <div class="timeline-container">
+            <button class="timeline-close-btn" aria-label="Fermer">×</button>
+            <h2 class="timeline-title">🕰️ Timeline de l'Histoire</h2>
+            <p class="timeline-subtitle">Explorez les arcs et revivez les moments clés</p>
+
+            <div class="timeline-content" id="timeline-content">
+                <!-- Généré dynamiquement par JS -->
+            </div>
+
+            <div class="timeline-legend">
+                <span class="legend-item"><span class="legend-dot completed"></span> Terminé</span>
+                <span class="legend-item"><span class="legend-dot current"></span> En cours</span>
+                <span class="legend-item"><span class="legend-dot locked"></span> Verrouillé</span>
+                <span class="legend-item"><span class="legend-dot secret"></span> Secret</span>
+            </div>
         </div>
     </div>
 
