@@ -706,7 +706,8 @@ const CHAPTERS = [
     { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 160 },
     { id: 'arc2', name: "Arc 2", desc: "Le Monde Oublié", icon: "🌀", startIndex: 186, requiresArc1: true },
     { id: 'arc2_ch2', name: "Arc 2 — Chapitre 2", desc: "La Guerre des OS", icon: "⚔️", startIndex: 203, requiresArc2: true },
-    { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 221, requiresArc2Ch2: true }
+    { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 221, requiresArc2Ch2: true },
+    { id: 'arc2_ch4', name: "Arc 2 — Chapitre 4", desc: "La Décharge Mémoire", icon: "🗑️", startIndex: 261, requiresArc2Ch3: true }
 ];
 
 // Clé localStorage pour la progression (index max atteint)
@@ -2783,6 +2784,46 @@ const SCENARIO = [
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
         arcEnd: 'arc2_ch3'
+    },
+
+    // ========================================
+    // CHAPITRE 4 : LA DÉCHARGE MÉMOIRE
+    // ========================================
+    {
+        isTransition: true,
+        transitionText: "Chapitre 4 - La Décharge Mémoire",
+        duration: 4000
+    },
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😰 Je... je me réveille où ? Tout est gris, vide... J'ai peur.",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows11', right: null },
+        shake: true
+    },
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "🕯️ Calme-toi, Windows 11. Ici, c'est la Décharge Mémoire. Le lieu où finissent les OS oubliés.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows11', right: null },
+        xpAppear: true
+    },
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😞 On a tout donné... pour finir ici.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
+    },
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😡 TOI ! Tu as volé ma place de dernier Windows !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows11', right: 'windows7' },
+        shake: true
     }
 
 ];
@@ -3261,6 +3302,11 @@ class VisualNovelEngine {
                 const arc2Ch2 = CHAPTERS.find(ch => ch.id === 'arc2_ch2');
                 const arc2Ch2StartIndex = arc2Ch2 ? arc2Ch2.startIndex : 203;
                 isUnlocked = maxProgress >= arc2Ch2StartIndex;
+            } else if (chapter.requiresArc2Ch3) {
+                // Arc 2 Chapitre 4 se débloque quand on a atteint Arc 2 Chapitre 3
+                const arc2Ch3 = CHAPTERS.find(ch => ch.id === 'arc2_ch3');
+                const arc2Ch3StartIndex = arc2Ch3 ? arc2Ch3.startIndex : 221;
+                isUnlocked = maxProgress >= arc2Ch3StartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
