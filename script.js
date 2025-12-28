@@ -707,7 +707,7 @@ const CHAPTERS = [
     { id: 'arc2', name: "Arc 2", desc: "Le Monde Oublié", icon: "🌀", startIndex: 186, requiresArc1: true },
     { id: 'arc2_ch2', name: "Arc 2 — Chapitre 2", desc: "La Guerre des OS", icon: "⚔️", startIndex: 203, requiresArc2: true },
     { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 221, requiresArc2Ch2: true },
-    { id: 'arc2_ch4', name: "Arc 2 — Chapitre 4", desc: "La Décharge Mémoire", icon: "🗑️", startIndex: 261, requiresArc2Ch3: true }
+    { id: 'arc2_ch4', name: "Arc 2 — Chapitre 4", desc: "Entrée dans le Cloud Noir", icon: "🌀", startIndex: 239, requiresArc2Ch3: true }
 ];
 
 // Clé localStorage pour la progression (index max atteint)
@@ -2783,47 +2783,127 @@ const SCENARIO = [
         text: "🌀 Le portail s'ouvre… et la guerre entre dans une nouvelle phase. ⚔️☁️",
         emotion: 'normal',
         characters: { left: null, center: null, right: null },
-        arcEnd: 'arc2_ch3'
+        chapterEnd: true
     },
 
     // ========================================
-    // CHAPITRE 4 : LA DÉCHARGE MÉMOIRE
+    // ARC 2 — CHAPITRE 4 : ENTRÉE DANS LE CLOUD NOIR
+    // Windows 11 et macOS entrent dans le Cloud Noir
+    // ChromeOS a fusionné avec le Cloud
     // ========================================
+
+    // Transition vers le Chapitre 4
     {
         isTransition: true,
-        transitionText: "Chapitre 4 - La Décharge Mémoire",
-        duration: 4000
+        transitionText: "????\\nARC 2 — Chapitre 4\\nEntrée dans le Cloud Noir",
+        duration: 5000,
+        villainTransition: true
     },
+
+    // SCÈNE 1 : Le portail s'ouvre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Le portail s'ouvre lentement… Un monde sans ciel, sans sol… seulement des données brisées. 💔",
+        emotion: 'normal',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 2 : Windows 11 observe
     {
         scene: 'void',
         speaker: 'windows11',
-        text: "😰 Je... je me réveille où ? Tout est gris, vide... J'ai peur.",
+        text: "⚡ Cet endroit… Ce n'est pas un OS. 😨",
         emotion: 'fear',
-        characters: { left: null, center: 'windows11', right: null },
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        cloudNoirBg: true,
         shake: true
     },
+
+    // SCÈNE 3 : macOS confirme
     {
         scene: 'void',
-        speaker: 'xp',
-        text: "🕯️ Calme-toi, Windows 11. Ici, c'est la Décharge Mémoire. Le lieu où finissent les OS oubliés.",
+        speaker: 'macos',
+        text: "🧠 Non. C'est un espace corrompu. Un Cloud sans règles. 🌑",
+        emotion: 'worried',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        cloudNoirBg: true
+    },
+
+    // SCÈNE 4 : Fantômes des anciens OS
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😳 Je reconnais ces systèmes… XP… Vista… 7… Ils ont été absorbés !",
+        emotion: 'fear',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        ghostFragments: true
+    },
+
+    // SCÈNE 5 : ChromeOS réapparaît (voix déformée)
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Bienvenue… Dans ce qu'il reste du futur. 🌀",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        echoVoice: true
+    },
+
+    // SCÈNE 6 : Avertissement de macOS
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "⚠️ Windows 11, écoute-moi bien. Ici, si tu perds ta stabilité… tu te fragmentes. 💀",
+        emotion: 'serious',
+        characters: { left: 'macos', center: null, right: 'windows11' }
+    },
+
+    // SCÈNE 7 : Windows 11 déterminé (aura clignote)
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🔥 Alors je resterai stable. Quoi qu'il arrive. 💪",
+        emotion: 'determined',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        windows11SSJ: true,
+        auraFlicker: true
+    },
+
+    // SCÈNE 8 : Apparition de l'entité géante
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Le Cloud Noir prend forme. Une entité géante faite de nuages et de lignes de code… 🖤💻",
         emotion: 'normal',
-        characters: { left: 'xp', center: 'windows11', right: null },
-        xpAppear: true
-    },
-    {
-        scene: 'void',
-        speaker: 'windows7',
-        text: "😞 On a tout donné... pour finir ici.",
-        emotion: 'sad',
-        characters: { left: 'xp', center: 'windows11', right: 'windows7' }
-    },
-    {
-        scene: 'void',
-        speaker: 'windows10',
-        text: "😡 TOI ! Tu as volé ma place de dernier Windows !",
-        emotion: 'angry',
-        characters: { left: 'windows10', center: 'windows11', right: 'windows7' },
+        characters: { left: null, center: null, right: null },
+        cloudEntityAppear: true,
         shake: true
+    },
+
+    // SCÈNE 9 : ChromeOS fusionne avec le Cloud
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🌀 Je ne suis plus seul. JE SUIS LE CLOUD ! 😈💀",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        cloudFusion: true,
+        shake: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚔️ Windows 11 et macOS se regardent. La vraie bataille commence maintenant. 🔥🌀",
+        emotion: 'normal',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        arcEnd: 'arc2_ch4'
     }
 
 ];
