@@ -828,6 +828,31 @@ body {
     transition: all 0.3s ease;
 }
 
+.character-fallback {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: clamp(100px, 18vw, 220px);
+    height: clamp(100px, 18vw, 220px);
+    border-radius: 18px;
+    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), rgba(10, 10, 26, 0.8));
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    color: var(--primary-color);
+    font-size: 0.75rem;
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    padding: 0.5rem;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+.character-slot.image-missing .character-sprite {
+    display: none;
+}
+
+.character-slot.image-missing .character-fallback {
+    display: flex;
+}
+
 .character-name-tag {
     margin-top: 1rem;
     padding: 0.5rem 1.5rem;
@@ -2581,6 +2606,18 @@ body {
     height: auto;
     filter: grayscale(100%) brightness(0.4) drop-shadow(0 0 10px rgba(100, 100, 150, 0.3));
     opacity: 0.6;
+}
+
+.grave.image-missing::after {
+    content: 'Image manquante';
+    margin-top: 0.35rem;
+    font-size: 0.6rem;
+    color: rgba(160, 160, 180, 0.7);
+    text-align: center;
+}
+
+.grave.image-missing .grave-image {
+    display: none;
 }
 
 .grave-cross {
