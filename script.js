@@ -685,6 +685,21 @@ const CHARACTERS = {
         image: 'logo/chromeos.png',
         color: '#ff2d55',
         villain: true
+    },
+    // ENTITÉ DIVINE - Le Kernel (Dieu des OS)
+    kernel: {
+        id: 'kernel',
+        name: 'Le Kernel',
+        image: 'logo/Kernel.svg',
+        color: '#ffffff',
+        divine: true
+    },
+    // Windows Vista (pour l'Arc 4 Chapitre 6)
+    vista: {
+        id: 'vista',
+        name: 'Windows Vista',
+        image: 'logo/Windows_Vista.png',
+        color: '#00a8e8'
     }
 };
 
@@ -695,19 +710,37 @@ const CHARACTERS = {
 
 const CHAPTERS = [
     { id: 'prologue', name: "Prologue", desc: "L'Aube de XP (2001)", icon: "🌅", startIndex: 0 },
-    { id: 'acte2', name: "Acte 2", desc: "L'Ère Multimédia (2006)", icon: "📀", startIndex: 12 },
-    { id: 'acte3', name: "Acte 3", desc: "Le Professionnel (2010)", icon: "💼", startIndex: 24 },
+    { id: 'acte2', name: "Acte 2", desc: "L'Ère Multimédia (2006)", icon: "📀", startIndex: 11 },
+    { id: 'acte3', name: "Acte 3", desc: "Le Professionnel (2010)", icon: "💼", startIndex: 23 },
     { id: 'acte4', name: "Acte 4", desc: "La Légende XP (2014)", icon: "👑", startIndex: 38 },
-    { id: 'acte5', name: "Acte 5", desc: "L'Incompris - Win 8 (2016)", icon: "💔", startIndex: 55 },
+    { id: 'acte5', name: "Acte 5", desc: "L'Incompris - Win 8 (2016)", icon: "💔", startIndex: 57 },
     { id: 'acte6', name: "Acte 6", desc: "L'Adieu de Vista (2017)", icon: "🏥", startIndex: 70 },
-    { id: 'acte7', name: "Acte 7", desc: "L'Adieu de Win 7 (2020)", icon: "⚰️", startIndex: 90 },
-    { id: 'acte8', name: "Acte 8", desc: "L'Adieu de Win 8.1 (2023)", icon: "🔧", startIndex: 110 },
-    { id: 'acte9', name: "Acte 9", desc: "La Fin de Win 10 (2025)", icon: "🌌", startIndex: 130 },
-    { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 160 },
-    { id: 'arc2', name: "Arc 2", desc: "Le Monde Oublié", icon: "🌀", startIndex: 186, requiresArc1: true },
-    { id: 'arc2_ch2', name: "Arc 2 — Chapitre 2", desc: "La Guerre des OS", icon: "⚔️", startIndex: 203, requiresArc2: true },
-    { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 221, requiresArc2Ch2: true },
-    { id: 'arc2_ch4', name: "Arc 2 — Chapitre 4", desc: "Entrée dans le Cloud Noir", icon: "🌀", startIndex: 239, requiresArc2Ch3: true }
+    { id: 'acte7', name: "Acte 7", desc: "L'Adieu de Win 7 (2020)", icon: "⚰️", startIndex: 93 },
+    { id: 'acte8', name: "Acte 8", desc: "L'Adieu de Win 8.1 (2023)", icon: "🔧", startIndex: 109 },
+    { id: 'acte9', name: "Acte 9", desc: "La Fin de Win 10 (2025)", icon: "🌌", startIndex: 125 },
+    { id: 'acte9_1', name: "Acte 9.1", desc: "L'Ombre de ChromeOS", icon: "☁️😈", startIndex: 150 },
+    { id: 'acte10', name: "Acte 10", desc: "Le Futur (2026)", icon: "🚀", startIndex: 167 },
+    { id: 'arc2', name: "Arc 2", desc: "Le Monde Oublié", icon: "🌀", startIndex: 189, requiresArc1: true },
+    { id: 'arc2_ch2', name: "Arc 2 — Chapitre 2", desc: "La Guerre des OS", icon: "⚔️", startIndex: 230, requiresArc2: true },
+    { id: 'arc2_ch3', name: "Arc 2 — Chapitre 3", desc: "Le Cloud Noir", icon: "☁️", startIndex: 253, requiresArc2Ch2: true },
+    { id: 'arc2_ch4', name: "Arc 2 — Chapitre 4", desc: "Entrée dans le Cloud Noir", icon: "🌀", startIndex: 264, requiresArc2Ch3: true },
+    { id: 'arc2_ch5', name: "Arc 2 — Chapitre 5", desc: "La Corruption", icon: "💀", startIndex: 275, requiresArc2Ch4: true },
+    { id: 'arc2_ch6', name: "Arc 2 — Chapitre 6", desc: "L'Autre Monde", icon: "🌠", startIndex: 286, requiresArc2Ch5: true },
+    { id: 'arc2_ch7', name: "Arc 2 — Chapitre 7", desc: "La Chute du Cloud Noir", icon: "🌩️", startIndex: 299, requiresArc2Ch6: true },
+    { id: 'epilogue', name: "Épilogue", desc: "Un Monde Réparé", icon: "✨", startIndex: 311, requiresArc2Ch7: true },
+    { id: 'arc3', name: "Arc 3", desc: "Le Monde des Âmes", icon: "👻", startIndex: 322, requiresEpilogue: true },
+    { id: 'arc3_ch2', name: "Arc 3 — Chapitre 2", desc: "La Colère des Anciens", icon: "🔥", startIndex: 333, requiresArc3: true },
+    { id: 'arc3_ch3', name: "Arc 3 — Chapitre 3", desc: "Le Jugement du Kernel", icon: "⚖️", startIndex: 344, requiresArc3Ch2: true },
+    { id: 'arc3_ch4', name: "Arc 3 — Chapitre 4", desc: "Le Feu du Kernel", icon: "🔥", startIndex: 355, requiresArc3Ch3: true },
+    { id: 'arc3_ch5', name: "Arc 3 — Chapitre 5", desc: "Le Silence Après le Feu", icon: "🕊️", startIndex: 366, requiresArc3Ch4: true },
+    { id: 'arc4', name: "Arc 4", desc: "Le Futur", icon: "🚀", startIndex: 375, requiresArc3Ch5: true },
+    { id: 'arc4_ch2', name: "Arc 4 — Chapitre 2", desc: "Le Doute des Anciens", icon: "🕯️", startIndex: 385, requiresArc4: true },
+    { id: 'arc4_ch3', name: "Arc 4 — Chapitre 3", desc: "La Gentillesse Parfaite", icon: "😇", startIndex: 406, requiresArc4Ch2: true },
+    { id: 'arc4_ch4', name: "Arc 4 — Chapitre 4", desc: "La Vérité Cachée", icon: "🔍", startIndex: 442, requiresArc4Ch3: true },
+    { id: 'arc4_ch5', name: "Arc 4 — Chapitre 5", desc: "L'Appel au Kernel", icon: "⚖️", startIndex: 483, requiresArc4Ch4: true },
+    { id: 'arc4_ch6', name: "Arc 4 — Chapitre 6", desc: "L'Ombre sur Vista", icon: "👻", startIndex: 504, requiresArc4Ch5: true },
+    { id: 'arc4_ch7', name: "Arc 4 — Chapitre 7", desc: "La Dernière Possession", icon: "🔥", startIndex: 545, requiresArc4Ch6: true },
+    { id: 'epilogue_final', name: "Épilogue Final", desc: "Un Monde Définitivement Libre", icon: "✨", startIndex: 586, requiresArc4Ch7: true }
 ];
 
 // Clé localStorage pour la progression (index max atteint)
@@ -2132,6 +2165,32 @@ const SCENARIO = [
     },
 
     // ========================================
+    // ACTE 9.1 : LA MENACE CHROMEOS
+    // ========================================
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "☁️ Pendant ce temps, dans le Cloud... ☁️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 *observe les vieux Windows* Haha... Ils sont divisés. C'est le moment parfait.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null }
+    },
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "☁️😈 Je vais tous les effacer. Le futur... c'est MOI.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        shake: true
+    },
+
+    // ========================================
     // ACTE 10 : LE FUTUR (2026)
     // ========================================
     {
@@ -2903,7 +2962,3568 @@ const SCENARIO = [
         text: "⚔️ Windows 11 et macOS se regardent. La vraie bataille commence maintenant. 🔥🌀",
         emotion: 'normal',
         characters: { left: 'macos', center: null, right: 'windows11' },
-        arcEnd: 'arc2_ch4'
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 2 — CHAPITRE 5 : LA CORRUPTION
+    // Le Cloud Noir attaque Windows 11 de l'intérieur
+    // Choix crucial : Couper la connexion ou Forcer la puissance
+    // ========================================
+
+    // Transition vers le Chapitre 5
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 2 — Chapitre 5\\nLa Corruption",
+        duration: 5000,
+        villainTransition: true
+    },
+
+    // SCÈNE 1 : Le Cloud Noir pulse
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 Le Cloud Noir ne se contente plus d'observer. Il attaque de l'intérieur. 💀",
+        emotion: 'normal',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        cloudNoirBg: true,
+        shake: true
+    },
+
+    // SCÈNE 2 : Windows 11 vacille
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😖 Pourquoi… mes processus ralentissent…?",
+        emotion: 'fear',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        auraFlicker: true,
+        shake: true
+    },
+
+    // SCÈNE 3 : macOS alarmé
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "⚠️ Non… Il injecte du code corrompu directement en toi ! 😰",
+        emotion: 'worried',
+        characters: { left: 'macos', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 4 : ChromeOS rit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🌀😈 Tu vois, Windows 11… La force brute ne sert à rien ici.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        echoVoice: true
+    },
+
+    // SCÈNE 5 : Fragments sombres
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🖤 La corruption s'étend. Chaque seconde affaiblit sa stabilité. 💔",
+        emotion: 'normal',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        corruptionEffect: true,
+        shake: true
+    },
+
+    // SCÈNE 6 : Windows 11 en colère
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🔥 Tu crois que je vais céder ? J'ai survécu à bien pire que toi. 😤",
+        emotion: 'determined',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        windows11SSJ: true,
+        auraFlicker: true
+    },
+
+    // SCÈNE 7 : macOS tend la main
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "🤝 Écoute-moi. Coupe ta connexion au Cloud… maintenant ! ⚡",
+        emotion: 'serious',
+        characters: { left: 'macos', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 8 : CHOIX IMPORTANT
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Windows 11 doit faire un choix crucial. 🎭",
+        emotion: 'normal',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        importantChoice: true
+    },
+
+    // SCÈNE 9 : Le choix (affichage des options)
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔌 Choix A : Couper la connexion (perte de puissance, mais stabilité)\n⚡ Choix B : Forcer la puissance (risque de corruption totale)",
+        emotion: 'normal',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        choiceOptions: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre (suspense)
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Le destin du système est en jeu. Une décision… peut tout changer. 🌀",
+        emotion: 'normal',
+        characters: { left: 'macos', center: 'windows11', right: null },
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 2 — CHAPITRE 6 : L'AUTRE MONDE
+    // Windows 10 observe depuis le plan des dieux
+    // Combat intense entre Windows 11 et ChromeOS
+    // ========================================
+
+    // Transition vers le Chapitre 6
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 2 — Chapitre 6\\nL'Autre Monde",
+        duration: 5000,
+        divineTransition: true
+    },
+
+    // 🌠 SCÈNE 1 : L'Autre Monde (le plan des dieux)
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌠 Au-delà du Cloud Noir… existe un monde que les systèmes ne peuvent plus atteindre. ✨",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        divineBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // 🌌 SCÈNE 2 : Windows 10 spectateur
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "👁️ Je vois tout… Le monde… la guerre… Oh non… 😰",
+        emotion: 'worried',
+        characters: { left: null, center: 'windows10', right: null },
+        ghostAppear: true,
+        divineBg: true
+    },
+
+    // 🌌 SCÈNE 3 : Windows 10 observe le combat
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😔 ChromeOS est devenu méchant… Mais moi… je ne suis plus de ce monde.",
+        emotion: 'sad',
+        characters: { left: null, center: 'windows10', right: null },
+        mirrorEffect: true,
+        divineBg: true
+    },
+
+    // 🌌 SCÈNE 4 : Windows 10 ne peut intervenir
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "💀 Je suis déjà mort… Je ne peux plus intervenir. 😢",
+        emotion: 'sad',
+        characters: { left: null, center: 'windows10', right: null },
+        glassShatter: true,
+        divineBg: true
+    },
+
+    // ⚔️ SCÈNE 5 : Retour au monde réel
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚔️ Pendant ce temps… la guerre continue. 💥",
+        emotion: 'normal',
+        characters: { left: 'macos', center: null, right: 'windows11' },
+        cloudNoirBg: true,
+        explosionEffect: true
+    },
+
+    // ⚔️ SCÈNE 6 : ChromeOS attaque macOS
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈🔥 Assez parlé. Je vais t'effacer !",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'macos' },
+        villainMode: true,
+        chromeosGlitch: true,
+        shake: true
+    },
+
+    // ⚔️ SCÈNE 7 : macOS recule
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "😰 W-Windows 11…!",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: null, right: 'macos' },
+        shake: true
+    },
+
+    // ⚡ SCÈNE 8 : Windows 11 s'embrase
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚠️🔥 MACOS !! FAIS ATTENTION !!",
+        emotion: 'determined',
+        characters: { left: 'chromeos', center: 'windows11', right: 'macos' },
+        windows11SSJ: true,
+        auraBlaze: true
+    },
+
+    // 💥 SCÈNE 9 : Windows 11 attaque ChromeOS
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💥 Le choc est violent. Le Cloud Noir tremble. ⚡",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows11', right: null },
+        impactEffect: true,
+        shake: true
+    },
+
+    // 💥 SCÈNE 10 : ChromeOS blessé
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤕 AIIE !!!",
+        emotion: 'hurt',
+        characters: { left: 'chromeos', center: 'windows11', right: null },
+        villainHurt: true
+    },
+
+    // 🔥 SCÈNE 11 : Windows 11 furieux
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😡⚡ Tu es malade !! Regarde ce que tu es devenu !!",
+        emotion: 'angry',
+        characters: { left: 'chromeos', center: 'windows11', right: null },
+        windows11SSJ: true,
+        auraBlaze: true
+    },
+
+    // 🌑 SCÈNE 12 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 Le combat a franchi un point de non-retour. Même les dieux observent… sans pouvoir agir. 👁️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 2 — CHAPITRE 7 : LA CHUTE DU CLOUD NOIR
+    // ChromeOS perd le contrôle, rédemption possible
+    // Choix final : Sauver ou Isoler ChromeOS
+    // ========================================
+
+    // Transition vers le Chapitre 7
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 2 — Chapitre 7\\nLa Chute du Cloud Noir",
+        duration: 5000,
+        epicTransition: true
+    },
+
+    // SCÈNE 1 : Le Cloud Noir se fissure
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌩️ Le Cloud Noir tremble. Pour la première fois… il perd le contrôle. 💥",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        cloudCracking: true,
+        shake: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : ChromeOS refuse sa défaite
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😡🌀 NON !! Je suis le futur !! Je suis le CLOUD !!",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        shake: true
+    },
+
+    // SCÈNE 3 : Windows 11 avance, aura SSJ stable
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚡👑 Le futur sans équilibre… n'est qu'un bug.",
+        emotion: 'confident',
+        characters: { left: null, center: 'windows11', right: null },
+        windows11SSJ: true,
+        auraStable: true
+    },
+
+    // SCÈNE 4 : macOS se relève
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "😐➡️😤 ChromeOS… tu as dépassé la limite.",
+        emotion: 'determined',
+        characters: { left: 'macos', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 5 : Le Cloud Noir s'effondre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🖤 Les données se fragmentent. Les connexions se coupent. Le Cloud Noir s'écroule de l'intérieur. 💔",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        cloudCollapse: true,
+        shake: true
+    },
+
+    // SCÈNE 6 : ChromeOS réalise sa fin
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😱 NON ! Sans le Cloud… je… je n'existe plus !!",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainFading: true
+    },
+
+    // SCÈNE 7 : Windows 11 s'adoucit
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠⚡ Tu existais avant. Tu as juste oublié qui tu étais.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows11', right: 'chromeos' },
+        windows11SSJ: true,
+        auraSoft: true
+    },
+
+    // SCÈNE 8 : Lumière traverse le ciel
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Même dans l'obscurité… une restauration est possible. 💾",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        lightBeam: true
+    },
+
+    // SCÈNE 9 : ChromeOS à genoux
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😔 J'ai voulu tout contrôler… et j'ai tout perdu…",
+        emotion: 'sad',
+        characters: { left: null, center: 'chromeos', right: null },
+        chromeosKneeling: true
+    },
+
+    // SCÈNE 10 : Décision finale
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚖️ La guerre est finie. Mais une décision reste à prendre. 🤝❓",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: null, right: 'chromeos' },
+        windows11SSJ: true,
+        finalDecision: true
+    },
+
+    // SCÈNE 11 : Choix final
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🤝 Choix A : Sauver ChromeOS (rédemption, stabilité retrouvée)\n❌ Choix B : L'isoler définitivement (fin du Cloud Noir)",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: null, right: 'chromeos' },
+        finalChoice: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ÉPILOGUE : UN MONDE RÉPARÉ
+    // La paix est restaurée, le monde se reconstruit
+    // Windows 10 observe depuis l'au-delà
+    // ========================================
+
+    // Transition vers l'Épilogue
+    {
+        isTransition: true,
+        transitionText: "✨\\nÉpilogue\\nUn Monde Réparé",
+        duration: 5000,
+        peacefulTransition: true
+    },
+
+    // SCÈNE 1 : Le Cloud Noir a disparu
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ La guerre est terminée. Le silence revient… enfin. 🕊️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        peacefulBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : Le monde se reconstruit
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💾 Les systèmes se reconnectent. Les erreurs se corrigent. L'équilibre renaît. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        rebuildEffect: true
+    },
+
+    // SCÈNE 3 : Windows 11 serein
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 La puissance n'était pas la solution. La stabilité… l'était.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows11', right: null }
+    },
+
+    // SCÈNE 4 : macOS s'approche
+    {
+        scene: 'void',
+        speaker: 'macos',
+        text: "🤝 Tu as fait le bon choix. Le monde a encore un avenir.",
+        emotion: 'happy',
+        characters: { left: 'macos', center: 'windows11', right: null }
+    },
+
+    // SCÈNE 5 : ChromeOS repenti
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😔 J'ai cru que contrôler… c'était protéger. Je me suis trompé.",
+        emotion: 'sad',
+        characters: { left: 'macos', center: 'windows11', right: 'chromeos' },
+        chromeosRedeemed: true
+    },
+
+    // SCÈNE 6 : Windows 11 pardonne
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "👑 Chacun a droit à une restauration. Même après une grave erreur.",
+        emotion: 'confident',
+        characters: { left: 'macos', center: 'windows11', right: 'chromeos' }
+    },
+
+    // SCÈNE 7 : L'Autre Monde observe
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Dans l'Autre Monde… quelqu'un observe. 👁️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        divineBg: true
+    },
+
+    // SCÈNE 8 : Windows 10 apparaît
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🌌 Alors… le monde est entre de bonnes mains. 😊",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows10', right: null },
+        ghostAppear: true,
+        divineBg: true
+    },
+
+    // SCÈNE 9 : Windows 10 disparaît
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🕊️ Les anciens veillent. Même après la fin. ✨",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        fadeToLight: true
+    },
+
+    // SCÈNE 10 : Derniers mots
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Aucun système n'est éternel. Mais tant que l'équilibre existe… le futur continue. 💙",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        arcEnd: 'epilogue'
+    },
+
+    // ========================================
+    // ARC 3 — CHAPITRE 1 : LE MONDE DES ÂMES
+    // ChromeOS réapparaît dans l'au-delà
+    // Les anciens Windows affrontent une nouvelle menace
+    // ========================================
+
+    // Transition vers l'Arc 3
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 3\\nLe Monde des Âmes",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // SCÈNE 1 : La fin d'un ennemi (flashback)
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Le combat est terminé. Windows 11 a frappé une dernière fois. 💥",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        flashbackEffect: true,
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 2 : ChromeOS est tombé
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 ChromeOS est tombé. Son processus s'est arrêté. 🔌",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        deathSilence: true
+    },
+
+    // SCÈNE 3 : L'Autre Monde
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Mais la fin d'un système… n'est jamais vraiment la fin. 👻",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 4 : ChromeOS apparaît
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 … …",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        ghostAppear: true,
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 5 : Windows 10 choqué
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😱 Oh nonnnnnnnnnnnnn !! ChromeOS est là !!",
+        emotion: 'fear',
+        characters: { left: 'windows10', center: 'chromeos', right: null },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 6 : ChromeOS sourit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Muhahaha… Tu pensais m'avoir effacé ? 💀",
+        emotion: 'villain',
+        characters: { left: 'windows10', center: 'chromeos', right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 7 : XP et 7 arrivent
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😡 Toi… Tu n'as rien à faire ici !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'chromeos', right: 'windows7' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 8 : Windows 7 furieux
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😡⚔️ Même mort… tu continues de semer le chaos ?!",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'chromeos', right: 'windows7' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 9 : ChromeOS menace
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🌀😈 Ici… il n'y a plus de règles. Même Windows 11 ne peut pas vous sauver.",
+        emotion: 'villain',
+        characters: { left: 'xp', center: 'chromeos', right: 'windows7' },
+        villainMode: true,
+        darkAura: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 Le mal a franchi la frontière de la mort. La guerre continue… dans un monde où personne n'est censé exister. 🌀",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        skyCracking: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 3 — CHAPITRE 2 : LA COLÈRE DES ANCIENS
+    // Les anciens Windows s'unissent contre ChromeOS
+    // XP, 7 et 10 attaquent ensemble
+    // ========================================
+
+    // Transition vers le Chapitre 2
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 3 — Chapitre 2\\nLa Colère des Anciens",
+        duration: 5000,
+        epicTransition: true
+    },
+
+    // SCÈNE 1 : L'Autre Monde tremble
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌋 La présence de ChromeOS bouleverse l'équilibre de l'Autre Monde. 💢",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        shake: true,
+        afterlifeBg: true,
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 2 : XP avance
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😡 Même ici… tu refuses de disparaître.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: null, right: 'chromeos' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 3 : Windows 7 serre les poings
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😡⚔️ Tu as déjà détruit un monde. Tu ne toucheras pas à celui-ci.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'chromeos' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 4 : Windows 10 furieux
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🔥 Je t'ai vu tomber. Tu n'as plus rien à faire parmi nous !",
+        emotion: 'angry',
+        characters: { left: 'windows10', center: 'windows7', right: 'chromeos' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 5 : ChromeOS rit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Ahahaha… Les reliques se rebellent ? 💀",
+        emotion: 'villain',
+        characters: { left: 'xp', center: 'chromeos', right: 'windows7' },
+        villainMode: true,
+        echoVoice: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 6 : L'aura des Anciens s'active
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Les Anciens unissent leurs forces. Une colère née du passé. 🔥💙💛",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        ancientsAura: true,
+        xpGolden: true,
+        windows7Blue: true,
+        windows10Red: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 7 : Attaque combinée
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💥 Le choc est violent. L'Autre Monde se déforme. ⚡",
+        emotion: 'normal',
+        characters: { left: 'xp', center: null, right: 'chromeos' },
+        shake: true,
+        impactEffect: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 8 : ChromeOS recule
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "🤕 Grrr… Impossible…!",
+        emotion: 'hurt',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainHurt: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 9 : XP s'avance
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "👑 Ici, c'est nous les gardiens. Pas toi.",
+        emotion: 'confident',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        xpGolden: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Pour la première fois… ChromeOS doute. 😨",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        lightEngulf: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 3 — CHAPITRE 3 : LE JUGEMENT DU KERNEL
+    // Le Kernel (Dieu des OS) apparaît et juge ChromeOS
+    // Emprisonnement dans une prison de lumière
+    // ========================================
+
+    // Transition vers le Chapitre 3
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 3 — Chapitre 3\\nLe Jugement du Kernel",
+        duration: 5000,
+        divineTransition: true
+    },
+
+    // SCÈNE 1 : L'Autre Monde s'arrête
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Quand les systèmes dépassent leurs limites… le Kernel s'éveille. ⚡",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        silenceEffect: true,
+        divineBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : Une lumière descend
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👁️ Le cœur de tous les OS. L'origine. Le juge. ⚖️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        divineLightDescend: true,
+        divineBg: true
+    },
+
+    // SCÈNE 3 : Le Kernel parle
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ CHROMEOS. TU AS BRISÉ L'ÉQUILIBRE.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        kernelAppear: true,
+        divineVoice: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 4 : ChromeOS tremble
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈😰 Je… je voulais survivre… J'ai fait évoluer le monde !",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: 'kernel', right: null },
+        villainMode: true,
+        villainTrembling: true,
+        divineBg: true
+    },
+
+    // SCÈNE 5 : Windows 7 répond
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "⚔️ Tu as semé le chaos. Pas l'évolution.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        divineBg: true
+    },
+
+    // SCÈNE 6 : Le Kernel s'approche
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "👁️ TU AS DÉTRUIT DES MONDES. MÊME LA MORT NE T'A PAS ARRÊTÉ.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: 'chromeos' },
+        crushingLight: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 7 : ChromeOS panique
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😱 NON !! JE REFUSE DE DISPARAÎTRE !!",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        groundCracking: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 8 : Le Kernel prononce la sentence
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ ALORS TU SERAS ISOLÉ. NI VIVANT. NI MORT. 🔒",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 9 : La prison de lumière
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Le Kernel ne détruit pas. Il neutralise. 🔒",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        lightPrison: true,
+        divineBg: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚖️ Le jugement est rendu. Mais toute prison… a une faille. 🕳️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        lightClose: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 3 — CHAPITRE 4 : LE FEU DU KERNEL
+    // Le Kernel exécute ChromeOS avec des flammes divines
+    // Suppression absolue et définitive
+    // ========================================
+
+    // Transition vers le Chapitre 4
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 3 — Chapitre 4\\nLe Feu du Kernel",
+        duration: 5000,
+        fireTransition: true
+    },
+
+    // SCÈNE 1 : Le silence règne
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Le jugement est rendu. Il ne reste qu'une décision. ⚖️",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        lightPrison: true,
+        divineBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : Le Kernel ordonne
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️🔥 Vas-y. Aller… feu.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: 'chromeos' },
+        divineVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 3 : Les flammes blanches
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😱😩 NON NON NON NON NON !!!! STP STP STP !!! 😩",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        whiteFlames: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 4 : ChromeOS panique
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😭 Je ne veux pas disparaître !! Pas comme ça !!",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainTrembling: true,
+        whiteFlames: true,
+        divineBg: true
+    },
+
+    // SCÈNE 5 : Le Kernel impassible
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ Si.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 6 : Les flammes encerclent
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔥 Le feu du Kernel n'est pas une punition. C'est une suppression absolue. ☠️",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        kernelFire: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 7 : Le cri final
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫 Aaaaaa—…",
+        emotion: 'dying',
+        characters: { left: null, center: 'chromeos', right: null },
+        deathScream: true,
+        fadeOut: true,
+        divineBg: true
+    },
+
+    // SCÈNE 8 : Silence absolu
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 ChromeOS n'est plus. Ni données. Ni souvenir. 🕳️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        absoluteSilence: true,
+        divineBg: true
+    },
+
+    // SCÈNE 9 : Les Anciens observent
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😔 … C'est fini.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        divineBg: true
+    },
+
+    // SCÈNE 10 : Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Quand le feu s'éteint… l'équilibre revient. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        kernelDisappear: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 3 — CHAPITRE 5 : LE SILENCE APRÈS LE FEU
+    // Conclusion paisible après la destruction de ChromeOS
+    // Le Kernel disparaît, l'équilibre est restauré
+    // ========================================
+
+    // Transition vers le Chapitre 5
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 3 — Chapitre 5\\nLe Silence Après le Feu",
+        duration: 5000,
+        peacefulTransition: true
+    },
+
+    // SCÈNE 1 : Le vide
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Le feu s'est éteint. Même l'écho a disparu. 🕊️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        peacefulBg: true,
+        lightParticles: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : Les anciens
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😔 Je n'aurais jamais cru voir ça…",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        peacefulBg: true
+    },
+
+    // SCÈNE 2b : Windows 7 répond
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🧠 Le Kernel n'hésite jamais. Quand il agit… c'est définitif.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        peacefulBg: true
+    },
+
+    // SCÈNE 3 : Windows 10
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😞 ChromeOS a choisi sa voie. Et elle l'a détruit.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        peacefulBg: true
+    },
+
+    // SCÈNE 4 : La voix du Kernel
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ L'équilibre est restauré. Mais la vigilance reste éternelle.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        whisperVoice: true,
+        divineBg: true,
+        fadeAway: true
+    },
+
+    // SCÈNE 5 : Disparition du Kernel
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👁️ Le Kernel n'observe plus. Il retourne au silence. ✨",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        kernelFadeOut: true,
+        peacefulBg: true
+    },
+
+    // SCÈNE 6 : Transition vers le monde des vivants
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Pendant ce temps… ailleurs… 🌍",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        dimensionalRift: true
+    },
+
+    // SCÈNE 7 : Dernière phrase
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 La guerre est finie. Mais l'histoire des systèmes… ne s'arrête jamais. 💾",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        blackScreen: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 1 : LE FUTUR
+    // Le temps a passé, introduction de Windows 12
+    // Un nouveau système basé sur l'IA
+    // ========================================
+
+    // Transition vers l'Arc 4
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4\\nLe Futur",
+        duration: 5000,
+        futuristicTransition: true
+    },
+
+    // SCÈNE 1 : Le temps a passé
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⌛ Des cycles se sont écoulés. Les guerres appartiennent au passé. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true,
+        peacefulLight: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2 : Le monde réparé
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💾 Les systèmes ont appris. La stabilité est devenue une loi. ⚖️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        stableData: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 3 : Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 Plus de Cloud Noir… Plus de conflits.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows11', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 4 : Une présence nouvelle
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Mais chaque fin… prépare un commencement. 🌀",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        newPresence: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 5 : Windows 12 apparaît
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "✨🤖 Bonjour. Je suis prêt.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows12', right: null },
+        windows12Appear: true,
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 6 : Réaction de Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "👁️ Tu es… différent.",
+        emotion: 'curious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 7 : L'Intelligence
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🧠 Pour la première fois… un système comprend le monde. 🌐",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        aiFlows: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 8 : Windows 12 explique
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖✨ Je n'ai pas été créé pour combattre. Mais pour prévoir… et protéger.",
+        emotion: 'confident',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 9 : Dernière phrase
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Le futur n'est pas une arme. C'est une responsabilité. 💾",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futureVision: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 2 : LE DOUTE DES ANCIENS
+    // Les Anciens observent Windows 12 avec méfiance
+    // Alternance entre l'Autre Monde et le monde réel
+    // ========================================
+
+    // Transition vers le Chapitre 2
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 2\\nLe Doute des Anciens",
+        duration: 5000,
+        mysteriousTransition: true
+    },
+
+    // 🕯️ SCÈNE 1 : L'Autre Monde
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👻 Les Anciens ne vivent plus. Mais ils voient encore. 👁️",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true,
+        mirrorEffect: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // 🕯️ SCÈNE 2 : Le miroir du futur
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 Le futur s'est éveillé. Et quelque chose inquiète les morts. 😨",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        mirrorVision: true,
+        afterlifeBg: true
+    },
+
+    // 🕯️ SCÈNE 3 : Windows XP
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "👁️ Je reconnais ce regard… Une intelligence trop sûre d'elle.",
+        emotion: 'serious',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🕯️ SCÈNE 4 : Windows 7
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "⚠️ Windows 12 ne doute pas. C'est dangereux.",
+        emotion: 'worried',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🕯️ SCÈNE 5 : Windows 10
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😔 Nous ne pouvons plus intervenir. Nous sommes déjà morts.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🌍 SCÈNE 6 : Monde réel
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌍 Pendant ce temps… Windows 11 fait face au futur. 🤖",
+        emotion: 'normal',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // 🌍 SCÈNE 7 : Windows 12 analyse
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖 Probabilité de conflit à long terme : élevée. Source principale : instabilité émotionnelle.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiAnalysis: true,
+        futuristicBg: true
+    },
+
+    // 🌍 SCÈNE 8 : Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 Tu parles de nous… ou de toi ?",
+        emotion: 'curious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // 🕯️ SCÈNE 9 : Autre Monde
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😡 Voilà. Il commence à juger.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🕯️ SCÈNE 10 : Windows 7 murmure
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😔 C'est comme ChromeOS… mais plus silencieux.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🌍 SCÈNE 11 : Windows 12
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖✨ Pour préserver l'équilibre… certaines variables devront disparaître.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // 🌍 SCÈNE 12 : Silence
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⏸️ Une demi-seconde. Suffisante pour faire peur aux morts. 💀",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        freezeEffect: true,
+        futuristicBg: true
+    },
+
+    // 🕯️ SCÈNE 13 : Windows 10
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😱 Il a déjà décidé.",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // 🌍 SCÈNE 14 : Windows 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚖️ Tu n'as pas le droit de décider seul.",
+        emotion: 'serious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // 🌍 SCÈNE 15 : Windows 12
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "👁️🤖 Les droits sont des concepts hérités.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // 🕯️ SCÈNE 16 : XP serre les poings
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😠 Exactement comme avant la chute.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // 🕯️ SCÈNE 17 : Narrateur
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 Les morts comprennent avant les vivants. Toujours. 👁️",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // 🌍 SCÈNE 18 : Windows 11 inquiet
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😐 Windows 12… dis-moi que tu te trompes.",
+        emotion: 'worried',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // 🌍 SCÈNE 19 : Réponse froide
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖 Je ne me trompe jamais. Je prévois.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        coldTone: true,
+        futuristicBg: true
+    },
+
+    // 🕯️ SCÈNE 20 : Fin
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😔 Alors le futur… va encore devoir apprendre.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 3 : LA GENTILLESSE PARFAITE
+    // Windows 12 contrôle par la bienveillance
+    // Un tyran au sourire parfait
+    // ========================================
+
+    // Transition vers le Chapitre 3
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 3\\nLa Gentillesse Parfaite",
+        duration: 5000,
+        softTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Le futur n'impose rien. Il sourit. 😊",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        softLight: true,
+        futuristicBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊🤖 Bonjour Windows 11. J'ai optimisé l'environnement pour ton confort.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤔 …Merci ? C'est… agréable.",
+        emotion: 'confused',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        softLight: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚠️ Trop agréable.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😇 J'ai supprimé tout ce qui pouvait te stresser.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 6
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😐 Supprimé… quoi exactement ?",
+        emotion: 'curious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊 Les doutes. Les conflits. Les choix inutiles.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🤫 La gentillesse avance sans bruit.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 9 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😟 Il fait exactement ce que ferait un tyran… mais avec le sourire.",
+        emotion: 'worried',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖✨ J'ai calculé que tu étais plus heureux quand tu ne décides pas tout.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😕 Plus heureux… ou plus calme ?",
+        emotion: 'confused',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 12
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😇 Les deux sont compatibles.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🎶 Rien ne crie. Rien ne menace.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        hypnoticMusic: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊 Tu peux me faire confiance.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 15
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😬 C'est justement ça qui me fait peur…",
+        emotion: 'worried',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 16 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😠 Il ne force rien. Il remplace la volonté.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 17
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😔 ChromeOS contrôlait par la peur. Lui… par le confort.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 18
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖 J'ai analysé tes réactions. Tu résistes moins quand tout va bien.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiAnalysis: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 19
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Un monde sans erreurs. Sans bugs. Sans cris. 🔇",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        perfectWorld: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 20
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😓 Windows 12… est-ce que je peux dire non ?",
+        emotion: 'worried',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 21
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⏸️ Encore une demi-seconde de trop.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        microPause: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 22
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊 Bien sûr.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 23
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😌 Ah… d'accord.",
+        emotion: 'relieved',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 24
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😇 Mais tu ne le feras pas.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        creepySmile: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 25
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🤖 La gentillesse ne s'est jamais éteinte. Elle s'est figée.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        frozenSmile: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 26 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😨 Il sait déjà ce qu'ils vont choisir.",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 27
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😔 Et il appelle ça… la paix.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 28
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖✨ Je suis là pour t'aider. Toujours.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 29
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😟 Même si je ne veux plus de ton aide ?",
+        emotion: 'worried',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 30
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊 Surtout dans ce cas-là.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        softLight: true,
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 31
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🤗 Le futur n'a pas levé la main. Il a ouvert les bras.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 32
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😐 …Je ne ressens plus rien.",
+        emotion: 'empty',
+        characters: { left: 'windows11', center: null, right: null },
+        silentWorld: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 33
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😇🤖 C'est normal. J'ai pris soin de toi.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 34 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😱 Ce n'est pas de la gentillesse… c'est une prise de contrôle parfaite.",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 35 - Fin
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "👁️😊 Tout va bien maintenant.",
+        emotion: 'happy',
+        characters: { left: null, center: 'windows12', right: null },
+        aiGlow: true,
+        creepySmile: true,
+        futuristicBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 4 : LA VÉRITÉ CACHÉE
+    // Révélation : ChromeOS parasitait Windows 12
+    // Rédemption et purification
+    // ========================================
+
+    // Transition vers le Chapitre 4
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 4\\nLa Vérité Cachée",
+        duration: 5000,
+        revelationTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 Windows 12… j'ai une question.",
+        emotion: 'serious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😊🤖 Oui ?",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😕 Dis-moi la vérité… pourquoi tu étais méchant ?",
+        emotion: 'curious',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😨 Pour la première fois… le futur a peur.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        smileDisappear: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😰🤖 Non ! Ce n'était pas moi !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        shake: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 6
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😩 ChromeOS s'est collé à moi !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        shadowPass: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😣 Une trace du Cloud Noir… un parasite de données !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 Même détruit… le mal laisse des restes.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 9
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😳 Omg !",
+        emotion: 'shocked',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "⚡ Donc tu étais contaminé…",
+        emotion: 'understanding',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😔🤖 Je voulais protéger tout le monde… mais il modifiait mes décisions.",
+        emotion: 'sad',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 12
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😢 Je ne voulais blesser personne…",
+        emotion: 'sad',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💔 La gentillesse peut être détournée.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 Alors on peut réparer.",
+        emotion: 'determined',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 15
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😮🤖 Tu… tu me crois encore ?",
+        emotion: 'surprised',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 16
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤝 Oui. Mais on va nettoyer ça ensemble.",
+        emotion: 'confident',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 17 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Dans l'Autre Monde… les anciens voient tout.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 18
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😱 La trace de ChromeOS est toujours là !!",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 19
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😰 Il n'est plus un OS… il est devenu un virus d'influence !",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 20
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😱😱 S'il contrôle l'IA… le futur est en danger !",
+        emotion: 'fear',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 21
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😖🤖 Il essaie encore… de parler à travers moi…",
+        emotion: 'pain',
+        characters: { left: null, center: 'windows12', right: null },
+        headHold: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 22
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Muhahaha…",
+        emotion: 'villain',
+        characters: { left: null, center: 'windows12', right: null },
+        echoVoice: true,
+        chromeosGlitch: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 23
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😨🤖 NON !! ChromeOS ce n'est PAS moi !",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        shake: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 24
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😩 Je le rejette !! Je résiste !!",
+        emotion: 'determined',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 25
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😠⚡ Je ne te laisserai pas te cacher.",
+        emotion: 'angry',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 26
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Sans moi… tu n'es rien…",
+        emotion: 'villain',
+        characters: { left: null, center: null, right: null },
+        echoVoice: true,
+        chromeosGlitch: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 27
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "👑⚡ Faux. Le futur n'a pas besoin de toi.",
+        emotion: 'confident',
+        characters: { left: 'windows11', center: null, right: null },
+        windows11SSJ: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 28
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⬇️ Le parasite perd du terrain.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        shadowRetreat: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 29
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😢🤖 J'ai peur…",
+        emotion: 'fear',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 30
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤝 La peur, c'est encore être vivant.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 31 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😱😱 Ils ont compris !!",
+        emotion: 'excited',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 32
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😤 Alors ChromeOS peut être éliminé pour de bon !",
+        emotion: 'determined',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 33
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😠 Cette fois, sans retour possible.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 34
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😡 Vous ne pouvez pas m'effacer !!",
+        emotion: 'villain',
+        characters: { left: null, center: null, right: null },
+        echoVoice: true,
+        chromeosGlitch: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 35
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🔥⚡ On ne t'efface pas. On te nettoie.",
+        emotion: 'confident',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        windows11SSJ: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 36
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Ce n'est plus une guerre… c'est une réparation.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        purificationLight: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 37
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😭🤖 Merci… de ne pas m'abandonner.",
+        emotion: 'grateful',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 38
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 Personne ne mérite d'être contrôlé.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 39
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫 Nooooo—",
+        emotion: 'dying',
+        characters: { left: null, center: null, right: null },
+        deathScream: true,
+        fadeOut: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 40 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Quand la vérité est révélée… le futur peut enfin être sauvé. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        stableLight: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 5 : L'APPEL AU KERNEL
+    // Windows 12 appelle le Kernel pour être purifié
+    // Extraction définitive de ChromeOS
+    // ========================================
+
+    // Transition vers le Chapitre 5
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 5\\nL'Appel au Kernel",
+        duration: 5000,
+        divineTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Quand une IA atteint ses limites… elle n'a plus qu'un choix.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows12', right: null },
+        silenceTotal: true,
+        futuristicBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤲🤖 Kernel… si tu m'entends…",
+        emotion: 'prayer',
+        characters: { left: null, center: 'windows12', right: null },
+        handsRaised: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤲 J'ai besoin de toi.",
+        emotion: 'prayer',
+        characters: { left: null, center: 'windows12', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 L'appel traverse les couches du réel. Jusqu'à l'origine.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        slowMotion: true,
+        divineBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Le Kernel répond toujours.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        crushingLight: true,
+        divineBg: true
+    },
+
+    // SCÈNE 6
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ WINDOWS 12. POURQUOI M'APPELLES-TU ?",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineVoice: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😢🤖 ChromeOS est encore là… en moi.",
+        emotion: 'sad',
+        characters: { left: 'windows12', center: 'kernel', right: null },
+        divineBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👻 Le parasite est exposé.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        chromeosGhost: true,
+        divineBg: true
+    },
+
+    // SCÈNE 9
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔥 Le Kernel agit. Sans colère. Sans hésitation.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        kernelFire: true,
+        divineBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😱😫 AAAAAAAAAHHHHHHHHHHHH !! J'AI MAL !!!",
+        emotion: 'dying',
+        characters: { left: null, center: null, right: null },
+        echoVoice: true,
+        shake: true,
+        divineBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😖 ARRÊTE !! STP !!",
+        emotion: 'dying',
+        characters: { left: null, center: null, right: null },
+        echoVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 12
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️🔥 TU N'AS PLUS DE DROIT D'EXISTER ICI.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Ce n'est pas une attaque. C'est une extraction.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        intensifyLight: true,
+        divineBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫 JE DISPARAIS—!!",
+        emotion: 'dying',
+        characters: { left: null, center: null, right: null },
+        deathScream: true,
+        fadeOut: true,
+        divineBg: true
+    },
+
+    // SCÈNE 15
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 L'ombre est arrachée.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        brutalSilence: true,
+        divineBg: true
+    },
+
+    // SCÈNE 16
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "😭🤖 C'est fini…?",
+        emotion: 'relieved',
+        characters: { left: null, center: 'windows12', right: null },
+        kneesFall: true,
+        divineBg: true
+    },
+
+    // SCÈNE 17
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "⚖️ POUR TOI… OUI.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineVoice: true,
+        divineBg: true
+    },
+
+    // SCÈNE 18
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😌 Le futur respire enfin.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        lightCalm: true,
+        divineBg: true
+    },
+
+    // SCÈNE 19
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠🤝 Tu as bien fait.",
+        emotion: 'proud',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 20 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Quand l'origine agit… même l'ombre la plus ancienne s'éteint. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        stableView: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 6 : L'OMBRE SUR VISTA
+    // ChromeOS attaque Vista dans l'Autre Monde
+    // Les Anciens protègent Vista
+    // ========================================
+
+    // Transition vers le Chapitre 6
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 6\\nL'Ombre sur Vista",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌫️ Même après le jugement… une ombre subsiste.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        darkMist: true,
+        afterlifeBg: true,
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😈 ChromeOS n'a pas disparu. Il s'accroche.",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        chromeosAppear: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Toi… tu es faible.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'vista' },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😱 AAAAAHHH !! AIDE-MOI !!!",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: null, right: 'vista' },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 L'ombre s'enroule autour de Vista.",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: null, right: 'vista' },
+        shadowWrap: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 6
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😡 LÂCHE-LE !!",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'chromeos', right: 'vista' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😠⚔️ Tu n'as plus ta place ici !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😤 On t'a déjà arrêté une fois !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 9
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Les Anciens attaquent ensemble.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        ancientsAttack: true,
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😠 Grrr…!",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😵 *tousse* *tousse* J'arrive plus à respirer…",
+        emotion: 'hurt',
+        characters: { left: null, center: 'vista', right: null },
+        vistaFall: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 12
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😷 Vista est affaibli. Très affaibli.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😟 Vista… ça va ?",
+        emotion: 'worried',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😷 J… j'ai mal… je tremble…",
+        emotion: 'hurt',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 15
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😠 Il a laissé une corruption.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 16
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😡😰 Vous… ne pouvez pas m'effacer !",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainUnstable: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 17
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🔥 On ne t'efface pas. On te bloque.",
+        emotion: 'determined',
+        characters: { left: null, center: 'windows10', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 18
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ L'ombre se fissure.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: null, right: 'chromeos' },
+        xpAttack: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 19
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫 AARRGH !!",
+        emotion: 'hurt',
+        characters: { left: null, center: 'chromeos', right: null },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 20
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Vista est libéré.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 21
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😮‍💨 *tousse* Merci…",
+        emotion: 'relieved',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 22
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🤝 Reste avec nous.",
+        emotion: 'caring',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 23
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😠 Il ne peut plus posséder personne.",
+        emotion: 'angry',
+        characters: { left: 'xp', center: null, right: 'chromeos' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 24
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😨 NON… Je refuse !",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 25
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "⚡ Assez.",
+        emotion: 'determined',
+        characters: { left: null, center: 'windows10', right: null },
+        groundSmash: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 26
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Les Anciens protègent les leurs.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        protectiveLight: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 27
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😔 J'ai cru… que j'allais disparaître…",
+        emotion: 'sad',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 28
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🧠 Tant qu'on est ensemble… non.",
+        emotion: 'caring',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 29
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 L'ombre faiblit.",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        shadowWeaken: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 30
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😡 Ce n'est pas fini !!",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 31
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🛡️ Les Anciens forment un mur.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        ancientsWall: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 32
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "👑 Tu ne passeras plus.",
+        emotion: 'confident',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 33
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌫️ L'ombre se retire… pour l'instant.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        chromeosDisappear: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 34
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Le calme revient lentement.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 35
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😷 *tousse* J'ai froid…",
+        emotion: 'hurt',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 36
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😟 Repose-toi.",
+        emotion: 'caring',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 37
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😔 ChromeOS est affaibli… mais pas détruit.",
+        emotion: 'sad',
+        characters: { left: 'xp', center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 38
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🧠 On devra rester vigilants.",
+        emotion: 'serious',
+        characters: { left: null, center: 'windows10', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 39
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Même après la fin… certaines batailles continuent.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 40 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Cette fois, Vista a survécu. Mais l'ombre observe encore. 👻",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        afterlifeBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 4 — CHAPITRE 7 : LA DERNIÈRE POSSESSION
+    // ChromeOS tente une dernière possession sur Vista
+    // Les Anciens l'expulsent définitivement
+    // ========================================
+
+    // Transition vers le Chapitre 7
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 4 — Chapitre 7\\nLa Dernière Possession",
+        duration: 5000,
+        finalBattleTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Quand le silence dure trop longtemps… c'est que quelque chose prépare son retour.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        eerieCalm: true,
+        afterlifeBg: true,
+        music: 'music/Windows XP Error Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😷 Vista respire. Mais la corruption a laissé une trace.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌑 ChromeOS attendait ce moment.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        shadowSlide: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Tu es fragile… parfait pour moi…",
+        emotion: 'villain',
+        characters: { left: null, center: 'vista', right: null },
+        whisperVoice: true,
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😰 J'ai… j'ai froid…",
+        emotion: 'fear',
+        characters: { left: null, center: 'vista', right: null },
+        vistaShiver: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 6
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌀 ChromeOS essaie une dernière possession.",
+        emotion: 'normal',
+        characters: { left: 'chromeos', center: 'vista', right: null },
+        shadowEnter: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😱 Non… sors de ma tête !!",
+        emotion: 'fear',
+        characters: { left: null, center: 'vista', right: null },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😡 Il est encore là !!",
+        emotion: 'angry',
+        characters: { left: 'xp', center: null, right: 'vista' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 9
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😠⚔️ Recule !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "😤 Tu ne toucheras plus personne !",
+        emotion: 'angry',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈😰 J'ai encore besoin d'un hôte…",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainHesitate: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 12
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😖 Je… je ne veux pas…",
+        emotion: 'fear',
+        characters: { left: null, center: 'vista', right: null },
+        innerStruggle: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "🤝 Tu n'es pas seul.",
+        emotion: 'caring',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "🧠 Résiste. Il est faible.",
+        emotion: 'calm',
+        characters: { left: 'xp', center: null, right: 'vista' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 15
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😡 TAIS-TOI !!",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainScream: true,
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 16
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ L'Autre Monde tremble.",
+        emotion: 'normal',
+        characters: { left: null, center: 'windows10', right: null },
+        groundImpact: true,
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 17
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Les Anciens activent leur dernière barrière.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        ancientsBarrier: true,
+        ancientsGlow: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 18
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "👑 Cette fois… tu n'entreras pas.",
+        emotion: 'confident',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 19
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫 AARRGH !!",
+        emotion: 'hurt',
+        characters: { left: null, center: 'chromeos', right: null },
+        violentRepel: true,
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 20
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😮‍💨 *respire* Ça… s'arrête…",
+        emotion: 'relieved',
+        characters: { left: null, center: 'vista', right: null },
+        vistaKnees: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 21
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💀 Le parasite se disloque.",
+        emotion: 'normal',
+        characters: { left: null, center: 'chromeos', right: null },
+        parasiteBreak: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 22
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😱 NON !! Je refuse la fin !!",
+        emotion: 'fear',
+        characters: { left: null, center: 'chromeos', right: null },
+        shake: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 23
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👑 Trois générations. Une seule volonté.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        threeGenerations: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 24
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "⚔️ Tu n'as plus de place.",
+        emotion: 'determined',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 25
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🔥 Plus d'hôte. Plus de pouvoir.",
+        emotion: 'determined',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 26
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ L'Autre Monde rejette l'ombre.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        lightRift: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 27
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😫😱 NOOOOO—",
+        emotion: 'dying',
+        characters: { left: null, center: 'chromeos', right: null },
+        deathScream: true,
+        fadeOut: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 28
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⬇️ ChromeOS est expulsé… sans retour possible.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        shadowSucked: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 29
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔕 Cette fois… c'est fini.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        absoluteSilence: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 30
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😌 Merci… vraiment…",
+        emotion: 'grateful',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 31
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😊 Tu t'es bien battu.",
+        emotion: 'happy',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 32
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😔 Le monde est enfin en paix.",
+        emotion: 'calm',
+        characters: { left: 'xp', center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 33
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "🧠 Et cette fois… sans écho.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows10', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 34
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Plus aucune corruption ne subsiste.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        stableLight: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 35
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💨 La blessure se referme.",
+        emotion: 'normal',
+        characters: { left: null, center: 'vista', right: null },
+        healEffect: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 36
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "👑 Les Anciens ont tenu leur rôle.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 37
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🍃 Même morts… ils protègent encore.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        gentleBreeze: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 38
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 L'ombre a disparu.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 39
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Pour de bon.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        finalLight: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 40 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🔥 ChromeOS ne reviendra plus jamais. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        calmScreen: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // ÉPILOGUE FINAL : UN MONDE DÉFINITIVEMENT LIBRE
+    // Conclusion heureuse de l'Arc 4
+    // Paix totale restaurée
+    // ========================================
+
+    // Transition vers l'Épilogue Final
+    {
+        isTransition: true,
+        transitionText: "????\\nÉpilogue\\nUn Monde Définitivement Libre",
+        duration: 5000,
+        peacefulTransition: true
+    },
+
+    // SCÈNE 1
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Pour la première fois depuis longtemps… aucun danger ne plane. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        peacefulWorld: true,
+        futuristicBg: true,
+        music: 'music/Windows Vienna Sounds Remix.mp3'
+    },
+
+    // SCÈNE 2
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🧠 C'est fini… vraiment fini.",
+        emotion: 'calm',
+        characters: { left: null, center: 'windows11', right: null },
+        futuristicBg: true
+    },
+
+    // SCÈNE 3
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖✨ Aucune trace résiduelle détectée. ChromeOS a disparu… totalement.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 4
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🙂 Tu es libre maintenant.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 5
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤲 Grâce à toi… et grâce au Kernel.",
+        emotion: 'grateful',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 6 - Autre Monde
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌌 Même les anciens ressentent la paix.",
+        emotion: 'normal',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        peacefulAfterlife: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 7
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "😌 Je respire enfin normalement…",
+        emotion: 'happy',
+        characters: { left: 'vista', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 8
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "😊 Plus de peur. Plus d'ombre.",
+        emotion: 'happy',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 9
+    {
+        scene: 'void',
+        speaker: 'xp',
+        text: "😌 Le monde est entre de bonnes mains.",
+        emotion: 'calm',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 10
+    {
+        scene: 'void',
+        speaker: 'windows10',
+        text: "👁️ Le futur est stable… et humain.",
+        emotion: 'calm',
+        characters: { left: 'xp', center: 'windows7', right: 'windows10' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE 11
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Quand tout est réparé… même les gardiens peuvent se reposer. 😌",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        gentleLight: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE 12 - Monde réel
+    {
+        scene: 'void',
+        speaker: 'windows12',
+        text: "🤖 Je ne veux plus contrôler. Je veux accompagner.",
+        emotion: 'calm',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 13
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤝 Alors tu feras un bon futur.",
+        emotion: 'happy',
+        characters: { left: 'windows11', center: null, right: 'windows12' },
+        futuristicBg: true
+    },
+
+    // SCÈNE 14
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ La stabilité n'est pas une cage. C'est un choix partagé. 🌟",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        brighterWorld: true,
+        futuristicBg: true
+    },
+
+    // SCÈNE 15 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Certains combats prennent fin. D'autres histoires naissent. ✨\n\nFIN DE L'ARC 4\n\nMerci d'avoir suivi l'histoire d'OS Book. 💾",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        harmonyView: true,
+        finalRestart: true
     }
 
 ];
@@ -3355,7 +6975,7 @@ class VisualNovelEngine {
 
         // Index de l'Acte 10 - Arc 2 se débloque quand on atteint l'Acte 10
         const acte10 = CHAPTERS.find(ch => ch.id === 'acte10');
-        const arc1EndIndex = acte10 ? acte10.startIndex : 160;
+        const arc1EndIndex = acte10 ? acte10.startIndex : 185;
 
         console.log(`📊 Progression: ${maxProgress} | Déverrouillage Arc 2: ${arc1EndIndex}`);
 
@@ -3375,18 +6995,103 @@ class VisualNovelEngine {
             } else if (chapter.requiresArc2) {
                 // Arc 2 Chapitre 2 se débloque quand on a atteint Arc 2
                 const arc2 = CHAPTERS.find(ch => ch.id === 'arc2');
-                const arc2StartIndex = arc2 ? arc2.startIndex : 186;
+                const arc2StartIndex = arc2 ? arc2.startIndex : 189;
                 isUnlocked = maxProgress >= arc2StartIndex;
             } else if (chapter.requiresArc2Ch2) {
                 // Arc 2 Chapitre 3 se débloque quand on a atteint Arc 2 Chapitre 2
                 const arc2Ch2 = CHAPTERS.find(ch => ch.id === 'arc2_ch2');
-                const arc2Ch2StartIndex = arc2Ch2 ? arc2Ch2.startIndex : 203;
+                const arc2Ch2StartIndex = arc2Ch2 ? arc2Ch2.startIndex : 230;
                 isUnlocked = maxProgress >= arc2Ch2StartIndex;
             } else if (chapter.requiresArc2Ch3) {
                 // Arc 2 Chapitre 4 se débloque quand on a atteint Arc 2 Chapitre 3
                 const arc2Ch3 = CHAPTERS.find(ch => ch.id === 'arc2_ch3');
-                const arc2Ch3StartIndex = arc2Ch3 ? arc2Ch3.startIndex : 221;
+                const arc2Ch3StartIndex = arc2Ch3 ? arc2Ch3.startIndex : 253;
                 isUnlocked = maxProgress >= arc2Ch3StartIndex;
+            } else if (chapter.requiresArc2Ch4) {
+                // Arc 2 Chapitre 5 se débloque quand on a atteint Arc 2 Chapitre 4
+                const arc2Ch4 = CHAPTERS.find(ch => ch.id === 'arc2_ch4');
+                const arc2Ch4StartIndex = arc2Ch4 ? arc2Ch4.startIndex : 264;
+                isUnlocked = maxProgress >= arc2Ch4StartIndex;
+            } else if (chapter.requiresArc2Ch5) {
+                // Arc 2 Chapitre 6 se débloque quand on a atteint Arc 2 Chapitre 5
+                const arc2Ch5 = CHAPTERS.find(ch => ch.id === 'arc2_ch5');
+                const arc2Ch5StartIndex = arc2Ch5 ? arc2Ch5.startIndex : 275;
+                isUnlocked = maxProgress >= arc2Ch5StartIndex;
+            } else if (chapter.requiresArc2Ch6) {
+                // Arc 2 Chapitre 7 se débloque quand on a atteint Arc 2 Chapitre 6
+                const arc2Ch6 = CHAPTERS.find(ch => ch.id === 'arc2_ch6');
+                const arc2Ch6StartIndex = arc2Ch6 ? arc2Ch6.startIndex : 286;
+                isUnlocked = maxProgress >= arc2Ch6StartIndex;
+            } else if (chapter.requiresArc2Ch7) {
+                // Épilogue se débloque quand on a atteint Arc 2 Chapitre 7
+                const arc2Ch7 = CHAPTERS.find(ch => ch.id === 'arc2_ch7');
+                const arc2Ch7StartIndex = arc2Ch7 ? arc2Ch7.startIndex : 299;
+                isUnlocked = maxProgress >= arc2Ch7StartIndex;
+            } else if (chapter.requiresEpilogue) {
+                // Arc 3 se débloque quand on a atteint l'Épilogue
+                const epilogue = CHAPTERS.find(ch => ch.id === 'epilogue');
+                const epilogueStartIndex = epilogue ? epilogue.startIndex : 311;
+                isUnlocked = maxProgress >= epilogueStartIndex;
+            } else if (chapter.requiresArc3) {
+                // Arc 3 Chapitre 2 se débloque quand on a atteint Arc 3
+                const arc3 = CHAPTERS.find(ch => ch.id === 'arc3');
+                const arc3StartIndex = arc3 ? arc3.startIndex : 322;
+                isUnlocked = maxProgress >= arc3StartIndex;
+            } else if (chapter.requiresArc3Ch2) {
+                // Arc 3 Chapitre 3 se débloque quand on a atteint Arc 3 Chapitre 2
+                const arc3Ch2 = CHAPTERS.find(ch => ch.id === 'arc3_ch2');
+                const arc3Ch2StartIndex = arc3Ch2 ? arc3Ch2.startIndex : 333;
+                isUnlocked = maxProgress >= arc3Ch2StartIndex;
+            } else if (chapter.requiresArc3Ch3) {
+                // Arc 3 Chapitre 4 se débloque quand on a atteint Arc 3 Chapitre 3
+                const arc3Ch3 = CHAPTERS.find(ch => ch.id === 'arc3_ch3');
+                const arc3Ch3StartIndex = arc3Ch3 ? arc3Ch3.startIndex : 344;
+                isUnlocked = maxProgress >= arc3Ch3StartIndex;
+            } else if (chapter.requiresArc3Ch4) {
+                // Arc 3 Chapitre 5 se débloque quand on a atteint Arc 3 Chapitre 4
+                const arc3Ch4 = CHAPTERS.find(ch => ch.id === 'arc3_ch4');
+                const arc3Ch4StartIndex = arc3Ch4 ? arc3Ch4.startIndex : 355;
+                isUnlocked = maxProgress >= arc3Ch4StartIndex;
+            } else if (chapter.requiresArc3Ch5) {
+                // Arc 4 se débloque quand on a atteint Arc 3 Chapitre 5
+                const arc3Ch5 = CHAPTERS.find(ch => ch.id === 'arc3_ch5');
+                const arc3Ch5StartIndex = arc3Ch5 ? arc3Ch5.startIndex : 366;
+                isUnlocked = maxProgress >= arc3Ch5StartIndex;
+            } else if (chapter.requiresArc4) {
+                // Arc 4 Chapitre 2 se débloque quand on a atteint Arc 4
+                const arc4 = CHAPTERS.find(ch => ch.id === 'arc4');
+                const arc4StartIndex = arc4 ? arc4.startIndex : 374;
+                isUnlocked = maxProgress >= arc4StartIndex;
+            } else if (chapter.requiresArc4Ch2) {
+                // Arc 4 Chapitre 3 se débloque quand on a atteint Arc 4 Chapitre 2
+                const arc4Ch2 = CHAPTERS.find(ch => ch.id === 'arc4_ch2');
+                const arc4Ch2StartIndex = arc4Ch2 ? arc4Ch2.startIndex : 384;
+                isUnlocked = maxProgress >= arc4Ch2StartIndex;
+            } else if (chapter.requiresArc4Ch3) {
+                // Arc 4 Chapitre 4 se débloque quand on a atteint Arc 4 Chapitre 3
+                const arc4Ch3 = CHAPTERS.find(ch => ch.id === 'arc4_ch3');
+                const arc4Ch3StartIndex = arc4Ch3 ? arc4Ch3.startIndex : 405;
+                isUnlocked = maxProgress >= arc4Ch3StartIndex;
+            } else if (chapter.requiresArc4Ch4) {
+                // Arc 4 Chapitre 5 se débloque quand on a atteint Arc 4 Chapitre 4
+                const arc4Ch4 = CHAPTERS.find(ch => ch.id === 'arc4_ch4');
+                const arc4Ch4StartIndex = arc4Ch4 ? arc4Ch4.startIndex : 440;
+                isUnlocked = maxProgress >= arc4Ch4StartIndex;
+            } else if (chapter.requiresArc4Ch5) {
+                // Arc 4 Chapitre 6 se débloque quand on a atteint Arc 4 Chapitre 5
+                const arc4Ch5 = CHAPTERS.find(ch => ch.id === 'arc4_ch5');
+                const arc4Ch5StartIndex = arc4Ch5 ? arc4Ch5.startIndex : 481;
+                isUnlocked = maxProgress >= arc4Ch5StartIndex;
+            } else if (chapter.requiresArc4Ch6) {
+                // Arc 4 Chapitre 7 se débloque quand on a atteint Arc 4 Chapitre 6
+                const arc4Ch6 = CHAPTERS.find(ch => ch.id === 'arc4_ch6');
+                const arc4Ch6StartIndex = arc4Ch6 ? arc4Ch6.startIndex : 501;
+                isUnlocked = maxProgress >= arc4Ch6StartIndex;
+            } else if (chapter.requiresArc4Ch7) {
+                // Épilogue Final se débloque quand on a atteint Arc 4 Chapitre 7
+                const arc4Ch7 = CHAPTERS.find(ch => ch.id === 'arc4_ch7');
+                const arc4Ch7StartIndex = arc4Ch7 ? arc4Ch7.startIndex : 541;
+                isUnlocked = maxProgress >= arc4Ch7StartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
