@@ -2866,22 +2866,9 @@ body {
 /* Boutons Media Player */
 .wmp-btn {
     cursor: pointer;
-    border: none;
-    padding: 0;
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     transition: all 0.15s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     border-radius: 4px;
-}
-
-.wmp-btn img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
 }
 
 .wmp-btn:hover {
@@ -2892,14 +2879,6 @@ body {
 
 .wmp-btn:active {
     transform: scale(0.95);
-}
-
-.wmp-btn:focus-visible {
-    outline: 2px solid rgba(0, 200, 255, 0.85);
-    outline-offset: 3px;
-    box-shadow:
-        0 0 0 2px rgba(8, 12, 20, 0.75),
-        0 0 14px rgba(0, 200, 255, 0.5);
 }
 
 /* Taille des boutons */

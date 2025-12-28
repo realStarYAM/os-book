@@ -5885,43 +5885,24 @@ class VisualNovelEngine {
 // Contrôle UNIQUEMENT la musique de fond (musicPlayer)
 // ============================================
 
-function setPlayPauseState(isPlaying) {
-    const btn = document.getElementById('play-pause-btn');
-    const btnImg = btn?.querySelector('img');
-    if (!btn || !btnImg) return;
-
-    btnImg.src = isPlaying ? 'Media Player/Break.png' : 'Media Player/Play.png';
-    btn.classList.toggle('playing', isPlaying);
-    btn.setAttribute('aria-pressed', isPlaying.toString());
-}
-
-function setupTaskbarControls() {
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const stopBtn = document.getElementById('wmp-stop');
-
-    if (playPauseBtn) {
-        playPauseBtn.addEventListener('click', togglePlayPause);
-    }
-
-    if (stopBtn) {
-        stopBtn.addEventListener('click', stopAudio);
-    }
-}
-
 function togglePlayPause() {
+    const btn = document.getElementById('play-pause-btn');
     if (!musicPlayer || !musicPlayer.src) return;
 
     if (musicPlayer.paused) {
         musicPlayer.play().then(() => {
-            setPlayPauseState(true);
+            btn.src = 'Media Player/Break.png';
+            btn.classList.add('playing');
         }).catch(e => console.warn('Erreur lecture:', e));
     } else {
         musicPlayer.pause();
-        setPlayPauseState(false);
+        btn.src = 'Media Player/Play.png';
+        btn.classList.remove('playing');
     }
 }
 
 function stopAudio() {
+    const btn = document.getElementById('play-pause-btn');
     const titleEl = document.getElementById('wmp-title');
     const timerEl = document.getElementById('wmp-timer');
 
@@ -5930,7 +5911,8 @@ function stopAudio() {
         musicPlayer.currentTime = 0;
     }
 
-    setPlayPauseState(false);
+    btn.src = 'Media Player/Play.png';
+    btn.classList.remove('playing');
     if (titleEl) titleEl.textContent = 'OS Book Soundtrack';
     if (timerEl) timerEl.textContent = '00:00';
 }
@@ -5956,10 +5938,14 @@ function updateWmpTimer() {
 setInterval(updateWmpTimer, 1000);
 
 setInterval(() => {
+    const btn = document.getElementById('play-pause-btn');
+    if (!btn) return;
     if (musicPlayer && !musicPlayer.paused && musicPlayer.src) {
-        setPlayPauseState(true);
+        btn.src = 'Media Player/Break.png';
+        btn.classList.add('playing');
     } else {
-        setPlayPauseState(false);
+        btn.src = 'Media Player/Play.png';
+        btn.classList.remove('playing');
     }
 }, 500);
 
@@ -5969,5 +5955,4 @@ setInterval(() => {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.vnEngine = new VisualNovelEngine();
-    setupTaskbarControls();
 });
