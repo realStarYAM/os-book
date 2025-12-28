@@ -2162,7 +2162,7 @@ const SCENARIO = [
         text: "😱 Déjà ?! 🥶",
         emotion: 'fear',
         characters: { left: null, center: 'windows12', right: null },
-        finalRestart: true,
+        arcEnd: 'arc1',  // Affiche l'overlay de fin d'arc au lieu du restart
         arc1End: true  // Marque la fin de l'Arc 1
     },
 
