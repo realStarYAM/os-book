@@ -173,18 +173,11 @@
             <span id="wmp-timer">00:00</span>
         </div>
         <div class="wmp-controls">
-            <button type="button" class="wmp-btn small" id="wmp-prev" aria-label="Précédent">
-                <img src="Media Player/Previous_Track.png" alt="" aria-hidden="true">
-            </button>
-            <button type="button" class="wmp-btn small" id="wmp-stop" aria-label="Stop">
-                <img src="Media Player/Stop.png" alt="" aria-hidden="true">
-            </button>
-            <button type="button" id="play-pause-btn" class="wmp-btn big" aria-label="Pause/Play">
-                <img src="Media Player/Break.png" alt="" aria-hidden="true">
-            </button>
-            <button type="button" class="wmp-btn small" id="wmp-next" aria-label="Suivant">
-                <img src="Media Player/Next_Track.png" alt="" aria-hidden="true">
-            </button>
+            <img src="Media Player/Previous_Track.png" class="wmp-btn small" alt="Précédent">
+            <img src="Media Player/Stop.png" class="wmp-btn small" onclick="stopAudio()" alt="Stop">
+            <img src="Media Player/Break.png" id="play-pause-btn" class="wmp-btn big" onclick="togglePlayPause()"
+                alt="Pause/Play">
+            <img src="Media Player/Next_Track.png" class="wmp-btn small" alt="Suivant">
         </div>
     </div>
 
