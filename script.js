@@ -1188,6 +1188,148 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// CARNET D'OASIS - Journal des répliques
+// ============================================
+
+const MemoryLogManager = {
+    storageKey: 'osbook_memory_log',
+    maxEntries: 18,
+    entries: [],
+    isOpen: false,
+    elements: {
+        modal: null,
+        content: null,
+        closeBtn: null,
+        backdrop: null,
+        clearBtn: null
+    },
+
+    init() {
+        this.elements = {
+            modal: document.getElementById('memory-modal'),
+            content: document.getElementById('memory-content'),
+            closeBtn: document.querySelector('.memory-close-btn'),
+            backdrop: document.querySelector('.memory-backdrop'),
+            clearBtn: document.getElementById('memory-clear')
+        };
+
+        if (!this.elements.modal || !this.elements.content) return;
+
+        this.load();
+        this.render();
+        this.setupEventListeners();
+        console.log('📜 MemoryLogManager initialisé');
+    },
+
+    setupEventListeners() {
+        this.elements.closeBtn?.addEventListener('click', () => this.close());
+        this.elements.backdrop?.addEventListener('click', () => this.close());
+        this.elements.clearBtn?.addEventListener('click', () => this.clear());
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.close();
+            }
+        });
+    },
+
+    open() {
+        if (!this.elements.modal) return;
+        this.isOpen = true;
+        this.elements.modal.classList.add('open');
+        this.elements.modal.setAttribute('aria-hidden', 'false');
+        this.render();
+    },
+
+    close() {
+        if (!this.elements.modal) return;
+        this.isOpen = false;
+        this.elements.modal.classList.remove('open');
+        this.elements.modal.setAttribute('aria-hidden', 'true');
+    },
+
+    addEntry(speaker, text) {
+        if (!text) return;
+
+        const entry = {
+            speaker: speaker || 'Narrateur',
+            text: text.trim(),
+            time: new Date().toISOString()
+        };
+
+        const lastEntry = this.entries[0];
+        if (lastEntry && lastEntry.text === entry.text && lastEntry.speaker === entry.speaker) {
+            return;
+        }
+
+        this.entries.unshift(entry);
+        if (this.entries.length > this.maxEntries) {
+            this.entries.pop();
+        }
+
+        this.save();
+        if (this.isOpen) {
+            this.render();
+        }
+    },
+
+    clear() {
+        this.entries = [];
+        this.save();
+        this.render();
+    },
+
+    formatTime(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    },
+
+    render() {
+        if (!this.elements.content) return;
+
+        if (this.entries.length === 0) {
+            this.elements.content.innerHTML = `
+                <div class="memory-empty">
+                    Aucune réplique gravée pour l'instant. L'histoire commence ici.
+                </div>
+            `;
+            return;
+        }
+
+        this.elements.content.innerHTML = this.entries.map(entry => `
+            <article class="memory-entry">
+                <div class="memory-entry-header">
+                    <span class="memory-entry-speaker">${entry.speaker}</span>
+                    <span class="memory-entry-time">${this.formatTime(entry.time)}</span>
+                </div>
+                <div class="memory-entry-text">${entry.text}</div>
+            </article>
+        `).join('');
+    },
+
+    save() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.entries));
+        } catch (e) { }
+    },
+
+    load() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return;
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+                this.entries = parsed.slice(0, this.maxEntries);
+            }
+        } catch (e) { }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    MemoryLogManager.init();
+});
+
+// ============================================
 // MENTAL STATE MANAGER - États mentaux de l'IA
 // ============================================
 
@@ -1680,6 +1822,13 @@ const MenuManager = {
                 // Ouvrir la timeline
                 if (typeof TimelineManager !== 'undefined') {
                     TimelineManager.open();
+                }
+                break;
+
+            case 'memories':
+                this.close();
+                if (typeof MemoryLogManager !== 'undefined') {
+                    MemoryLogManager.open();
                 }
                 break;
 
@@ -10535,18 +10684,23 @@ class VisualNovelEngine {
 
     updateDialogue(scene) {
         const character = CHARACTERS[scene.speaker];
+        const speakerName = character ? character.name : (scene.speaker || 'Inconnu');
 
         // Vérification que le personnage existe
         if (!character) {
             console.warn(`⚠️ Personnage inconnu: ${scene.speaker}`);
-            this.elements.speakerName.textContent = scene.speaker || 'Inconnu';
+            this.elements.speakerName.textContent = speakerName;
             this.elements.speakerName.style.background = 'linear-gradient(135deg, #666, #888)';
         } else {
-            this.elements.speakerName.textContent = character.name;
+            this.elements.speakerName.textContent = speakerName;
             this.elements.speakerName.style.background = `linear-gradient(135deg, ${character.color}, ${this.adjustColor(character.color, 30)})`;
         }
 
         this.elements.continueIndicator.style.visibility = 'hidden';
+
+        if (typeof MemoryLogManager !== 'undefined') {
+            MemoryLogManager.addEntry(speakerName, scene.text);
+        }
 
         this.typeText(scene.text);
     }
