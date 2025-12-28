@@ -73,6 +73,11 @@
             <span>📖 Choisir un chapitre</span>
         </button>
 
+        <button id="whatif-btn" class="chapter-select-btn whatif-btn">
+            <span>🧩 Mode What if</span>
+            <span class="whatif-count" id="whatif-count" aria-label="Variantes actives">0</span>
+        </button>
+
         <p class="audio-notice">🎵 Cette expérience contient de la musique et des effets sonores</p>
     </div>
 
@@ -85,6 +90,25 @@
             <p class="chapter-modal-subtitle">Certains chapitres sont verrouillés jusqu'à la fin du jeu</p>
             <div class="chapter-list" id="chapter-list">
                 <!-- Chapitres générés dynamiquement par JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale What if -->
+    <div id="whatif-modal" class="whatif-modal" aria-hidden="true">
+        <div class="whatif-modal-backdrop"></div>
+        <div class="whatif-modal-content">
+            <button class="whatif-modal-close" aria-label="Fermer">✕</button>
+            <h2 class="whatif-modal-title">🧩 Mode What if</h2>
+            <p class="whatif-modal-subtitle">Rejouez l'histoire avec des variantes alternatives</p>
+            <div class="whatif-list" id="whatif-list">
+                <!-- Variantes générées dynamiquement par JS -->
+            </div>
+            <div class="whatif-actions">
+                <button id="whatif-reset" class="chapter-select-btn whatif-reset-btn">Réinitialiser</button>
+                <button id="whatif-apply" class="glow-button whatif-apply-btn">
+                    <span>Appliquer</span>
+                </button>
             </div>
         </div>
     </div>
