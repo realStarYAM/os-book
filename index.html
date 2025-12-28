@@ -187,6 +187,7 @@
                     <button class="menu-action-btn" data-action="resume" tabindex="0">▶️ Reprendre</button>
                     <button class="menu-action-btn" data-action="chapters" tabindex="0">📖 Choisir un chapitre</button>
                     <button class="menu-action-btn" data-action="timeline" tabindex="0">🕰️ Timeline</button>
+                    <button class="menu-action-btn" data-action="memories" tabindex="0">📜 Carnet d'Oasis</button>
                     <button class="menu-action-btn" data-action="mute" tabindex="0">🔊 Son</button>
                     <div class="menu-speed-control">
                         <label for="typing-speed">⌨️ Vitesse du texte</label>
@@ -280,6 +281,24 @@
                 <span class="legend-item"><span class="legend-dot current"></span> En cours</span>
                 <span class="legend-item"><span class="legend-dot locked"></span> Verrouillé</span>
                 <span class="legend-item"><span class="legend-dot secret"></span> Secret</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carnet d'Oasis -->
+    <div id="memory-modal" class="memory-modal" aria-hidden="true">
+        <div class="memory-backdrop"></div>
+        <div class="memory-container">
+            <button class="memory-close-btn" aria-label="Fermer">×</button>
+            <h2 class="memory-title">📜 Carnet d'Oasis</h2>
+            <p class="memory-subtitle">Les dernières répliques gravées dans le sable numérique</p>
+
+            <div class="memory-content" id="memory-content">
+                <!-- Généré dynamiquement par JS -->
+            </div>
+
+            <div class="memory-actions">
+                <button id="memory-clear" class="chapter-select-btn memory-clear-btn">Effacer</button>
             </div>
         </div>
     </div>
