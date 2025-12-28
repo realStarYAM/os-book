@@ -4052,7 +4052,7 @@ class VisualNovelEngine {
                 <div class="arc-end-title">✨ Chapitre terminé ! ✨</div>
                 <div class="arc-end-buttons">
                     <button class="arc-end-btn continue-btn" id="arc-continue-btn">▶ Continuer l'histoire</button>
-                    <button class="arc-end-btn menu-btn" id="arc-menu-btn">📖 Menu des chapitres</button>
+                    <button class="arc-end-btn arc-menu-btn" id="arc-menu-btn">📖 Menu des chapitres</button>
                 </div>
             </div>
         `;
