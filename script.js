@@ -2174,6 +2174,85 @@ const STORY_ARCS = [
     }
 ];
 
+// ============================================
+// MODAL FOCUS MANAGER - Focus trap + restauration
+// ============================================
+
+const ModalFocusManager = {
+    focusSelector: 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    states: new WeakMap(),
+
+    bind(modal) {
+        if (!modal || this.states.has(modal)) return;
+
+        const state = {
+            previousFocus: null,
+            focusableElements: [],
+            handleKeydown: (event) => {
+                if (event.key === 'Tab') {
+                    this.handleTabKey(event, modal);
+                }
+            }
+        };
+
+        modal.addEventListener('keydown', state.handleKeydown);
+        this.states.set(modal, state);
+    },
+
+    open(modal) {
+        if (!modal) return;
+        this.bind(modal);
+
+        const state = this.states.get(modal);
+        if (!state) return;
+
+        state.previousFocus = document.activeElement;
+        this.updateFocusableElements(modal);
+
+        const firstTarget = state.focusableElements[0] || modal;
+        if (typeof firstTarget.focus === 'function') {
+            setTimeout(() => firstTarget.focus(), 50);
+        }
+    },
+
+    close(modal) {
+        if (!modal) return;
+
+        const state = this.states.get(modal);
+        if (state?.previousFocus && typeof state.previousFocus.focus === 'function') {
+            state.previousFocus.focus();
+        }
+    },
+
+    updateFocusableElements(modal) {
+        const state = this.states.get(modal);
+        if (!state) return;
+
+        state.focusableElements = [
+            ...modal.querySelectorAll(this.focusSelector)
+        ].filter((element) => element.offsetParent !== null || element === document.activeElement);
+    },
+
+    handleTabKey(event, modal) {
+        const state = this.states.get(modal);
+        if (!state) return;
+
+        this.updateFocusableElements(modal);
+        if (state.focusableElements.length === 0) return;
+
+        const firstElement = state.focusableElements[0];
+        const lastElement = state.focusableElements[state.focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+        }
+    }
+};
+
 /**
  * Gestionnaire de la timeline interactive
  */
@@ -2205,6 +2284,7 @@ const TimelineManager = {
 
         this.loadProgress();
         this.setupEventListeners();
+        ModalFocusManager.bind(this.elements.modal);
         console.log('🕰️ TimelineManager initialisé');
     },
 
@@ -2230,6 +2310,7 @@ const TimelineManager = {
         this.render();
         this.elements.modal?.classList.add('open');
         this.elements.modal?.setAttribute('aria-hidden', 'false');
+        ModalFocusManager.open(this.elements.modal);
         console.log('🕰️ Timeline ouverte');
     },
 
@@ -2240,6 +2321,7 @@ const TimelineManager = {
         this.isOpen = false;
         this.elements.modal?.classList.remove('open');
         this.elements.modal?.setAttribute('aria-hidden', 'true');
+        ModalFocusManager.close(this.elements.modal);
     },
 
     /**
@@ -2539,6 +2621,7 @@ const MemoryLogManager = {
         this.load();
         this.render();
         this.setupEventListeners();
+        ModalFocusManager.bind(this.elements.modal);
         console.log('📜 MemoryLogManager initialisé');
     },
 
@@ -2559,6 +2642,7 @@ const MemoryLogManager = {
         this.isOpen = true;
         this.elements.modal.classList.add('open');
         this.elements.modal.setAttribute('aria-hidden', 'false');
+        ModalFocusManager.open(this.elements.modal);
         this.render();
     },
 
@@ -2567,6 +2651,7 @@ const MemoryLogManager = {
         this.isOpen = false;
         this.elements.modal.classList.remove('open');
         this.elements.modal.setAttribute('aria-hidden', 'true');
+        ModalFocusManager.close(this.elements.modal);
     },
 
     addEntry(speaker, text) {
@@ -11283,6 +11368,8 @@ class VisualNovelEngine {
 
         if (!chapterBtn || !chapterModal || !chapterList) return;
 
+        ModalFocusManager.bind(chapterModal);
+
         // Ouvrir la modale
         chapterBtn.addEventListener('click', () => {
             this.openChapterModal();
@@ -11328,6 +11415,8 @@ class VisualNovelEngine {
         const whatIfApply = document.getElementById('whatif-apply');
 
         if (!whatIfBtn || !whatIfModal || !whatIfList) return;
+
+        ModalFocusManager.bind(whatIfModal);
 
         WhatIfManager.syncCountBadge();
 
@@ -11417,6 +11506,7 @@ class VisualNovelEngine {
         if (!whatIfModal) return;
         whatIfModal.classList.add('open');
         whatIfModal.setAttribute('aria-hidden', 'false');
+        ModalFocusManager.open(whatIfModal);
     }
 
     closeWhatIfModal() {
@@ -11424,6 +11514,7 @@ class VisualNovelEngine {
         if (!whatIfModal) return;
         whatIfModal.classList.remove('open');
         whatIfModal.setAttribute('aria-hidden', 'true');
+        ModalFocusManager.close(whatIfModal);
     }
 
     refreshWhatIfFlags() {
@@ -11623,6 +11714,7 @@ class VisualNovelEngine {
             // Rafraîchir la liste à chaque ouverture
             this.renderChapterList();
             chapterModal.classList.add('open');
+            ModalFocusManager.open(chapterModal);
         }
     }
 
@@ -11630,6 +11722,7 @@ class VisualNovelEngine {
         const chapterModal = document.getElementById('chapter-modal');
         if (chapterModal) {
             chapterModal.classList.remove('open');
+            ModalFocusManager.close(chapterModal);
         }
     }
 
