@@ -92,11 +92,11 @@
     </div>
 
     <!-- Modale de sélection de chapitres -->
-    <div id="chapter-modal" class="chapter-modal">
+    <div id="chapter-modal" class="chapter-modal" role="dialog" aria-modal="true" aria-labelledby="chapter-modal-title" aria-hidden="true">
         <div class="chapter-modal-backdrop"></div>
         <div class="chapter-modal-content">
             <button class="chapter-modal-close" aria-label="Fermer">✕</button>
-            <h2 class="chapter-modal-title">📖 Sélectionner un chapitre</h2>
+            <h2 id="chapter-modal-title" class="chapter-modal-title">📖 Sélectionner un chapitre</h2>
             <p class="chapter-modal-subtitle">Certains chapitres sont verrouillés jusqu'à la fin du jeu</p>
             <div class="chapter-list" id="chapter-list">
                 <!-- Chapitres générés dynamiquement par JS -->
@@ -105,11 +105,11 @@
     </div>
 
     <!-- Modale What if -->
-    <div id="whatif-modal" class="whatif-modal" aria-hidden="true">
+    <div id="whatif-modal" class="whatif-modal" role="dialog" aria-modal="true" aria-labelledby="whatif-modal-title" aria-hidden="true">
         <div class="whatif-modal-backdrop"></div>
         <div class="whatif-modal-content">
             <button class="whatif-modal-close" aria-label="Fermer">✕</button>
-            <h2 class="whatif-modal-title">🧩 Mode What if</h2>
+            <h2 id="whatif-modal-title" class="whatif-modal-title">🧩 Mode What if</h2>
             <p class="whatif-modal-subtitle">Rejouez l'histoire avec des variantes alternatives</p>
             <div class="whatif-list" id="whatif-list">
                 <!-- Variantes générées dynamiquement par JS -->
@@ -286,11 +286,11 @@
     <button id="media-player-toggle" class="mp-toggle-btn" aria-label="Ouvrir le lecteur audio">🎵</button>
 
     <!-- Timeline Interactive Modal -->
-    <div id="timeline-modal" class="timeline-modal" aria-hidden="true">
+    <div id="timeline-modal" class="timeline-modal" role="dialog" aria-modal="true" aria-labelledby="timeline-modal-title" aria-hidden="true">
         <div class="timeline-backdrop"></div>
         <div class="timeline-container">
             <button class="timeline-close-btn" aria-label="Fermer">×</button>
-            <h2 class="timeline-title">🕰️ Timeline de l'Histoire</h2>
+            <h2 id="timeline-modal-title" class="timeline-title">🕰️ Timeline de l'Histoire</h2>
             <p class="timeline-subtitle">Explorez les arcs et revivez les moments clés</p>
 
             <div class="timeline-content" id="timeline-content">
@@ -307,11 +307,11 @@
     </div>
 
     <!-- Carnet d'Oasis -->
-    <div id="memory-modal" class="memory-modal" aria-hidden="true">
+    <div id="memory-modal" class="memory-modal" role="dialog" aria-modal="true" aria-labelledby="memory-modal-title" aria-hidden="true">
         <div class="memory-backdrop"></div>
         <div class="memory-container">
             <button class="memory-close-btn" aria-label="Fermer">×</button>
-            <h2 class="memory-title">📜 Carnet d'Oasis</h2>
+            <h2 id="memory-modal-title" class="memory-title">📜 Carnet d'Oasis</h2>
             <p class="memory-subtitle">Les dernières répliques gravées dans le sable numérique</p>
 
             <div class="memory-content" id="memory-content">

@@ -11785,6 +11785,7 @@ class VisualNovelEngine {
             // Rafraîchir la liste à chaque ouverture
             this.renderChapterList();
             chapterModal.classList.add('open');
+            chapterModal.setAttribute('aria-hidden', 'false');
             ModalFocusManager.open(chapterModal);
         }
     }
@@ -11793,6 +11794,7 @@ class VisualNovelEngine {
         const chapterModal = document.getElementById('chapter-modal');
         if (chapterModal) {
             chapterModal.classList.remove('open');
+            chapterModal.setAttribute('aria-hidden', 'true');
             ModalFocusManager.close(chapterModal);
         }
     }
