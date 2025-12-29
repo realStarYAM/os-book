@@ -11109,6 +11109,12 @@ class VisualNovelEngine {
             // ESC pour ouvrir/fermer le menu
             if (e.code === 'Escape') {
                 if (this.screens.vn.classList.contains('active')) {
+                    const modalIds = ['chapter-modal', 'timeline-modal', 'memory-modal', 'whatif-modal'];
+                    const modalOpen = modalIds.some((id) => document.getElementById(id)?.classList.contains('open'));
+                    if (modalOpen) {
+                        e.preventDefault();
+                        return;
+                    }
                     e.preventDefault();
                     this.toggleMenu();
                 }
