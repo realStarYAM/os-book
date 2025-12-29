@@ -2470,7 +2470,9 @@ const TimelineManager = {
                 : '';
 
             return `
-                <div class="timeline-chapter ${isLocked ? 'locked' : ''}" 
+                <button class="timeline-chapter ${isLocked ? 'locked' : ''}" 
+                     type="button"
+                     aria-disabled="${isLocked}"
                      data-chapter="${chapter.id}" 
                      data-start-index="${chapter.startIndex}">
                     <div class="chapter-status ${statusClass}"></div>
@@ -2479,7 +2481,7 @@ const TimelineManager = {
                         <div class="chapter-details">${isLocked ? '🔒 Verrouillé' : ''}</div>
                     </div>
                     ${eventsHtml}
-                </div>
+                </button>
             `;
         }).join('');
     },
@@ -11471,7 +11473,10 @@ class VisualNovelEngine {
         WHAT_IF_VARIANTS.forEach((variant) => {
             const card = document.createElement('div');
             const isActive = Boolean(flags[variant.id]);
-            card.className = `whatif-card ${isActive ? 'active' : ''}`;
+            card.className = `whatif-card whatif-item ${isActive ? 'active' : ''}`;
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('aria-pressed', String(isActive));
             card.innerHTML = `
                 <div class="whatif-card-header">
                     <span class="whatif-icon">${variant.icon}</span>
@@ -11487,15 +11492,28 @@ class VisualNovelEngine {
                 </div>
             `;
 
+            const toggleVariant = () => {
+                const current = Boolean(WhatIfManager.getFlags()[variant.id]);
+                WhatIfManager.setFlag(variant.id, !current);
+                this.renderWhatIfList();
+                WhatIfManager.syncCountBadge();
+            };
+
             const toggle = card.querySelector('.whatif-switch');
             if (toggle) {
-                toggle.addEventListener('click', () => {
-                    const current = Boolean(WhatIfManager.getFlags()[variant.id]);
-                    WhatIfManager.setFlag(variant.id, !current);
-                    this.renderWhatIfList();
-                    WhatIfManager.syncCountBadge();
+                toggle.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    toggleVariant();
                 });
             }
+
+            card.addEventListener('click', toggleVariant);
+            card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggleVariant();
+                }
+            });
 
             whatIfList.appendChild(card);
         });
@@ -11659,10 +11677,12 @@ class VisualNovelEngine {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
 
-            const item = document.createElement('div');
+            const item = document.createElement('button');
             item.className = `chapter-item${isUnlocked ? '' : ' locked'}`;
             item.dataset.chapterId = chapter.id;
             item.dataset.startIndex = chapter.startIndex;
+            item.type = 'button';
+            item.setAttribute('aria-disabled', String(!isUnlocked));
 
             item.innerHTML = `
                 <span class="chapter-icon">${chapter.icon}</span>
