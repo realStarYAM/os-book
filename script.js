@@ -7,6 +7,43 @@
  */
 
 // ============================================
+// MOBILE VIEWPORT & SAFE MODE
+// ============================================
+const MobileViewportManager = {
+    updateVh() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    },
+    updateMobileSafe() {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches
+            || window.matchMedia('(pointer: coarse)').matches;
+        if (document.body) {
+            document.body.classList.toggle('mobile-safe', isMobile);
+        }
+    },
+    refresh() {
+        this.updateVh();
+        this.updateMobileSafe();
+    },
+    init() {
+        this.refresh();
+        const onResize = () => this.refresh();
+        window.addEventListener('resize', onResize);
+        window.addEventListener('orientationchange', onResize);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', onResize);
+            window.visualViewport.addEventListener('scroll', onResize);
+        }
+    }
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => MobileViewportManager.init());
+} else {
+    MobileViewportManager.init();
+}
+
+// ============================================
 // GESTIONNAIRE AUDIO - DEUX CANAUX SÉPARÉS
 // ============================================
 
