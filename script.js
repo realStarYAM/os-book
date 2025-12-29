@@ -11102,6 +11102,9 @@ class VisualNovelEngine {
                 return;
             }
 
+            if (dialogueContainer) {
+                this.focusDialogueContainer();
+            }
             this.handleAdvance();
         });
 
@@ -11129,10 +11132,42 @@ class VisualNovelEngine {
             }
 
             if (e.code === 'Space' || e.code === 'Enter') {
-                if (this.screens.vn.classList.contains('active') && !this.menuOpen) {
-                    e.preventDefault();
-                    this.handleAdvance();
+                if (!this.screens.vn.classList.contains('active') || this.menuOpen) {
+                    return;
                 }
+
+                const activeElement = document.activeElement;
+                if (!activeElement) {
+                    return;
+                }
+
+                const ignoreFocusSelector = [
+                    'input',
+                    'button',
+                    'select',
+                    'textarea',
+                    '[contenteditable]',
+                    '#typing-speed',
+                    '.menu-panel',
+                    '.chapter-modal',
+                    '.timeline-modal',
+                    '.memory-modal',
+                    '.whatif-modal',
+                    '[class^="audio-controls-"]',
+                    '[class*=" audio-controls-"]'
+                ].join(', ');
+
+                if (activeElement.closest(ignoreFocusSelector)) {
+                    return;
+                }
+
+                const dialogueContainer = this.screens.vn.querySelector('.dialogue-container');
+                if (!dialogueContainer || !dialogueContainer.contains(activeElement)) {
+                    return;
+                }
+
+                e.preventDefault();
+                this.handleAdvance();
             }
         });
     }
@@ -11144,7 +11179,10 @@ class VisualNovelEngine {
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.finalRestartShown = false;
-        setTimeout(() => this.playScene(), 600);
+        setTimeout(() => {
+            this.playScene();
+            this.focusDialogueContainer();
+        }, 600);
     }
 
     restartGame() {
@@ -11190,6 +11228,13 @@ class VisualNovelEngine {
             this.skipTyping();
         } else if (this.canAdvance) {
             this.nextScene();
+        }
+    }
+
+    focusDialogueContainer() {
+        const dialogueContainer = this.screens.vn?.querySelector('.dialogue-container');
+        if (dialogueContainer) {
+            dialogueContainer.focus({ preventScroll: true });
         }
     }
 
