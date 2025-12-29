@@ -21,6 +21,750 @@ let sfxPlayer = new Audio();
 let globalAudio = musicPlayer;
 
 // ============================================
+// INTELLIGENT MUSIC SYSTEM - Musique contextuelle + BPM
+// ============================================
+
+/**
+ * Configuration des pistes audio avec métadonnées BPM et contexte
+ */
+const MUSIC_TRACKS = {
+    // Musiques Windows épiques
+    win11: {
+        file: 'music/Windows 11 Remix.mp3',
+        bpm: 128,
+        mood: 'epic',
+        scenes: ['hospital', 'graveyard'],
+        intensity: 'high',
+        name: 'Windows 11 Remix'
+    },
+    win10: {
+        file: 'music/Windows 10 Remix.mp3',
+        bpm: 120,
+        mood: 'dramatic',
+        scenes: ['hospital'],
+        intensity: 'medium',
+        name: 'Windows 10 Remix'
+    },
+    win7: {
+        file: 'music/Windows 7 Remix 2 (By SilverWolf).mp3',
+        bpm: 110,
+        mood: 'nostalgic',
+        scenes: ['graveyard', 'void'],
+        intensity: 'medium',
+        name: 'Windows 7 Remix'
+    },
+    vista: {
+        file: 'music/Windows Vista Remix (By SilverWolf).mp3',
+        bpm: 115,
+        mood: 'dramatic',
+        scenes: ['hospital', 'graveyard'],
+        intensity: 'medium',
+        name: 'Windows Vista Remix'
+    },
+    vista_hello: {
+        file: 'music/Hello Windows Vista Vista Sounds Remix High Quality.mp3',
+        bpm: 100,
+        mood: 'calm',
+        scenes: ['void'],
+        intensity: 'low',
+        name: 'Hello Windows Vista'
+    },
+    longhorn: {
+        file: 'music/LongHorn Day (Windows Longhorn Remix).mp3',
+        bpm: 105,
+        mood: 'mysterious',
+        scenes: ['void'],
+        intensity: 'low',
+        name: 'Longhorn Day'
+    },
+    win95: {
+        file: 'music/95 (Windows Classic Remix).mp3',
+        bpm: 95,
+        mood: 'classic',
+        scenes: ['graveyard'],
+        intensity: 'low',
+        name: 'Windows 95 Classic'
+    },
+    vienna: {
+        file: 'music/Windows Vienna Sounds Remix.mp3',
+        bpm: 90,
+        mood: 'calm',
+        scenes: ['void'],
+        intensity: 'low',
+        name: 'Windows Vienna'
+    },
+    xp_install: {
+        file: 'music/Windows XP installation music.mp3',
+        bpm: 75,
+        mood: 'peaceful',
+        scenes: ['void'],
+        intensity: 'low',
+        name: 'Windows XP Installation'
+    },
+    xp_error: {
+        file: 'music/Windows XP Error Remix.mp3',
+        bpm: 140,
+        mood: 'chaotic',
+        scenes: ['hospital', 'graveyard'],
+        intensity: 'high',
+        name: 'Windows XP Error Remix'
+    },
+    win8_error: {
+        file: 'music/rgLed - Windows 8 Error Dubstep Remix!.mp3',
+        bpm: 150,
+        mood: 'intense',
+        scenes: ['graveyard'],
+        intensity: 'high',
+        name: 'Windows 8 Error Dubstep'
+    },
+    mac: {
+        file: 'music/Mac Startup Remix Extended.mp3',
+        bpm: 108,
+        mood: 'epic',
+        scenes: ['hospital', 'void'],
+        intensity: 'medium',
+        name: 'Mac Startup Remix'
+    }
+};
+
+/**
+ * Mapping scène → pistes recommandées
+ */
+const SCENE_MUSIC_MAP = {
+    hospital: ['win11', 'win10', 'vista'],
+    graveyard: ['win7', 'win95', 'xp_error'],
+    void: ['xp_install', 'longhorn', 'vienna'],
+    linux_world: ['mac'],
+    default: ['win11']
+};
+
+/**
+ * Mapping mood → pistes
+ */
+const MOOD_MUSIC_MAP = {
+    epic: ['win11', 'mac'],
+    dramatic: ['win10', 'vista'],
+    calm: ['vista_hello', 'vienna', 'xp_install'],
+    chaotic: ['xp_error', 'win8_error'],
+    nostalgic: ['win7', 'win95'],
+    mysterious: ['longhorn'],
+    combat: ['xp_error', 'win8_error', 'win11']
+};
+
+/**
+ * Gestionnaire de musique intelligente avec changement contextuel
+ */
+const IntelligentMusicManager = {
+    currentTrackId: null,
+    currentBPM: 100,
+    isPlaying: false,
+    isCrossfading: false,
+    crossfadePlayer: null,
+    volume: 0.5,
+
+    /**
+     * Initialise le gestionnaire
+     */
+    init() {
+        this.crossfadePlayer = new Audio();
+        this.crossfadePlayer.loop = true;
+        console.log('🎵 IntelligentMusicManager initialisé');
+    },
+
+    /**
+     * Joue une piste par son ID
+     * @param {string} trackId - ID de la piste
+     * @param {Object} options - Options (crossfade, etc.)
+     */
+    play(trackId, options = {}) {
+        const track = MUSIC_TRACKS[trackId];
+        if (!track) {
+            console.warn(`🎵 Piste "${trackId}" non trouvée`);
+            return false;
+        }
+
+        const useCrossfade = options.crossfade !== false && this.isPlaying;
+
+        if (useCrossfade && this.currentTrackId !== trackId) {
+            this.crossfade(trackId, options.duration || 2000);
+        } else if (this.currentTrackId !== trackId) {
+            musicPlayer.src = track.file;
+            musicPlayer.volume = this.volume;
+            musicPlayer.play().catch(e => console.warn('🎵 Autoplay bloqué:', e));
+            this.currentTrackId = trackId;
+            this.currentBPM = track.bpm;
+            this.isPlaying = true;
+            this.updateBPMDisplay();
+            console.log(`🎵 Playing: ${track.name} (${track.bpm} BPM)`);
+        }
+
+        return true;
+    },
+
+    /**
+     * Transition en fondu enchaîné
+     * @param {string} newTrackId - Nouvelle piste
+     * @param {number} duration - Durée du crossfade en ms
+     */
+    crossfade(newTrackId, duration = 2000) {
+        if (this.isCrossfading) return;
+
+        const newTrack = MUSIC_TRACKS[newTrackId];
+        if (!newTrack) return;
+
+        this.isCrossfading = true;
+        const steps = 20;
+        const stepDuration = duration / steps;
+        const oldVolume = musicPlayer.volume;
+        let step = 0;
+
+        // Préparer la nouvelle piste
+        this.crossfadePlayer.src = newTrack.file;
+        this.crossfadePlayer.volume = 0;
+        this.crossfadePlayer.currentTime = 0;
+        this.crossfadePlayer.play().catch(e => console.warn('🎵 Autoplay bloqué:', e));
+
+        const fadeInterval = setInterval(() => {
+            step++;
+            const progress = step / steps;
+
+            // Fade out ancien
+            musicPlayer.volume = oldVolume * (1 - progress);
+            // Fade in nouveau
+            this.crossfadePlayer.volume = this.volume * progress;
+
+            if (step >= steps) {
+                clearInterval(fadeInterval);
+
+                // Swap players
+                musicPlayer.pause();
+                musicPlayer.src = newTrack.file;
+                musicPlayer.currentTime = this.crossfadePlayer.currentTime;
+                musicPlayer.volume = this.volume;
+                musicPlayer.play().catch(() => { });
+
+                this.crossfadePlayer.pause();
+                this.crossfadePlayer.src = '';
+
+                this.currentTrackId = newTrackId;
+                this.currentBPM = newTrack.bpm;
+                this.isCrossfading = false;
+                this.updateBPMDisplay();
+
+                console.log(`🎵 Crossfade terminé: ${newTrack.name} (${newTrack.bpm} BPM)`);
+            }
+        }, stepDuration);
+    },
+
+    /**
+     * Change la musique selon la scène
+     * @param {string} sceneType - Type de scène (hospital, graveyard, void)
+     */
+    setSceneMusic(sceneType) {
+        const tracks = SCENE_MUSIC_MAP[sceneType] || SCENE_MUSIC_MAP.default;
+        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+        this.play(randomTrack);
+    },
+
+    /**
+     * Change la musique selon l'ambiance
+     * @param {string} mood - Ambiance (epic, calm, chaotic, etc.)
+     */
+    setMoodMusic(mood) {
+        const tracks = MOOD_MUSIC_MAP[mood] || MOOD_MUSIC_MAP.epic;
+        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+        this.play(randomTrack);
+    },
+
+    /**
+     * Pause la musique
+     */
+    pause() {
+        musicPlayer.pause();
+        this.isPlaying = false;
+    },
+
+    /**
+     * Reprend la lecture
+     */
+    resume() {
+        if (this.currentTrackId) {
+            musicPlayer.play().catch(() => { });
+            this.isPlaying = true;
+        }
+    },
+
+    /**
+     * Arrête la musique
+     */
+    stop() {
+        musicPlayer.pause();
+        musicPlayer.currentTime = 0;
+        this.isPlaying = false;
+        this.currentTrackId = null;
+    },
+
+    /**
+     * Définit le volume
+     * @param {number} vol - Volume (0-1)
+     */
+    setVolume(vol) {
+        this.volume = Math.max(0, Math.min(1, vol));
+        musicPlayer.volume = this.volume;
+        if (this.crossfadePlayer) {
+            this.crossfadePlayer.volume = this.volume;
+        }
+    },
+
+    /**
+     * Retourne le BPM actuel
+     * @returns {number}
+     */
+    getBPM() {
+        return this.currentBPM;
+    },
+
+    /**
+     * Retourne les infos de la piste actuelle
+     * @returns {Object|null}
+     */
+    getCurrentTrack() {
+        if (!this.currentTrackId) return null;
+        return { id: this.currentTrackId, ...MUSIC_TRACKS[this.currentTrackId] };
+    },
+
+    /**
+     * Met à jour l'affichage du BPM dans l'UI
+     */
+    updateBPMDisplay() {
+        const bpmDisplay = document.getElementById('mp-bpm-value');
+        if (bpmDisplay) {
+            bpmDisplay.textContent = this.currentBPM;
+            // Animation pulse selon le BPM
+            const pulseDuration = 60000 / this.currentBPM; // ms par beat
+            bpmDisplay.style.setProperty('--bpm-pulse-duration', `${pulseDuration}ms`);
+        }
+    },
+
+    /**
+     * Liste toutes les pistes disponibles
+     * @returns {Object}
+     */
+    getTracks() {
+        return { ...MUSIC_TRACKS };
+    }
+};
+
+/**
+ * Gestionnaire de synchronisation BPM ↔ Vitesse du texte
+ */
+const BPMSyncManager = {
+    enabled: true,
+    baseTypingSpeed: 35, // ms par caractère (vitesse de base)
+    minSpeed: 10,        // Vitesse minimum (texte très rapide)
+    maxSpeed: 80,        // Vitesse maximum (texte très lent)
+
+    /**
+     * Calcule la vitesse de frappe selon le BPM actuel
+     * BPM élevé = texte plus rapide
+     * @returns {number} - Vitesse en ms par caractère
+     */
+    getTypingSpeed() {
+        if (!this.enabled) {
+            return this.baseTypingSpeed;
+        }
+
+        const bpm = IntelligentMusicManager.getBPM();
+        // Normaliser: 100 BPM = vitesse de base
+        // 150 BPM = ~23ms, 75 BPM = ~47ms
+        const factor = bpm / 100;
+        const speed = Math.round(this.baseTypingSpeed / factor);
+
+        // Clamper entre min et max
+        return Math.max(this.minSpeed, Math.min(this.maxSpeed, speed));
+    },
+
+    /**
+     * Calcule le délai entre les phrases selon le BPM
+     * @returns {number} - Délai en ms
+     */
+    getPhraseDelay() {
+        const bpm = IntelligentMusicManager.getBPM();
+        // 1 beat = 60000/bpm ms
+        return Math.round(60000 / bpm);
+    },
+
+    /**
+     * Active/désactive la synchronisation BPM
+     */
+    toggle() {
+        this.enabled = !this.enabled;
+        console.log(`🎵 BPM Sync: ${this.enabled ? 'ON' : 'OFF'}`);
+        return this.enabled;
+    },
+
+    /**
+     * Définit la vitesse de base
+     * @param {number} speed - Vitesse en ms
+     */
+    setBaseSpeed(speed) {
+        this.baseTypingSpeed = Math.max(5, Math.min(100, speed));
+    },
+
+    /**
+     * Retourne l'état actuel
+     * @returns {Object}
+     */
+    getStatus() {
+        return {
+            enabled: this.enabled,
+            currentSpeed: this.getTypingSpeed(),
+            baseBPM: IntelligentMusicManager.getBPM(),
+            phraseDelay: this.getPhraseDelay()
+        };
+    }
+};
+
+// Fonctions globales pour compatibilité
+function playTrack(trackId, options) { return IntelligentMusicManager.play(trackId, options); }
+function setSceneMusic(scene) { IntelligentMusicManager.setSceneMusic(scene); }
+function setMoodMusic(mood) { IntelligentMusicManager.setMoodMusic(mood); }
+function getBPM() { return IntelligentMusicManager.getBPM(); }
+function getTypingSpeedFromBPM() { return BPMSyncManager.getTypingSpeed(); }
+function toggleBPMSync() { return BPMSyncManager.toggle(); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    IntelligentMusicManager.init();
+});
+
+// ============================================
+// CORRUPTION SYSTEM - Effets ChromeOS progressifs
+// ============================================
+
+/**
+ * Caractères de corruption pour le texte glitch
+ */
+const CORRUPTION_CHARS = '█▓▒░╔╗╚╝║═╬╣╠╩╦▀▄■□●○◘◙♠♣♥♦☺☻♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼0123456789ABCDEF';
+
+/**
+ * Gestionnaire de corruption progressive
+ * Plus ChromeOS agit, plus l'UI se corrompt
+ */
+const CorruptionManager = {
+    level: 0,           // Niveau actuel (0-100)
+    maxLevel: 100,
+    minLevel: 0,
+    isActive: false,
+
+    // Audio context pour les sons glitch
+    audioContext: null,
+    glitchInterval: null,
+    textGlitchInterval: null,
+
+    // Éléments DOM
+    targetElements: ['#dialogue-text', '#speaker-name', '.dialogue-box'],
+
+    // Seuils pour les niveaux visuels
+    thresholds: {
+        level1: 20,  // Tremblement subtil
+        level2: 40,  // Scanlines + distorsion légère
+        level3: 60,  // Couleurs altérées
+        level4: 80,  // Forte distorsion
+        level5: 95   // Chaos total
+    },
+
+    /**
+     * Initialise le système de corruption
+     */
+    init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('⚠️ Web Audio API non disponible');
+        }
+        console.log('💀 CorruptionManager initialisé');
+    },
+
+    /**
+     * Augmente le niveau de corruption
+     * @param {number} amount - Quantité à ajouter
+     */
+    increase(amount = 10) {
+        const oldLevel = this.level;
+        this.level = Math.min(this.maxLevel, this.level + amount);
+
+        if (!this.isActive && this.level > 0) {
+            this.isActive = true;
+        }
+
+        this.applyEffects();
+        this.playGlitchSound();
+
+        console.log(`💀 Corruption: ${oldLevel} → ${this.level}`);
+        return this.level;
+    },
+
+    /**
+     * Diminue le niveau de corruption (purification)
+     * @param {number} amount - Quantité à retirer
+     */
+    decrease(amount = 10) {
+        const oldLevel = this.level;
+        this.level = Math.max(this.minLevel, this.level - amount);
+
+        if (this.level === 0) {
+            this.isActive = false;
+            this.clearAllEffects();
+        } else {
+            this.applyEffects();
+        }
+
+        console.log(`✨ Purification: ${oldLevel} → ${this.level}`);
+        return this.level;
+    },
+
+    /**
+     * Reset complet de la corruption
+     */
+    reset() {
+        this.level = 0;
+        this.isActive = false;
+        this.clearAllEffects();
+        console.log('✨ Corruption réinitialisée');
+    },
+
+    /**
+     * Applique les effets visuels selon le niveau
+     */
+    applyEffects() {
+        const body = document.body;
+        const visualLevel = this.getVisualLevel();
+
+        // Mettre à jour l'attribut data-corruption
+        body.setAttribute('data-corruption', visualLevel);
+
+        // Appliquer les classes CSS
+        body.classList.remove('corruption-level-1', 'corruption-level-2', 'corruption-level-3', 'corruption-level-4', 'corruption-level-5');
+
+        if (visualLevel > 0) {
+            body.classList.add(`corruption-level-${visualLevel}`);
+        }
+
+        // Appliquer le hue-rotate progressif
+        const hueShift = (this.level / this.maxLevel) * 60; // 0 à 60 degrés
+        body.style.setProperty('--corruption-hue', `${hueShift}deg`);
+        body.style.setProperty('--corruption-intensity', this.level / this.maxLevel);
+
+        // Démarrer/arrêter le glitch de texte selon le niveau
+        if (visualLevel >= 2 && !this.textGlitchInterval) {
+            this.startTextGlitch();
+        } else if (visualLevel < 2 && this.textGlitchInterval) {
+            this.stopTextGlitch();
+        }
+
+        // Sons glitch continus au niveau max
+        if (visualLevel >= 5 && !this.glitchInterval) {
+            this.startContinuousGlitch();
+        } else if (visualLevel < 5 && this.glitchInterval) {
+            this.stopContinuousGlitch();
+        }
+    },
+
+    /**
+     * Retourne le niveau visuel (1-5) basé sur le niveau de corruption
+     * @returns {number}
+     */
+    getVisualLevel() {
+        if (this.level >= this.thresholds.level5) return 5;
+        if (this.level >= this.thresholds.level4) return 4;
+        if (this.level >= this.thresholds.level3) return 3;
+        if (this.level >= this.thresholds.level2) return 2;
+        if (this.level >= this.thresholds.level1) return 1;
+        return 0;
+    },
+
+    /**
+     * Efface tous les effets de corruption
+     */
+    clearAllEffects() {
+        const body = document.body;
+        body.removeAttribute('data-corruption');
+        body.classList.remove('corruption-level-1', 'corruption-level-2', 'corruption-level-3', 'corruption-level-4', 'corruption-level-5');
+        body.style.removeProperty('--corruption-hue');
+        body.style.removeProperty('--corruption-intensity');
+
+        this.stopTextGlitch();
+        this.stopContinuousGlitch();
+    },
+
+    /**
+     * Démarre le glitch de texte
+     */
+    startTextGlitch() {
+        if (this.textGlitchInterval) return;
+
+        this.textGlitchInterval = setInterval(() => {
+            this.applyTextGlitch();
+        }, 100 - (this.getVisualLevel() * 15)); // Plus rapide aux niveaux élevés
+    },
+
+    /**
+     * Arrête le glitch de texte
+     */
+    stopTextGlitch() {
+        if (this.textGlitchInterval) {
+            clearInterval(this.textGlitchInterval);
+            this.textGlitchInterval = null;
+        }
+    },
+
+    /**
+     * Applique un effet de glitch au texte affiché
+     */
+    applyTextGlitch() {
+        const dialogueEl = document.getElementById('dialogue-visual');
+        if (!dialogueEl || !dialogueEl.textContent) return;
+
+        const visualLevel = this.getVisualLevel();
+        const glitchChance = visualLevel * 0.05; // 5% à 25% de chance
+
+        // Glitch aléatoire sur le texte
+        const spans = dialogueEl.querySelectorAll('span');
+        spans.forEach(span => {
+            if (Math.random() < glitchChance) {
+                span.classList.add('text-glitch');
+                setTimeout(() => span.classList.remove('text-glitch'), 50 + Math.random() * 100);
+            }
+        });
+
+        // À haut niveau, ajouter des caractères parasites
+        if (visualLevel >= 4 && Math.random() < 0.1) {
+            const parasite = document.createElement('span');
+            parasite.className = 'corruption-parasite';
+            parasite.textContent = CORRUPTION_CHARS[Math.floor(Math.random() * CORRUPTION_CHARS.length)];
+            dialogueEl.appendChild(parasite);
+            setTimeout(() => parasite.remove(), 200);
+        }
+    },
+
+    /**
+     * Joue un son de glitch
+     */
+    playGlitchSound() {
+        if (!this.audioContext) return;
+
+        const visualLevel = this.getVisualLevel();
+        if (visualLevel < 2) return; // Pas de son aux bas niveaux
+
+        try {
+            // Créer un oscillateur pour le son glitch
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            // Type et fréquence selon le niveau
+            oscillator.type = visualLevel >= 4 ? 'sawtooth' : 'square';
+            oscillator.frequency.setValueAtTime(
+                100 + Math.random() * 500 * visualLevel,
+                this.audioContext.currentTime
+            );
+
+            // Volume basé sur le niveau (faible pour ne pas être trop agressif)
+            const volume = 0.02 + (visualLevel * 0.015);
+            gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.start();
+            oscillator.stop(this.audioContext.currentTime + 0.1);
+        } catch (e) {
+            // Ignorer les erreurs audio silencieusement
+        }
+    },
+
+    /**
+     * Démarre les sons glitch continus (niveau max)
+     */
+    startContinuousGlitch() {
+        if (this.glitchInterval) return;
+
+        this.glitchInterval = setInterval(() => {
+            if (Math.random() < 0.3) {
+                this.playGlitchSound();
+            }
+        }, 200);
+    },
+
+    /**
+     * Arrête les sons glitch continus
+     */
+    stopContinuousGlitch() {
+        if (this.glitchInterval) {
+            clearInterval(this.glitchInterval);
+            this.glitchInterval = null;
+        }
+    },
+
+    /**
+     * Corrompt un texte avec des caractères glitch
+     * @param {string} text - Texte original
+     * @returns {string} - Texte corrompu
+     */
+    corruptText(text) {
+        if (!text || this.level < this.thresholds.level3) return text;
+
+        const corruptChance = (this.level - this.thresholds.level2) / 100;
+        let result = '';
+
+        for (let char of text) {
+            if (Math.random() < corruptChance && char !== ' ') {
+                result += CORRUPTION_CHARS[Math.floor(Math.random() * CORRUPTION_CHARS.length)];
+            } else {
+                result += char;
+            }
+        }
+
+        return result;
+    },
+
+    /**
+     * Retourne le niveau actuel
+     * @returns {number}
+     */
+    getLevel() {
+        return this.level;
+    },
+
+    /**
+     * Retourne l'état actuel
+     * @returns {Object}
+     */
+    getStatus() {
+        return {
+            level: this.level,
+            visualLevel: this.getVisualLevel(),
+            isActive: this.isActive,
+            maxLevel: this.maxLevel
+        };
+    }
+};
+
+// Fonctions globales pour la corruption
+function corruptionIncrease(amount) { return CorruptionManager.increase(amount); }
+function corruptionDecrease(amount) { return CorruptionManager.decrease(amount); }
+function corruptionReset() { CorruptionManager.reset(); }
+function getCorruptionLevel() { return CorruptionManager.getLevel(); }
+function corruptText(text) { return CorruptionManager.corruptText(text); }
+
+// Initialisation du système de corruption
+document.addEventListener('DOMContentLoaded', () => {
+    CorruptionManager.init();
+});
+
+
+// ============================================
 // UI LOADER - Système de chargement d'interfaces
 // ============================================
 
@@ -867,6 +1611,500 @@ function clearEmotion(slot) { AuraManager.clearEmotion(slot); }
 function clearAllAuras() { AuraManager.clearAllAuras(); }
 
 // ============================================
+// COMBAT AURA MANAGER - Effets d'aura de combat
+// ============================================
+
+/**
+ * Types d'aura de combat disponibles
+ * - win11: Lumière bleue stable
+ * - chromeos: Glitch agressif
+ * - kernel: Lumière divine
+ */
+const COMBAT_AURA_TYPES = ['win11', 'chromeos', 'kernel'];
+
+/**
+ * Gestionnaire d'auras de combat spécifiques
+ * Différent des auras de personnage standard, ces effets
+ * sont utilisés pendant les scènes de combat intense
+ */
+const CombatAuraManager = {
+    activeAuras: new Map(),
+
+    /**
+     * Active une aura de combat sur un slot
+     * @param {string} slotId - ID du slot ('left', 'center', 'right')
+     * @param {string} auraType - Type d'aura ('win11', 'chromeos', 'kernel')
+     */
+    activate(slotId, auraType) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) {
+            console.warn(`⚔️ Slot "${slotId}" non trouvé`);
+            return;
+        }
+
+        // Vérifier le type d'aura
+        if (!COMBAT_AURA_TYPES.includes(auraType)) {
+            console.warn(`⚔️ Type d'aura "${auraType}" inconnu. Types: ${COMBAT_AURA_TYPES.join(', ')}`);
+            return;
+        }
+
+        // Retirer les anciennes auras de combat
+        COMBAT_AURA_TYPES.forEach(type => {
+            slot.classList.remove(`combat-aura-${type}`);
+        });
+
+        // Appliquer la nouvelle aura
+        slot.classList.add(`combat-aura-${auraType}`);
+        this.activeAuras.set(slotId, auraType);
+
+        console.log(`⚔️ Aura de combat "${auraType}" activée sur ${slotId}`);
+    },
+
+    /**
+     * Désactive l'aura de combat d'un slot
+     * @param {string} slotId - ID du slot
+     */
+    deactivate(slotId) {
+        const slot = document.querySelector(`.character-slot.${slotId}`);
+        if (!slot) return;
+
+        // Retirer toutes les classes d'aura de combat
+        COMBAT_AURA_TYPES.forEach(type => {
+            slot.classList.remove(`combat-aura-${type}`);
+        });
+
+        this.activeAuras.delete(slotId);
+        console.log(`⚔️ Aura de combat désactivée sur ${slotId}`);
+    },
+
+    /**
+     * Désactive toutes les auras de combat
+     */
+    deactivateAll() {
+        ['left', 'center', 'right'].forEach(slotId => this.deactivate(slotId));
+        console.log('⚔️ Toutes les auras de combat désactivées');
+    },
+
+    /**
+     * Vérifie si un slot a une aura de combat active
+     * @param {string} slotId - ID du slot
+     * @returns {string|null} - Type d'aura active ou null
+     */
+    getActive(slotId) {
+        return this.activeAuras.get(slotId) || null;
+    },
+
+    /**
+     * Liste toutes les auras de combat actives
+     * @returns {Map}
+     */
+    getAllActive() {
+        return new Map(this.activeAuras);
+    },
+
+    /**
+     * Active l'aura appropriée basée sur le nom du personnage
+     * @param {string} slotId - ID du slot
+     * @param {string} characterId - ID du personnage
+     */
+    autoActivate(slotId, characterId) {
+        const charLower = characterId?.toLowerCase() || '';
+
+        if (charLower.includes('windows11') || charLower === 'win11') {
+            this.activate(slotId, 'win11');
+        } else if (charLower.includes('chromeos') || charLower === 'chrome') {
+            this.activate(slotId, 'chromeos');
+        } else if (charLower.includes('kernel')) {
+            this.activate(slotId, 'kernel');
+        }
+    }
+};
+
+// Fonctions globales pour CombatAuraManager
+function activateCombatAura(slot, type) { CombatAuraManager.activate(slot, type); }
+function deactivateCombatAura(slot) { CombatAuraManager.deactivate(slot); }
+function deactivateAllCombatAuras() { CombatAuraManager.deactivateAll(); }
+
+// ============================================
+// HIDDEN CHOICE MANAGER - Choix invisibles
+// ============================================
+
+/**
+ * Types de déclencheurs pour les choix invisibles
+ * - idle: Temps d'attente (le joueur reste inactif X secondes)
+ * - repeat: Répétition de scènes (le joueur revisite la même scène X fois)
+ * - keys: Combinaison de touches secrète
+ */
+const HIDDEN_CHOICE_TRIGGERS = ['idle', 'repeat', 'keys'];
+
+/**
+ * Gestionnaire de choix invisibles
+ * Ces choix ne sont pas affichés mais déclenchés par des actions spécifiques
+ */
+const HiddenChoiceManager = {
+    // Choix enregistrés (clé: sceneIndex ou 'global', valeur: array de choix)
+    registeredChoices: new Map(),
+
+    // Compteur de visites par scène
+    sceneVisitCounts: {},
+
+    // Timer d'inactivité pour la scène courante
+    idleTimer: null,
+    currentSceneIndex: -1,
+
+    // Séquence de touches actuelle
+    keySequence: [],
+    maxKeySequenceLength: 20,
+
+    // Choix déclenchés (pour éviter doublons)
+    triggeredChoices: new Set(),
+
+    // Persistence
+    storageKey: 'osbook_hidden_choices',
+
+    // Callbacks
+    onChoiceTriggered: null, // function(choiceId, targetScene)
+
+    /**
+     * Initialise le gestionnaire
+     */
+    init() {
+        this.loadState();
+        this.setupKeyListener();
+        console.log('🔒 HiddenChoiceManager initialisé');
+    },
+
+    /**
+     * Configure l'écouteur de touches pour les combinaisons secrètes
+     */
+    setupKeyListener() {
+        document.addEventListener('keydown', (e) => {
+            // Ignorer si on est dans un champ de texte
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // Ajouter la touche à la séquence
+            this.keySequence.push(e.key.toLowerCase());
+
+            // Limiter la longueur de la séquence
+            if (this.keySequence.length > this.maxKeySequenceLength) {
+                this.keySequence.shift();
+            }
+
+            // Vérifier les choix avec déclencheur 'keys'
+            this.checkKeyTriggers();
+        });
+    },
+
+    /**
+     * Enregistre un choix invisible
+     * @param {Object} config - Configuration du choix
+     * @param {string} config.id - ID unique du choix
+     * @param {number} config.sceneIndex - Index de la scène (optionnel, -1 pour global)
+     * @param {string} config.type - Type de déclencheur ('idle', 'repeat', 'keys')
+     * @param {number} config.duration - Durée en ms pour 'idle'
+     * @param {number} config.threshold - Nombre de répétitions pour 'repeat'
+     * @param {string[]} config.sequence - Séquence de touches pour 'keys'
+     * @param {number} config.targetScene - Scène cible (optionnel)
+     * @param {Function} config.action - Fonction à exécuter (optionnel)
+     * @param {string} config.notification - Message de notification (optionnel)
+     * @param {boolean} config.oneTime - Ne déclencher qu'une fois (défaut: true)
+     */
+    registerChoice(config) {
+        if (!config.id || !config.type) {
+            console.warn('🔒 Choix invalide: id et type requis');
+            return;
+        }
+
+        if (!HIDDEN_CHOICE_TRIGGERS.includes(config.type)) {
+            console.warn(`🔒 Type de déclencheur invalide: ${config.type}`);
+            return;
+        }
+
+        const sceneKey = config.sceneIndex ?? -1;
+
+        if (!this.registeredChoices.has(sceneKey)) {
+            this.registeredChoices.set(sceneKey, []);
+        }
+
+        this.registeredChoices.get(sceneKey).push({
+            id: config.id,
+            type: config.type,
+            duration: config.duration || 10000,
+            threshold: config.threshold || 3,
+            sequence: config.sequence || [],
+            targetScene: config.targetScene,
+            action: config.action,
+            notification: config.notification,
+            oneTime: config.oneTime !== false
+        });
+
+        console.log(`🔒 Choix "${config.id}" enregistré (type: ${config.type})`);
+    },
+
+    /**
+     * Appelé quand le joueur entre dans une scène
+     * @param {number} sceneIndex - Index de la scène
+     */
+    onSceneEnter(sceneIndex) {
+        this.currentSceneIndex = sceneIndex;
+
+        // Incrémenter le compteur de visites
+        this.sceneVisitCounts[sceneIndex] = (this.sceneVisitCounts[sceneIndex] || 0) + 1;
+
+        // Vérifier les choix par répétition
+        this.checkRepeatTriggers(sceneIndex);
+
+        // Démarrer les timers d'inactivité
+        this.startIdleTimers(sceneIndex);
+
+        this.saveState();
+    },
+
+    /**
+     * Appelé quand le joueur quitte une scène
+     */
+    onSceneExit() {
+        // Annuler les timers d'inactivité
+        this.clearIdleTimer();
+    },
+
+    /**
+     * Démarre les timers d'inactivité pour une scène
+     * @param {number} sceneIndex - Index de la scène
+     */
+    startIdleTimers(sceneIndex) {
+        this.clearIdleTimer();
+
+        // Récupérer les choix pour cette scène + globaux
+        const choices = [
+            ...(this.registeredChoices.get(sceneIndex) || []),
+            ...(this.registeredChoices.get(-1) || [])
+        ].filter(c => c.type === 'idle');
+
+        choices.forEach(choice => {
+            if (this.isChoiceTriggered(choice.id)) return;
+
+            this.idleTimer = setTimeout(() => {
+                this.triggerChoice(choice);
+            }, choice.duration);
+        });
+    },
+
+    /**
+     * Annule le timer d'inactivité
+     */
+    clearIdleTimer() {
+        if (this.idleTimer) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+    },
+
+    /**
+     * Reset le timer d'inactivité (appelé lors d'une activité utilisateur)
+     */
+    resetIdleTimer() {
+        if (this.currentSceneIndex >= 0) {
+            this.startIdleTimers(this.currentSceneIndex);
+        }
+    },
+
+    /**
+     * Vérifie les déclencheurs par répétition
+     * @param {number} sceneIndex - Index de la scène
+     */
+    checkRepeatTriggers(sceneIndex) {
+        const choices = [
+            ...(this.registeredChoices.get(sceneIndex) || []),
+            ...(this.registeredChoices.get(-1) || [])
+        ].filter(c => c.type === 'repeat');
+
+        const visitCount = this.sceneVisitCounts[sceneIndex] || 0;
+
+        choices.forEach(choice => {
+            if (this.isChoiceTriggered(choice.id)) return;
+
+            if (visitCount >= choice.threshold) {
+                this.triggerChoice(choice);
+            }
+        });
+    },
+
+    /**
+     * Vérifie les déclencheurs par combinaison de touches
+     */
+    checkKeyTriggers() {
+        const allChoices = [];
+
+        // Récupérer tous les choix 'keys'
+        this.registeredChoices.forEach((choices) => {
+            choices.filter(c => c.type === 'keys').forEach(c => allChoices.push(c));
+        });
+
+        // Vérifier chaque séquence
+        allChoices.forEach(choice => {
+            if (this.isChoiceTriggered(choice.id)) return;
+
+            const seq = choice.sequence.map(k => k.toLowerCase());
+            const recentKeys = this.keySequence.slice(-seq.length);
+
+            if (recentKeys.length === seq.length &&
+                recentKeys.every((k, i) => k === seq[i])) {
+                this.triggerChoice(choice);
+                // Reset la séquence après déclenchement
+                this.keySequence = [];
+            }
+        });
+    },
+
+    /**
+     * Vérifie si un choix a déjà été déclenché
+     * @param {string} choiceId - ID du choix
+     * @returns {boolean}
+     */
+    isChoiceTriggered(choiceId) {
+        return this.triggeredChoices.has(choiceId);
+    },
+
+    /**
+     * Déclenche un choix invisible
+     * @param {Object} choice - Le choix à déclencher
+     */
+    triggerChoice(choice) {
+        if (choice.oneTime && this.isChoiceTriggered(choice.id)) return;
+
+        // Marquer comme déclenché
+        if (choice.oneTime) {
+            this.triggeredChoices.add(choice.id);
+        }
+
+        console.log(`🔒 CHOIX SECRET DÉCLENCHÉ: ${choice.id}`);
+
+        // Afficher notification si définie
+        if (choice.notification) {
+            this.showNotification(choice.notification);
+        }
+
+        // Exécuter l'action personnalisée
+        if (typeof choice.action === 'function') {
+            choice.action(choice);
+        }
+
+        // Callback global
+        if (typeof this.onChoiceTriggered === 'function') {
+            this.onChoiceTriggered(choice.id, choice.targetScene);
+        }
+
+        // Sauter à la scène cible si définie
+        if (choice.targetScene !== undefined && typeof window.gameEngine !== 'undefined') {
+            setTimeout(() => {
+                window.gameEngine.goToScene(choice.targetScene);
+            }, 500);
+        }
+
+        this.saveState();
+    },
+
+    /**
+     * Affiche une notification discrète pour le choix secret
+     * @param {string} message - Le message à afficher
+     */
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'hidden-choice-notification';
+        notification.innerHTML = `
+            <div class="hidden-choice-icon">🔓</div>
+            <div class="hidden-choice-text">${message}</div>
+        `;
+        document.body.appendChild(notification);
+
+        // Animation d'apparition
+        requestAnimationFrame(() => {
+            notification.classList.add('visible');
+        });
+
+        // Retirer après 3 secondes
+        setTimeout(() => {
+            notification.classList.remove('visible');
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
+    },
+
+    /**
+     * Récupère le nombre de visites d'une scène
+     * @param {number} sceneIndex - Index de la scène
+     * @returns {number}
+     */
+    getSceneVisitCount(sceneIndex) {
+        return this.sceneVisitCounts[sceneIndex] || 0;
+    },
+
+    /**
+     * Sauvegarde l'état dans localStorage
+     */
+    saveState() {
+        try {
+            const state = {
+                sceneVisitCounts: this.sceneVisitCounts,
+                triggeredChoices: Array.from(this.triggeredChoices)
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(state));
+        } catch (e) { }
+    },
+
+    /**
+     * Charge l'état depuis localStorage
+     */
+    loadState() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (!saved) return;
+
+            const state = JSON.parse(saved);
+
+            if (state.sceneVisitCounts) {
+                this.sceneVisitCounts = state.sceneVisitCounts;
+            }
+
+            if (state.triggeredChoices) {
+                this.triggeredChoices = new Set(state.triggeredChoices);
+            }
+        } catch (e) { }
+    },
+
+    /**
+     * Réinitialise tout (debug)
+     */
+    reset() {
+        this.sceneVisitCounts = {};
+        this.triggeredChoices.clear();
+        this.keySequence = [];
+        this.clearIdleTimer();
+        localStorage.removeItem(this.storageKey);
+        console.log('🔒 HiddenChoiceManager réinitialisé');
+    },
+
+    /**
+     * Liste les choix déjà déclenchés
+     * @returns {string[]}
+     */
+    getTriggeredChoices() {
+        return Array.from(this.triggeredChoices);
+    }
+};
+
+// Fonctions globales pour HiddenChoiceManager
+function registerHiddenChoice(config) { HiddenChoiceManager.registerChoice(config); }
+function getSceneVisitCount(index) { return HiddenChoiceManager.getSceneVisitCount(index); }
+function getTriggeredHiddenChoices() { return HiddenChoiceManager.getTriggeredChoices(); }
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    HiddenChoiceManager.init();
+});
+
+// ============================================
+
 // TIMELINE MANAGER - Timeline interactive
 // ============================================
 
@@ -880,16 +2118,16 @@ const STORY_ARCS = [
         subtitle: 'Les Origines',
         icon: '🌅',
         chapters: [
-            { id: 'prologue', name: 'Prologue', startIndex: 0, deaths: [] },
-            { id: 'acte1', name: 'Acte 1 - Installation', startIndex: 5, deaths: [] },
-            { id: 'acte2', name: 'Acte 2 - Les Adieux', startIndex: 15, deaths: ['98', 'ME'] },
-            { id: 'acte3', name: 'Acte 3 - L\'Ère Vista', startIndex: 25, deaths: [] },
-            { id: 'acte4', name: 'Acte 4 - Windows 7', startIndex: 35, deaths: [] },
-            { id: 'acte5', name: 'Acte 5 - Windows 8', startIndex: 45, deaths: ['8'] },
-            { id: 'acte6', name: 'Acte 6 - Windows 10', startIndex: 55, deaths: [] },
-            { id: 'acte7', name: 'Acte 7 - Le Déclin', startIndex: 65, deaths: ['Vista'] },
-            { id: 'acte8', name: 'Acte 8 - Le Roi', startIndex: 75, deaths: ['7', '8.1'] },
-            { id: 'acte9', name: 'Acte 9 - Windows 11', startIndex: 85, deaths: [] }
+            { id: 'prologue', name: 'Prologue', startIndex: 0, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'acte1', name: 'Acte 1 - Installation', startIndex: 5, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'acte2', name: 'Acte 2 - Les Adieux', startIndex: 15, deaths: ['98', 'ME'], resurrections: [], corruptions: [] },
+            { id: 'acte3', name: 'Acte 3 - L\'Ère Vista', startIndex: 25, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'acte4', name: 'Acte 4 - Windows 7', startIndex: 35, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'acte5', name: 'Acte 5 - Windows 8', startIndex: 45, deaths: ['8'], resurrections: [], corruptions: [] },
+            { id: 'acte6', name: 'Acte 6 - Windows 10', startIndex: 55, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'acte7', name: 'Acte 7 - Le Déclin', startIndex: 65, deaths: ['Vista'], resurrections: [], corruptions: [] },
+            { id: 'acte8', name: 'Acte 8 - Le Roi', startIndex: 75, deaths: ['7', '8.1'], resurrections: [], corruptions: [] },
+            { id: 'acte9', name: 'Acte 9 - Windows 11', startIndex: 85, deaths: [], resurrections: [], corruptions: [] }
         ]
     },
     {
@@ -898,10 +2136,10 @@ const STORY_ARCS = [
         subtitle: 'Le Monde Oublié',
         icon: '🌑',
         chapters: [
-            { id: 'arc2_ch1', name: 'Chapitre 1 - L\'Au-delà', startIndex: 100, deaths: [] },
-            { id: 'arc2_ch2', name: 'Chapitre 2 - La Guerre', startIndex: 120, deaths: [] },
-            { id: 'arc2_ch3', name: 'Chapitre 3 - Le Cloud Noir', startIndex: 140, deaths: [] },
-            { id: 'arc2_ch4', name: 'Chapitre 4 - Alliance', startIndex: 160, deaths: [] }
+            { id: 'arc2_ch1', name: 'Chapitre 1 - L\'Au-delà', startIndex: 100, deaths: [], resurrections: ['XP', '7', '10'], corruptions: [] },
+            { id: 'arc2_ch2', name: 'Chapitre 2 - La Guerre', startIndex: 120, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc2_ch3', name: 'Chapitre 3 - Le Cloud Noir', startIndex: 140, deaths: [], resurrections: [], corruptions: ['ChromeOS'] },
+            { id: 'arc2_ch4', name: 'Chapitre 4 - Alliance', startIndex: 160, deaths: [], resurrections: [], corruptions: [] }
         ]
     },
     {
@@ -910,8 +2148,8 @@ const STORY_ARCS = [
         subtitle: 'La Résurrection',
         icon: '⚡',
         chapters: [
-            { id: 'arc3_ch1', name: 'Chapitre 1 - Le Retour', startIndex: 180, deaths: [] },
-            { id: 'arc3_ch2', name: 'Chapitre 2 - La Bataille', startIndex: 200, deaths: [] }
+            { id: 'arc3_ch1', name: 'Chapitre 1 - Le Retour', startIndex: 180, deaths: [], resurrections: ['Vista', '8.1'], corruptions: [] },
+            { id: 'arc3_ch2', name: 'Chapitre 2 - La Bataille', startIndex: 200, deaths: [], resurrections: [], corruptions: [] }
         ]
     },
     {
@@ -920,9 +2158,9 @@ const STORY_ARCS = [
         subtitle: 'Windows 12',
         icon: '🌟',
         chapters: [
-            { id: 'arc4_ch1', name: 'Chapitre 1 - L\'Arrivée', startIndex: 220, deaths: [] },
-            { id: 'arc4_ch2', name: 'Chapitre 2 - Le Doute', startIndex: 240, deaths: [] },
-            { id: 'arc4_ch3', name: 'Chapitre 3 - La Gentillesse', startIndex: 260, deaths: [] }
+            { id: 'arc4_ch1', name: 'Chapitre 1 - L\'Arrivée', startIndex: 220, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc4_ch2', name: 'Chapitre 2 - Le Doute', startIndex: 240, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc4_ch3', name: 'Chapitre 3 - La Gentillesse', startIndex: 260, deaths: [], resurrections: [], corruptions: [] }
         ]
     },
     {
@@ -931,7 +2169,7 @@ const STORY_ARCS = [
         subtitle: 'Le Monde Libre',
         icon: '🐧',
         chapters: [
-            { id: 'arc5_ch1', name: 'Chapitre 1 - Linux World', startIndex: 280, deaths: [] }
+            { id: 'arc5_ch1', name: 'Chapitre 1 - Linux World', startIndex: 280, deaths: [], resurrections: [], corruptions: [] }
         ]
     }
 ];
@@ -1012,16 +2250,73 @@ const TimelineManager = {
     },
 
     /**
+     * Récupère la progression maximale depuis localStorage
+     * @returns {number} Index max atteint
+     */
+    getMaxProgress() {
+        try {
+            const stored = localStorage.getItem('osbook_progress');
+            return stored ? Number(stored) : 0;
+        } catch (e) {
+            return 0;
+        }
+    },
+
+    /**
+     * Vérifie si un chapitre est débloqué (accessible)
+     * @param {Object} chapter - Le chapitre
+     * @param {number} maxProgress - Progression max
+     * @returns {boolean}
+     */
+    isChapterUnlocked(chapter, maxProgress) {
+        return chapter.startIndex <= maxProgress;
+    },
+
+    /**
+     * Vérifie si un chapitre est terminé
+     * Un chapitre est terminé si le joueur a dépassé son startIndex
+     * @param {Object} chapter - Le chapitre
+     * @param {Object} nextChapter - Le chapitre suivant (ou null)
+     * @param {number} maxProgress - Progression max
+     * @returns {boolean}
+     */
+    isChapterCompleted(chapter, nextChapter, maxProgress) {
+        if (!nextChapter) {
+            // Dernier chapitre : terminé si on a atteint au moins son startIndex + 5 scènes
+            return maxProgress >= chapter.startIndex + 5;
+        }
+        // Chapitre terminé si on a atteint le début du chapitre suivant
+        return maxProgress >= nextChapter.startIndex;
+    },
+
+    /**
      * Rend la timeline
+     * Synchronisé avec la progression réelle du jeu
      */
     render() {
         if (!this.elements.content) return;
 
+        // Lire la progression réelle
+        const maxProgress = this.getMaxProgress();
+
+        // Aplatir tous les chapitres pour calculer leur ordre
+        const allChapters = STORY_ARCS.flatMap(arc => arc.chapters);
+
         let html = '';
 
         STORY_ARCS.forEach(arc => {
-            const completedCount = arc.chapters.filter(ch => this.completedChapters.has(ch.id)).length;
-            const progress = `${completedCount}/${arc.chapters.length}`;
+            // Calculer le nombre de chapitres débloqués/terminés dans cet arc
+            let unlockedCount = 0;
+            arc.chapters.forEach((chapter, idx) => {
+                const globalIdx = allChapters.findIndex(ch => ch.id === chapter.id);
+                const nextChapter = allChapters[globalIdx + 1] || null;
+
+                if (this.isChapterCompleted(chapter, nextChapter, maxProgress)) {
+                    unlockedCount++;
+                }
+            });
+
+            const progress = `${unlockedCount}/${arc.chapters.length}`;
 
             html += `
                 <div class="timeline-arc" data-arc="${arc.id}">
@@ -1034,7 +2329,7 @@ const TimelineManager = {
                         <span class="arc-progress">${progress}</span>
                     </div>
                     <div class="arc-chapters">
-                        ${this.renderChapters(arc.chapters)}
+                        ${this.renderChapters(arc.chapters, maxProgress, allChapters)}
                     </div>
                 </div>
             `;
@@ -1042,7 +2337,7 @@ const TimelineManager = {
 
         this.elements.content.innerHTML = html;
 
-        // Ajouter les event listeners aux chapitres
+        // Ajouter les event listeners aux chapitres débloqués
         this.elements.content.querySelectorAll('.timeline-chapter:not(.locked)').forEach(el => {
             el.addEventListener('click', () => {
                 const chapterId = el.dataset.chapter;
@@ -1054,22 +2349,42 @@ const TimelineManager = {
 
     /**
      * Rend les chapitres d'un arc
+     * @param {Array} chapters - Liste des chapitres de l'arc
+     * @param {number} maxProgress - Progression max du joueur
+     * @param {Array} allChapters - Liste de tous les chapitres (pour trouver le suivant)
      */
-    renderChapters(chapters) {
+    renderChapters(chapters, maxProgress, allChapters) {
         return chapters.map(chapter => {
-            const isCompleted = this.completedChapters.has(chapter.id);
-            const isCurrent = this.currentChapterId === chapter.id;
-            const isLocked = this.isChapterLocked(chapter);
+            const globalIdx = allChapters.findIndex(ch => ch.id === chapter.id);
+            const nextChapter = allChapters[globalIdx + 1] || null;
+
+            const isUnlocked = this.isChapterUnlocked(chapter, maxProgress);
+            const isCompleted = this.isChapterCompleted(chapter, nextChapter, maxProgress);
+            const isCurrent = isUnlocked && !isCompleted;
+            const isLocked = !isUnlocked;
             const isSecret = chapter.secret || false;
 
             let statusClass = 'locked';
             if (isCompleted) statusClass = 'completed';
             else if (isCurrent) statusClass = 'current';
-            else if (isSecret) statusClass = 'secret';
+            else if (isSecret && isLocked) statusClass = 'secret';
             else if (!isLocked) statusClass = 'available';
 
+            // Marqueurs d'événements de personnages
             const deathsHtml = chapter.deaths?.length > 0
-                ? `<div class="chapter-deaths">${chapter.deaths.map(d => `<span class="death-icon" title="${d}">💀</span>`).join('')}</div>`
+                ? `<div class="chapter-events deaths">${chapter.deaths.map(d => `<span class="event-icon death-icon" title="${d} — Mort 💀">💀</span>`).join('')}</div>`
+                : '';
+
+            const resurrectionsHtml = chapter.resurrections?.length > 0
+                ? `<div class="chapter-events resurrections">${chapter.resurrections.map(r => `<span class="event-icon resurrection-icon" title="${r} — Résurrection 🔄">🔄</span>`).join('')}</div>`
+                : '';
+
+            const corruptionsHtml = chapter.corruptions?.length > 0
+                ? `<div class="chapter-events corruptions">${chapter.corruptions.map(c => `<span class="event-icon corruption-icon" title="${c} — Corruption ☠️">☠️</span>`).join('')}</div>`
+                : '';
+
+            const eventsHtml = (deathsHtml || resurrectionsHtml || corruptionsHtml)
+                ? `<div class="chapter-markers">${deathsHtml}${resurrectionsHtml}${corruptionsHtml}</div>`
                 : '';
 
             return `
@@ -1081,7 +2396,7 @@ const TimelineManager = {
                         <div class="chapter-name">${chapter.name}</div>
                         <div class="chapter-details">${isLocked ? '🔒 Verrouillé' : ''}</div>
                     </div>
-                    ${deathsHtml}
+                    ${eventsHtml}
                 </div>
             `;
         }).join('');
@@ -1089,17 +2404,23 @@ const TimelineManager = {
 
     /**
      * Vérifie si un chapitre est verrouillé
+     * Synchronisé avec la progression réelle du jeu (localStorage)
      */
     isChapterLocked(chapter) {
         // Le premier chapitre n'est jamais verrouillé
-        const allChapters = STORY_ARCS.flatMap(arc => arc.chapters);
-        const chapterIndex = allChapters.findIndex(ch => ch.id === chapter.id);
+        if (chapter.startIndex === 0) return false;
 
-        if (chapterIndex === 0) return false;
+        // Lire la progression réelle depuis localStorage
+        let maxProgress = 0;
+        try {
+            const stored = localStorage.getItem('osbook_progress');
+            maxProgress = stored ? Number(stored) : 0;
+        } catch (e) {
+            maxProgress = 0;
+        }
 
-        // Verrouillé si le chapitre précédent n'est pas terminé
-        const prevChapter = allChapters[chapterIndex - 1];
-        return prevChapter && !this.completedChapters.has(prevChapter.id);
+        // Un chapitre est déverrouillé si on a atteint son startIndex
+        return chapter.startIndex > maxProgress;
     },
 
     /**
@@ -1599,6 +2920,186 @@ function transitionMentalState(state, value, duration) { MentalStateManager.tran
 document.addEventListener('DOMContentLoaded', () => {
     MentalStateManager.init();
 });
+
+// ============================================
+// NARRATOR AI - Gestionnaire du Narrateur IA
+// ============================================
+
+const NarratorAI = {
+    currentTone: 'calm', // calm, epic, dark, ironic
+    deadOS: new Set(),   // Set of IDs of dead OSs
+    corruptedOS: new Set(), // Set of IDs of corrupted OSs
+
+    /**
+     * Change le ton du narrateur
+     * @param {string} tone - 'calm', 'epic', 'dark', 'ironic'
+     */
+    setTone(tone) {
+        const validTones = ['calm', 'epic', 'dark', 'ironic'];
+        if (validTones.includes(tone)) {
+            this.currentTone = tone;
+            console.log(`🤖 NarratorAI: Ton changé en ${tone}`);
+
+            // Mise à jour visuelle immédiate si possible
+            const dialogueBox = document.querySelector('.dialogue-box');
+            if (dialogueBox) {
+                dialogueBox.className = 'dialogue-box'; // Reset
+                if (tone !== 'calm') {
+                    // Les classes CSS sont appliquées sur le texte, mais on peut aussi styliser la box
+                }
+            }
+        }
+    },
+
+    /**
+     * Enregistre la mort d'un OS
+     */
+    registerDeath(osId) {
+        this.deadOS.add(osId);
+        console.log(`💀 NarratorAI: Décès enregistré de ${osId}`);
+        // Si un OS meurt, le ton devient sombre temporairement
+        if (this.currentTone !== 'epic') {
+            this.setTone('dark');
+        }
+    },
+
+    /**
+     * Enregistre la corruption d'un OS
+     */
+    registerCorruption(osId) {
+        this.corruptedOS.add(osId);
+        this.setTone('dark');
+    },
+
+    /**
+     * Traite le texte du narrateur selon le ton et l'état du jeu
+     */
+    processText(text) {
+        let processed = text;
+
+        // Si c'est le narrateur qui parle, on peut modifier le texte
+        // Note: Cette fonction est appelée par VisualNovelEngine
+
+        // Réactions contextuelles (Easter eggs)
+        if (this.deadOS.has('windows7') && text.toLowerCase().includes('roi')) {
+            processed += " (Le trône est désormais vide...)";
+        }
+        if (this.corruptedOS.has('chromeos') && text.toLowerCase().includes('futur')) {
+            processed = processed.replace('futur', 'F.U.T.U.R (Corrompu)');
+        }
+
+        // Ajouts basés sur le ton (flavor text)
+        switch (this.currentTone) {
+            case 'epic':
+                // Pas de modif de texte brut, géré par CSS, peut-être des emojis
+                if (!processed.includes('⚔️')) processed = `✨ ${processed} ✨`;
+                break;
+            case 'dark':
+                // Ambiance sombre
+                break;
+            case 'ironic':
+                if (Math.random() > 0.8) processed += " (Enfin, théoriquement.)";
+                break;
+        }
+
+        return processed;
+    },
+
+    /**
+     * Retourne la classe CSS associée au ton actuel
+     */
+    getToneClass() {
+        return `narrator-${this.currentTone}`;
+    },
+
+    /**
+     * Commente un choix du joueur
+     */
+    commentOnChoice(choiceId) {
+        const comments = {
+            'calm': "Intéressant.",
+            'epic': "Le destin est en marche.",
+            'dark': "Cela ne te sauvera pas.",
+            'ironic': "Vraiment ? Ce bouton là ?"
+        };
+        // Retourne un commentaire par défaut selon le ton, ou null
+        return comments[this.currentTone] || null;
+    },
+
+    /**
+     * Réinitialise le narrateur
+     */
+    reset() {
+        this.currentTone = 'calm';
+        this.deadOS.clear();
+        this.corruptedOS.clear();
+        console.log('🤖 NarratorAI: Réinitialisé');
+    }
+};
+
+// ============================================
+// CHARACTER SYSTEM - Gestionnaire de cycle de vie des OS
+// ============================================
+
+const CharacterSystem = {
+    states: {
+        // 'alive' (défaut), 'dead', 'ghost', 'resurrected', 'corrupted'
+    },
+
+    // Initialisation
+    init() {
+        this.loadStates();
+    },
+
+    getState(charId) {
+        return this.states[charId] || 'alive';
+    },
+
+    setStatus(charId, status) {
+        if (!charId) return;
+        this.states[charId] = status;
+        this.saveStates();
+        console.log(`👤 CharacterSystem: ${charId} est maintenant ${status}`);
+
+        // Impact collatéral sur le narrateur
+        if (status === 'dead') {
+            if (typeof NarratorAI !== 'undefined') NarratorAI.registerDeath(charId);
+        } else if (status === 'corrupted') {
+            if (typeof NarratorAI !== 'undefined') NarratorAI.registerCorruption(charId);
+        }
+    },
+
+    // Raccourcis
+    kill(charId) { this.setStatus(charId, 'dead'); },
+    resurrect(charId) { this.setStatus(charId, 'resurrected'); },
+    corrupt(charId) { this.setStatus(charId, 'corrupted'); },
+    ghostify(charId) { this.setStatus(charId, 'ghost'); },
+    reset(charId) { this.setStatus(charId, 'alive'); },
+
+    // Persistance
+    saveStates() {
+        localStorage.setItem('osbook_char_states', JSON.stringify(this.states));
+    },
+
+    loadStates() {
+        const saved = localStorage.getItem('osbook_char_states');
+        if (saved) {
+            try {
+                this.states = JSON.parse(saved);
+            } catch (e) {
+                console.warn('Erreur chargement états persos', e);
+            }
+        }
+    },
+
+    resetAll() {
+        this.states = {};
+        this.saveStates();
+    }
+};
+
+// Fonctions globales pour NarratorAI
+function setNarratorTone(tone) { NarratorAI.setTone(tone); }
 
 // ============================================
 // MENU MANAGER - Gestionnaire du menu pause animé
@@ -2768,7 +4269,7 @@ class HeartMonitor {
         this.animationFrame = null;
 
         this.monitorSound = null;
-        this.monitorSoundPath = 'sfx/Monitor.mp3';
+        this.monitorSoundPath = 'sfx/ambience/Monitor.mp3';
         this.monitorVolume = 0.3;
 
         this.audioManager = null;
@@ -3298,6 +4799,48 @@ const CHAPTERS = [
     { id: 'epilogue_final', name: "Épilogue Final", desc: "Un Monde Définitivement Libre", icon: "✨", startIndex: 586, requiresArc4Ch7: true },
     { id: 'arc5', name: "Arc 5", desc: "Le Monde Libre", icon: "🐧", startIndex: 602, requiresEpilogueFinal: true }
 ];
+
+// ============================================
+// MENU THEMES - Thèmes du menu principal par arc
+// ============================================
+
+const MENU_THEMES = {
+    'default': {
+        arcClass: '',
+        bg: 'hospital',
+        music: 'music/95 (Windows Classic Remix).mp3',
+        characters: ['xp', 'windows7', 'windows10'],
+        title: 'BIENVENUE'
+    },
+    'arc2': {
+        arcClass: 'menu-arc2',
+        bg: 'void',
+        music: 'music/Windows XP installation music.mp3',
+        characters: ['windows11', 'macos', null],
+        title: 'LE MONDE OUBLIÉ'
+    },
+    'arc3': {
+        arcClass: 'menu-arc3',
+        bg: 'afterlife',
+        music: null, // Silence ou musique éthérée
+        characters: ['windows7', 'xp', 'kernel'],
+        title: 'LE MONDE DES ÂMES'
+    },
+    'arc4': {
+        arcClass: 'menu-arc4',
+        bg: 'void',
+        music: null,
+        characters: ['windows11', 'windows12', null],
+        title: 'LE FUTUR'
+    },
+    'arc5': {
+        arcClass: 'menu-arc5',
+        bg: 'void',
+        music: null,
+        characters: ['ubuntu', 'windows11', 'macos'],
+        title: 'LE MONDE LIBRE'
+    }
+};
 
 // Clé localStorage pour la progression (index max atteint)
 const STORAGE_KEY_PROGRESS = 'osbook_progress';
@@ -9324,12 +10867,74 @@ class VisualNovelEngine {
 
         this.menuOpen = false;
 
+        // Menu characters elements
+        this.menuCharLeft = document.getElementById('menu-char-left');
+        this.menuCharCenter = document.getElementById('menu-char-center');
+        this.menuCharRight = document.getElementById('menu-char-right');
+        this.menuCharContainer = document.getElementById('menu-characters');
+        this.subtitleElement = document.querySelector('.subtitle');
+
         this.bindEvents();
         this.setupAudioControls();
         this.bindReducedMotionListener();
         this.setupMenu();
         this.setupChapterModal();
         this.setupWhatIfModal();
+        this.applyMenuTheme();
+    }
+
+    // ============================================
+    // MENU THÈME DYNAMIQUE
+    // ============================================
+
+    getCurrentArc() {
+        const progress = this.getProgress();
+
+        // Determine arc based on progress
+        const arc5Start = CHAPTERS.find(c => c.id === 'arc5')?.startIndex || 602;
+        const arc4Start = CHAPTERS.find(c => c.id === 'arc4')?.startIndex || 375;
+        const arc3Start = CHAPTERS.find(c => c.id === 'arc3')?.startIndex || 322;
+        const arc2Start = CHAPTERS.find(c => c.id === 'arc2')?.startIndex || 189;
+
+        if (progress >= arc5Start) return 'arc5';
+        if (progress >= arc4Start) return 'arc4';
+        if (progress >= arc3Start) return 'arc3';
+        if (progress >= arc2Start) return 'arc2';
+        return 'default';
+    }
+
+    applyMenuTheme() {
+        const arcId = this.getCurrentArc();
+        const theme = MENU_THEMES[arcId] || MENU_THEMES['default'];
+
+        console.log(`🎨 Menu Theme: ${arcId}`, theme);
+
+        // Apply arc class to body for CSS styling
+        document.body.classList.remove('menu-arc2', 'menu-arc3', 'menu-arc4', 'menu-arc5');
+        if (theme.arcClass) {
+            document.body.classList.add(theme.arcClass);
+        }
+
+        // Update subtitle
+        if (this.subtitleElement && theme.title) {
+            this.subtitleElement.textContent = theme.title;
+        }
+
+        // Apply characters
+        const charSlots = [this.menuCharLeft, this.menuCharCenter, this.menuCharRight];
+        theme.characters.forEach((charId, index) => {
+            const slot = charSlots[index];
+            if (!slot) return;
+
+            if (charId && CHARACTERS[charId]) {
+                const char = CHARACTERS[charId];
+                slot.src = char.image || '';
+                slot.alt = char.name || '';
+                slot.style.display = 'block';
+            } else {
+                slot.style.display = 'none';
+            }
+        });
     }
 
     bindReducedMotionListener() {
@@ -9459,6 +11064,8 @@ class VisualNovelEngine {
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.resetCharacters();
+        if (typeof NarratorAI !== 'undefined') NarratorAI.reset();
+        document.body.classList.remove('theme-other-world');
     }
 
     transitionScreen(from, to) {
@@ -9638,6 +11245,7 @@ class VisualNovelEngine {
         this.hideGraves();
         this.changeSceneBackground('hospital');
         this.resetCharacters();
+        if (typeof NarratorAI !== 'undefined') NarratorAI.reset();
         // Relancer la première scène
         setTimeout(() => this.playScene(), 300);
     }
@@ -9655,8 +11263,11 @@ class VisualNovelEngine {
         this.hideGraves();
         this.changeSceneBackground('hospital');
         this.resetCharacters();
+        if (typeof NarratorAI !== 'undefined') NarratorAI.reset();
+        document.body.classList.remove('theme-other-world');
         // Retour à l'écran de démarrage
         this.transitionScreen(this.screens.vn, this.screens.start);
+        this.applyMenuTheme();
     }
 
     // ============================================
@@ -10212,6 +11823,20 @@ class VisualNovelEngine {
     queueWhatIfBranch(branchId, options = {}) {
         const scenes = this.getWhatIfBranchScenes(branchId);
         if (!scenes.length) return;
+
+        // Narrator comment on choice
+        if (typeof NarratorAI !== 'undefined') {
+            const comment = NarratorAI.commentOnChoice(branchId);
+            if (comment) {
+                scenes.unshift({
+                    scene: 'void', // Keep current background if possible, or use void
+                    speaker: 'narrator',
+                    text: comment,
+                    emotion: NarratorAI.currentTone || 'normal'
+                });
+            }
+        }
+
         this.branchQueue = scenes;
         this.pendingBaseSkip = Boolean(options.skipCurrent);
         this.branchTriggers.add(branchId);
@@ -10447,6 +12072,13 @@ class VisualNovelEngine {
             this.changeSceneBackground(scene.scene);
         }
 
+        // --- THEME: AUTRE MONDE ---
+        if (scene.scene === 'afterlife' || scene.otherWorldTheme) {
+            document.body.classList.add('theme-other-world');
+        } else {
+            document.body.classList.remove('theme-other-world');
+        }
+
         if (scene.graves) {
             this.showGraves(scene.graves);
         } else if (this.currentSceneId === 'void') {
@@ -10479,10 +12111,57 @@ class VisualNovelEngine {
             this.audioManager.stopMusic(true);
         }
 
-        if (scene.sfx) {
+        // === NOUVEAU: Support SFX via SoundManager ===
+        // Format 1: scene.sfx = 'attacks/chromeos_attack' (string path)
+        // Format 2: scene.sfx = { category: 'attacks', sound: 'chromeos_attack', volume: 0.7 }
+        // Format 3: scene.sfxScene = 'kernel_intervention' (scène narrative)
+
+        if (scene.sfxScene && typeof NarrativeSoundManager !== 'undefined') {
+            // Jouer une scène narrative complète
+            console.log(`🎵 Scène SFX: ${scene.sfxScene}`);
+            NarrativeSoundManager.playScene(scene.sfxScene).catch(e => {
+                console.warn(`🎵 Échec scène ${scene.sfxScene}:`, e);
+            });
+        }
+
+        if (scene.sfx && typeof SoundManager !== 'undefined') {
             setTimeout(() => {
-                this.audioManager.playSFX(scene.sfx);
-            }, 500);
+                // Format string: 'category/soundId'
+                if (typeof scene.sfx === 'string') {
+                    if (scene.sfx.includes('/')) {
+                        const [category, soundId] = scene.sfx.split('/');
+                        console.log(`🎵 SFX: ${category}/${soundId}`);
+                        SoundManager.play(category, soundId);
+                    } else {
+                        // Fallback ancien système
+                        this.audioManager.playSFX(scene.sfx);
+                    }
+                }
+                // Format objet: { category, sound, volume }
+                else if (typeof scene.sfx === 'object') {
+                    const { category, sound, volume } = scene.sfx;
+                    console.log(`🎵 SFX: ${category}/${sound} (vol: ${volume || 'default'})`);
+                    SoundManager.play(category, sound, { volume: volume || 0.7 });
+                }
+            }, 200);
+        }
+
+        // === Événements SFX spéciaux basés sur les flags de scène ===
+        if (typeof SoundManager !== 'undefined') {
+            // Freeze total
+            if (scene.freezeTotal && typeof NarrativeSoundManager !== 'undefined') {
+                NarrativeSoundManager.playScene('total_freeze').catch(() => { });
+            }
+
+            // Lockdown
+            if (scene.systemLockdown && typeof NarrativeSoundManager !== 'undefined') {
+                NarrativeSoundManager.playScene('system_lockdown').catch(() => { });
+            }
+
+            // Douleur (quand shake + speaker blessé)
+            if (scene.shake && scene.emotion === 'fear') {
+                SoundManager.play('pain', 'digital_pain', { volume: 0.4 });
+            }
         }
     }
 
@@ -10527,7 +12206,7 @@ class VisualNovelEngine {
             const elements = charElements[index];
 
             // Remove effects
-            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel', 'villain', 'chromeos-appear', 'ssj', 'ssj-calm', 'chromeos-weakening', 'chromeos-glitch', 'chromeos-disconnect', 'chromeos-death');
+            elements.slot.classList.remove('lonely', 'shake', 'xp-appear', 'fade-out-goodbye', 'crying', 'hug-animation', 'hugging-left', 'hugging-right', 'death-effect', 'ubuntu-appear', 'bow-head', 'fast-death-effect', 'windows12-appear', 'kernel', 'villain', 'chromeos-appear', 'ssj', 'ssj-calm', 'chromeos-weakening', 'chromeos-glitch', 'chromeos-disconnect', 'chromeos-death', 'char-status-dead', 'char-status-ghost', 'char-status-resurrected', 'char-status-corrupted', 'combat-aura-win11', 'combat-aura-chromeos', 'combat-aura-kernel');
 
             if (charId) {
                 const character = CHARACTERS[charId];
@@ -10591,6 +12270,7 @@ class VisualNovelEngine {
                 // Apply death effect (character becomes grey/transparent - R.I.P.)
                 if (scene.deathEffect && charId === scene.deathEffect && !this.reduceMotion) {
                     elements.slot.classList.add('death-effect');
+                    if (typeof NarratorAI !== 'undefined') NarratorAI.registerDeath(charId);
                 }
 
                 // Apply Ubuntu appearance effect
@@ -10606,6 +12286,7 @@ class VisualNovelEngine {
                 // Apply fast death effect (quick disappearance - Windows 8)
                 if (scene.fastDeathEffect && charId === scene.fastDeathEffect && !this.reduceMotion) {
                     elements.slot.classList.add('fast-death-effect');
+                    if (typeof NarratorAI !== 'undefined') NarratorAI.registerDeath(charId);
                 }
 
                 // Apply Windows 12 flash appearance effect
@@ -10646,14 +12327,24 @@ class VisualNovelEngine {
                 // CHROMEOS - Effets de défaite
                 // ========================================
 
-                // Apply ChromeOS weakening effect (losing power)
                 if (scene.chromeosWeakening && charId === 'chromeos' && !this.reduceMotion) {
                     elements.slot.classList.add('chromeos-weakening');
+                }
+
+                // ========================================
+                // CHARACTER SYSTEM - États persistants
+                // ========================================
+                if (typeof CharacterSystem !== 'undefined') {
+                    const status = CharacterSystem.getState(charId);
+                    if (status !== 'alive') {
+                        elements.slot.classList.add(`char-status-${status}`);
+                    }
                 }
 
                 // Apply ChromeOS glitch effect (visual bug)
                 if (scene.chromeosGlitch && charId === 'chromeos' && !this.reduceMotion) {
                     elements.slot.classList.add('chromeos-glitch');
+                    if (typeof NarratorAI !== 'undefined') NarratorAI.registerCorruption(charId);
                 }
 
                 // Apply ChromeOS disconnect effect (losing connection)
@@ -10664,11 +12355,44 @@ class VisualNovelEngine {
                 // Apply ChromeOS death effect (final disappearance)
                 if (scene.chromeosDeath && charId === 'chromeos' && !this.reduceMotion) {
                     elements.slot.classList.add('chromeos-death');
+                    if (typeof NarratorAI !== 'undefined') NarratorAI.registerDeath(charId);
+                }
+
+                // ========================================
+                // COMBAT AURAS - Effets d'aura de combat
+                // ========================================
+
+                // Apply combat aura based on scene.combatAura property
+                // combatAura can be: 'win11', 'chromeos', 'kernel', or an object { left: 'type', center: 'type', right: 'type' }
+                if (scene.combatAura && !this.reduceMotion) {
+                    // Remove any existing combat auras first
+                    ['win11', 'chromeos', 'kernel'].forEach(type => {
+                        elements.slot.classList.remove(`combat-aura-${type}`);
+                    });
+
+                    // Handle object format: { left: 'win11', right: 'chromeos' }
+                    if (typeof scene.combatAura === 'object') {
+                        const auraType = scene.combatAura[pos];
+                        if (auraType && ['win11', 'chromeos', 'kernel'].includes(auraType)) {
+                            elements.slot.classList.add(`combat-aura-${auraType}`);
+                        }
+                    }
+                    // Handle string format for speaker's aura
+                    else if (typeof scene.combatAura === 'string') {
+                        // Apply to the speaking character or based on character ID
+                        if (charId === scene.speaker ||
+                            (scene.combatAura === 'win11' && charId === 'windows11') ||
+                            (scene.combatAura === 'chromeos' && charId === 'chromeos') ||
+                            (scene.combatAura === 'kernel' && charId === 'kernel')) {
+                            elements.slot.classList.add(`combat-aura-${scene.combatAura}`);
+                        }
+                    }
                 }
             } else {
                 elements.slot.classList.remove('visible', 'speaking');
                 this.clearEmotions(elements.slot);
             }
+
         });
     }
 
@@ -10717,11 +12441,66 @@ class VisualNovelEngine {
 
         this.elements.continueIndicator.style.visibility = 'hidden';
 
+        let textToDisplay = scene.text;
+
+        // --- NARRATOR AI INTEGRATION ---
+        // remove old narrator classes
+        this.elements.dialogueVisual.classList.remove('narrator-calm', 'narrator-epic', 'narrator-dark', 'narrator-ironic');
+        this.elements.dialogueLive.classList.remove('narrator-calm', 'narrator-epic', 'narrator-dark', 'narrator-ironic');
+
+        if (scene.speaker === 'narrator') {
+            if (typeof NarratorAI !== 'undefined') {
+                // Determine tone based on emotion or MentalStateManager
+                if (scene.emotion === 'ironic') {
+                    NarratorAI.setTone('ironic');
+                } else if (scene.emotion === 'dark' || scene.emotion === 'fear') {
+                    NarratorAI.setTone('dark');
+                } else if (scene.emotion === 'epic' || scene.emotion === 'divine') {
+                    NarratorAI.setTone('epic');
+                } else if (scene.emotion === 'calm') {
+                    NarratorAI.setTone('calm');
+                } else {
+                    // Fallback to Mental State
+                    if (typeof MentalStateManager !== 'undefined') {
+                        const dominant = MentalStateManager.getDominantState();
+                        if (dominant.name === 'fear' || dominant.name === 'corruption') NarratorAI.setTone('dark');
+                        else if (dominant.name === 'doubt') NarratorAI.setTone('ironic');
+                        else NarratorAI.setTone('calm');
+                    } else {
+                        NarratorAI.setTone('calm');
+                    }
+                }
+
+                textToDisplay = NarratorAI.processText(textToDisplay);
+
+                const toneClass = NarratorAI.getToneClass();
+                this.elements.dialogueVisual.classList.add(toneClass);
+                this.elements.dialogueLive.classList.add(toneClass);
+            }
+        } else {
+            // --- CHARACTER SYSTEM INTEGRATION ---
+            if (typeof CharacterSystem !== 'undefined') {
+                const status = CharacterSystem.getState(scene.speaker);
+
+                if (status === 'ghost') {
+                    textToDisplay = `👻 *${textToDisplay}*`;
+                    // Ethereal text style handled by CSS on the character image, 
+                    // but we can add inline style for text if needed.
+                } else if (status === 'corrupted') {
+                    // Slight corruption of text
+                    textToDisplay = textToDisplay.split('').map(c => Math.random() < 0.1 ? 'X' : c).join('');
+                } else if (status === 'resurrected') {
+                    textToDisplay = `✨ ${textToDisplay} ✨`;
+                }
+            }
+        }
+        // -------------------------------
+
         if (typeof MemoryLogManager !== 'undefined') {
-            MemoryLogManager.addEntry(speakerName, scene.text);
+            MemoryLogManager.addEntry(speakerName, textToDisplay);
         }
 
-        this.typeText(scene.text);
+        this.typeText(textToDisplay);
     }
 
     typeText(text) {
@@ -12652,6 +14431,65 @@ class VisualNovelEngine {
 // ============================================
 // INITIALISATION
 // ============================================
+
+// ============================================
+// BPM SYNC INTEGRATION - Contrôles et intégration VN
+// ============================================
+
+/**
+ * Initialise les contrôles du bouton BPM Sync
+ */
+function initBPMSyncControls() {
+    const syncBtn = document.getElementById('mp-bpm-sync-toggle');
+    if (!syncBtn) return;
+
+    syncBtn.addEventListener('click', () => {
+        const isEnabled = BPMSyncManager.toggle();
+        syncBtn.setAttribute('aria-pressed', isEnabled.toString());
+        syncBtn.textContent = isEnabled ? '⚡ SYNC' : '⚡ OFF';
+        console.log(`🎵 BPM Sync: ${isEnabled ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`);
+    });
+}
+
+/**
+ * Intègre la musique contextuelle au changement de scène
+ * Appelé par le moteur VN lors des transitions
+ * @param {string} sceneType - Type de scène (hospital, graveyard, void)
+ * @param {Object} sceneData - Données de la scène optionnelles
+ */
+function handleSceneMusicChange(sceneType, sceneData = {}) {
+    // Si la scène définit une musique explicite, l'utiliser
+    if (sceneData.music) {
+        IntelligentMusicManager.play(sceneData.music);
+        return;
+    }
+
+    // Si elle définit une ambiance, l'utiliser
+    if (sceneData.mood) {
+        IntelligentMusicManager.setMoodMusic(sceneData.mood);
+        return;
+    }
+
+    // Sinon, choisir selon le type de scène
+    IntelligentMusicManager.setSceneMusic(sceneType);
+}
+
+/**
+ * Fonction utilitaire pour récupérer la vitesse de frappe synchronisée BPM
+ * Utilisable par le moteur VN pour animer le texte
+ * @returns {number} - Délai en ms entre chaque caractère
+ */
+function getTypingDelay() {
+    return BPMSyncManager.getTypingSpeed();
+}
+
+// Initialiser les contrôles BPM au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    initBPMSyncControls();
+
+    // Jouer une piste par défaut au démarrage (optionnel)
+    // IntelligentMusicManager.play('win11');
+});
 
 // ============================================
 // CONTROLES MEDIA PLAYER (Taskbar Aero)

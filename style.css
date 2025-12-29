@@ -174,6 +174,63 @@ body {
         linear-gradient(180deg, #0a0a1a 0%, #151530 100%);
 }
 
+/* Conteneur des boutons du menu - Layout stable */
+.menu-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin-top: 1rem;
+    /* Z-index élevé pour rester au-dessus des personnages */
+    position: relative;
+    z-index: 10;
+    /* Animations autorisées : opacity + translateY uniquement */
+    animation: fadeInUp 0.8s ease-out 0.3s backwards;
+}
+
+/* Personnages décoratifs du menu - en arrière-plan */
+.menu-characters {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 2rem;
+}
+
+.menu-char {
+    max-width: 180px;
+    max-height: 35vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.3));
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.menu-char.left {
+    align-self: flex-end;
+}
+
+.menu-char.center {
+    /* Masqué par défaut - le logo central interfère avec les boutons */
+    /* Peut être activé via JS si nécessaire */
+    display: none !important;
+}
+
+.menu-char.right {
+    align-self: flex-end;
+}
+
 .title-container {
     text-align: center;
     animation: fadeInUp 1s ease-out;
@@ -254,7 +311,6 @@ body {
 
 /* Bouton Choisir un chapitre */
 .chapter-select-btn {
-    margin-top: 1rem;
     padding: 0.8rem 2rem;
     font-family: 'Orbitron', sans-serif;
     font-size: 1rem;
@@ -6678,6 +6734,201 @@ body {
 }
 
 /* Texte glitché */
+border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend-dot.completed {
+    background: #10b981;
+}
+
+.legend-dot.current {
+    background: var(--primary-color);
+}
+
+.legend-dot.locked {
+    background: rgba(100, 100, 120, 0.5);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.legend-dot.secret {
+    background: #8b5cf6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timeline-container {
+        width: 100%;
+        max-height: 90vh;
+        border-radius: 0;
+        padding: 1.5rem 1rem;
+    }
+
+    .timeline-arc {
+        width: 250px;
+    }
+
+    .timeline-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}
+
+/* ============================================
+   MENTAL STATE - Effets visuels dynamiques
+   ============================================ */
+
+/* Variables dynamiques d'état mental */
+:root {
+    --mental-color: #00d4ff;
+}
+
+/* Shake niveau 1 (Doute) */
+.mental-shake-1 {
+    animation: mentalShake1 0.5s linear infinite;
+}
+
+@keyframes mentalShake1 {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-1px);
+    }
+
+    75% {
+        transform: translateX(1px);
+    }
+}
+
+/* Shake niveau 2 (Peur) */
+.mental-shake-2 {
+    animation: mentalShake2 0.3s linear infinite;
+}
+
+@keyframes mentalShake2 {
+
+    0%,
+    100% {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(-2px, 1px);
+    }
+
+    40% {
+        transform: translate(1px, -1px);
+    }
+
+    60% {
+        transform: translate(-1px, 2px);
+    }
+
+    80% {
+        transform: translate(2px, -1px);
+    }
+}
+
+/* Shake niveau 3 (Corruption) */
+.mental-shake-3 {
+    animation: mentalShake3 0.15s linear infinite;
+}
+
+@keyframes mentalShake3 {
+
+    0%,
+    100% {
+        transform: translate(0) skewX(0);
+    }
+
+    25% {
+        transform: translate(-3px, 1px) skewX(-1deg);
+    }
+
+    50% {
+        transform: translate(2px, -2px) skewX(1deg);
+    }
+
+    75% {
+        transform: translate(-1px, 2px) skewX(-0.5deg);
+    }
+}
+
+/* Corruption - Effet glitch permanent */
+.mental-corrupted {
+    position: relative;
+}
+
+.mental-corrupted::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg,
+            rgba(255, 0, 0, 0.03) 0px,
+            rgba(255, 0, 0, 0.03) 1px,
+            transparent 1px,
+            transparent 2px);
+    pointer-events: none;
+    z-index: 99999;
+    animation: corruptionScanlines 0.1s steps(3) infinite;
+}
+
+@keyframes corruptionScanlines {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(4px);
+    }
+}
+
+/* États par data-attribute */
+[data-mental-state="calm"] {
+    --primary-color: #00d4ff;
+}
+
+[data-mental-state="doubt"] {
+    --primary-color: #fbbf24;
+}
+
+[data-mental-state="fear"] {
+    --primary-color: #a855f7;
+}
+
+[data-mental-state="corruption"] {
+    --primary-color: #ef4444;
+}
+
+/* Dialogue box adaptatif */
+[data-mental-state="corruption"] .dialogue-box {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+}
+
+[data-mental-state="fear"] .dialogue-box {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+}
+
+/* Texte glitché */
 .text-corrupted {
     position: relative;
     animation: textGlitch 0.3s steps(2) infinite;
@@ -6696,5 +6947,2271 @@ body {
             2px 0 #ff0000,
             -2px 0 #00ffff;
         transform: translateX(1px);
+    }
+}
+
+/* ============================================
+   NARRATOR AI STYLES - Styles du Narrateur IA
+   ============================================ */
+
+/* Le Narrateur par défaut (Calm) */
+.narrator-calm {
+    font-family: 'Inter', sans-serif;
+    color: #a0a0c0;
+    /* Gris bleuté doux */
+    font-style: italic;
+    border-left: 3px solid #a0a0c0;
+    padding-left: 1rem;
+}
+
+/* Le Narrateur Épique (Héroïque/Divin) */
+.narrator-epic {
+    font-family: 'Orbitron', sans-serif;
+    color: #f6d365;
+    /* Or */
+    text-shadow: 0 0 10px rgba(246, 211, 101, 0.5);
+    font-weight: 700;
+    border-left: 3px solid #f6d365;
+    padding-left: 1rem;
+    animation: epicPulse 3s ease-in-out infinite;
+}
+
+@keyframes epicPulse {
+
+    0%,
+    100% {
+        text-shadow: 0 0 10px rgba(246, 211, 101, 0.5);
+    }
+
+    50% {
+        text-shadow: 0 0 20px rgba(246, 211, 101, 0.8), 0 0 5px white;
+    }
+}
+
+/* Le Narrateur Sombre (Corruption/Danger) */
+.narrator-dark {
+    font-family: 'Courier New', monospace;
+    color: #ff4444;
+    /* Rouge sang */
+    text-shadow: 2px 0 0 rgba(0, 0, 0, 0.8);
+    border-left: 3px solid #ff4444;
+    padding-left: 1rem;
+    position: relative;
+    letter-spacing: 0.05em;
+}
+
+.narrator-dark::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 0, 0, 0.05);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Le Narrateur Ironique (Moqueur/Méta) */
+.narrator-ironic {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #00ffaa;
+    /* Vert terminal/Matrix */
+    text-shadow: 0 0 5px #00ffaa;
+    border-left: 3px solid #00ffaa;
+    padding-left: 1rem;
+}
+
+.narrator-ironic::after {
+    content: ' [Observation IA]';
+    font-size: 0.7em;
+    opacity: 0.7;
+    vertical-align: super;
+}
+
+/* ============================================
+   CHARACTER LIFECYCLE - États des personnages
+   ============================================ */
+
+/* VIVANT (Défaut) */
+.char-status-alive {
+    filter: none;
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.5s ease;
+}
+
+/* MORT (Grisé, fantomatique static) */
+.char-status-dead {
+    filter: grayscale(100%) brightness(0.6) contrast(1.2);
+    opacity: 0.7;
+    transform: scale(0.95);
+    transition: all 1s ease;
+}
+
+/* FANTÔME (Autre Monde, éthéré) */
+.char-status-ghost {
+    filter: grayscale(100%) brightness(1.2) drop-shadow(0 0 10px rgba(0, 200, 255, 0.6));
+    opacity: 0.85;
+    animation: ghostFloat 3s ease-in-out infinite alternate;
+    mix-blend-mode: screen;
+    /* Donne un effet lumineux spectral */
+}
+
+@keyframes ghostFloat {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        transform: translateY(-10px) scale(1.02);
+    }
+}
+
+/* RESSUSCITÉ (Retour héroïque, aura dorée) */
+.char-status-resurrected {
+    filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+    animation: resurrectGlow 2s infinite alternate;
+}
+
+@keyframes resurrectGlow {
+    0% {
+        filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    }
+
+    100% {
+        filter: brightness(1.3) drop-shadow(0 0 25px rgba(255, 215, 0, 1));
+    }
+}
+
+/* CORROMPU (Glitché, instable) */
+.char-status-corrupted {
+    filter: hue-rotate(-50deg) contrast(1.5) saturate(2);
+    animation: corruptionGlitch 0.2s infinite;
+}
+
+@keyframes corruptionGlitch {
+    0% {
+        transform: translate(0, 0) skew(0deg);
+        opacity: 1;
+    }
+
+    20% {
+        transform: translate(-2px, 2px) skew(-5deg);
+        opacity: 0.9;
+    }
+
+    40% {
+        transform: translate(2px, -2px) skew(5deg);
+        opacity: 1;
+    }
+
+    60% {
+        transform: translate(-2px, -2px) skew(-2deg);
+        opacity: 0.8;
+    }
+
+    80% {
+        transform: translate(2px, 2px) skew(2deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(0, 0) skew(0deg);
+        opacity: 1;
+    }
+}
+
+
+/* ============================================
+   THEME: AUTRE MONDE (L'Au-delà)
+   ============================================ */
+
+.theme-other-world {
+    --primary-color: #22d3ee;
+    /* Cyan fantomatique */
+    --secondary-color: #0e7490;
+    /* Cyan plus sombre */
+    --bg-color: rgba(0, 20, 40, 0.95);
+    --text-color: #a5f3fc;
+    --glow-color: rgba(34, 211, 238, 0.5);
+}
+
+/* Fond général - brume éthérée */
+.theme-other-world #app {
+    background: radial-gradient(ellipse at center, rgba(10, 30, 60, 0.9) 0%, rgba(0, 10, 20, 1) 100%);
+    animation: otherWorldBg 10s ease-in-out infinite alternate;
+}
+
+@keyframes otherWorldBg {
+    0% {
+        filter: hue-rotate(0deg) brightness(1);
+    }
+
+    100% {
+        filter: hue-rotate(10deg) brightness(0.9);
+    }
+}
+
+/* Dialogue Box - Style cristallin fantôme */
+.theme-other-world .dialogue-box {
+    background: linear-gradient(135deg, rgba(10, 50, 80, 0.7), rgba(0, 30, 50, 0.85)) !important;
+    border: 1px solid rgba(34, 211, 238, 0.4) !important;
+    box-shadow:
+        0 0 20px rgba(34, 211, 238, 0.2),
+        inset 0 0 30px rgba(34, 211, 238, 0.1) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Texte instable - effet d'écho */
+.theme-other-world .dialogue-text {
+    color: #a5f3fc !important;
+    text-shadow:
+        0 0 5px rgba(34, 211, 238, 0.8),
+        2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: textInstability 4s ease-in-out infinite;
+}
+
+@keyframes textInstability {
+
+    0%,
+    100% {
+        transform: translateX(0) skewX(0deg);
+        opacity: 1;
+        filter: blur(0px);
+    }
+
+    25% {
+        transform: translateX(-1px) skewX(-0.5deg);
+        opacity: 0.95;
+        filter: blur(0.3px);
+    }
+
+    50% {
+        transform: translateX(1px) skewX(0.5deg);
+        opacity: 0.9;
+        filter: blur(0.5px);
+    }
+
+    75% {
+        transform: translateX(-0.5px) skewX(-0.3deg);
+        opacity: 0.95;
+        filter: blur(0.2px);
+    }
+}
+
+/* Nom du personnage - aura spectrale */
+.theme-other-world .speaker-name {
+    background: linear-gradient(135deg, #0891b2, #22d3ee) !important;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+    animation: ghostPulse 3s ease-in-out infinite;
+}
+
+@keyframes ghostPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(34, 211, 238, 0.8), 0 0 50px rgba(34, 211, 238, 0.3);
+    }
+}
+
+/* Personnages - effet fantomatique */
+.theme-other-world .character-slot img {
+    filter: brightness(1.1) drop-shadow(0 0 15px rgba(34, 211, 238, 0.6));
+    animation: charFloat 5s ease-in-out infinite alternate;
+}
+
+@keyframes charFloat {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Indicateur de continuation - pulsation spectrale */
+.theme-other-world .continue-indicator {
+    color: #22d3ee;
+    animation: ghostBlink 2s infinite;
+}
+
+@keyframes ghostBlink {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+        text-shadow: 0 0 10px #22d3ee;
+    }
+}
+
+/* Effet de brume en overlay */
+.theme-other-world::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(ellipse at 20% 30%, rgba(34, 211, 238, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(8, 145, 178, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1000;
+    animation: mistDrift 15s ease-in-out infinite alternate;
+}
+
+@keyframes mistDrift {
+    0% {
+        opacity: 0.5;
+        transform: translateX(0);
+    }
+
+    100% {
+        opacity: 0.8;
+        transform: translateX(20px);
+    }
+}
+
+
+/* ============================================
+   MENU DYNAMIQUE - Personnages sur l'écran titre
+   ============================================ */
+
+.menu-characters {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.menu-char {
+    height: 80%;
+    max-height: 350px;
+    object-fit: contain;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 20px rgba(0, 150, 255, 0.3));
+    transition: all 0.5s ease;
+    animation: menuCharFloat 4s ease-in-out infinite alternate;
+}
+
+.menu-char.left {
+    transform: translateX(-20%);
+}
+
+.menu-char.right {
+    transform: translateX(20%);
+}
+
+.menu-char.center {
+    transform: translateY(5%);
+}
+
+@keyframes menuCharFloat {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Arc 2 - Style sombre */
+.menu-arc2 .menu-char {
+    filter: drop-shadow(0 0 20px rgba(255, 100, 0, 0.4)) brightness(0.9);
+}
+
+/* Arc 3 - Style fantomatique */
+.menu-arc3 .menu-char {
+    filter: grayscale(80%) drop-shadow(0 0 25px rgba(100, 200, 255, 0.6));
+    opacity: 0.6;
+}
+
+/* Arc 4 - Style futuriste */
+.menu-arc4 .menu-char {
+    filter: drop-shadow(0 0 30px rgba(0, 255, 170, 0.5)) saturate(1.2);
+}
+
+/* Arc 5 - Style libre */
+.menu-arc5 .menu-char {
+    filter: drop-shadow(0 0 20px rgba(229, 148, 32, 0.5));
+}
+
+/* ============================================
+   COMBAT AURAS - Effets d'aura pendant les combats
+   ============================================ */
+
+/* ========== WINDOWS 11 - Lumière Bleue Stable ========== */
+.character-slot.combat-aura-win11 {
+    position: relative;
+}
+
+.character-slot.combat-aura-win11::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+            rgba(0, 150, 255, 0.6) 0%,
+            rgba(0, 100, 200, 0.4) 30%,
+            rgba(0, 50, 150, 0.2) 50%,
+            transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+    animation: combatAuraWin11 2s ease-in-out infinite;
+}
+
+/* Cercles concentriques stables */
+.character-slot.combat-aura-win11::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 180%;
+    height: 180%;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(0, 180, 255, 0.4);
+    border-radius: 50%;
+    z-index: -2;
+    pointer-events: none;
+    animation: combatAuraWin11Ring 3s ease-in-out infinite;
+    box-shadow:
+        0 0 20px rgba(0, 150, 255, 0.5),
+        inset 0 0 30px rgba(0, 100, 200, 0.3);
+}
+
+@keyframes combatAuraWin11 {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes combatAuraWin11Ring {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.5;
+        border-color: rgba(0, 150, 255, 0.4);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: 0.8;
+        border-color: rgba(0, 200, 255, 0.6);
+    }
+}
+
+/* Particules flottantes autour */
+.character-slot.combat-aura-win11 .character-sprite {
+    filter: drop-shadow(0 0 15px rgba(0, 150, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 100, 200, 0.5)) brightness(1.1);
+    animation: combatAuraWin11Sprite 2s ease-in-out infinite;
+}
+
+@keyframes combatAuraWin11Sprite {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 15px rgba(0, 150, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 100, 200, 0.5)) brightness(1.1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 25px rgba(0, 180, 255, 1)) drop-shadow(0 0 50px rgba(0, 120, 220, 0.7)) brightness(1.2);
+    }
+}
+
+/* ========== CHROMEOS - Glitch Agressif ========== */
+.character-slot.combat-aura-chromeos {
+    position: relative;
+}
+
+.character-slot.combat-aura-chromeos::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+            rgba(234, 67, 53, 0.5) 0%,
+            rgba(66, 133, 244, 0.4) 25%,
+            rgba(251, 188, 4, 0.3) 50%,
+            rgba(52, 168, 83, 0.2) 65%,
+            transparent 80%);
+    z-index: -1;
+    pointer-events: none;
+    animation: combatAuraChromeGlitch 0.15s steps(3) infinite;
+}
+
+/* Effet de distorsion glitch */
+.character-slot.combat-aura-chromeos::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 190%;
+    height: 190%;
+    transform: translate(-50%, -50%);
+    background:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(234, 67, 53, 0.1) 2px,
+            rgba(234, 67, 53, 0.1) 4px);
+    z-index: -2;
+    pointer-events: none;
+    animation: combatAuraChromeLines 0.1s steps(2) infinite;
+    mix-blend-mode: overlay;
+}
+
+@keyframes combatAuraChromeGlitch {
+    0% {
+        transform: translate(-50%, -50%) scale(1) skewX(0deg);
+        filter: hue-rotate(0deg);
+        opacity: 0.8;
+    }
+
+    33% {
+        transform: translate(-52%, -48%) scale(1.05) skewX(3deg);
+        filter: hue-rotate(90deg);
+        opacity: 0.9;
+    }
+
+    66% {
+        transform: translate(-48%, -52%) scale(0.98) skewX(-3deg);
+        filter: hue-rotate(180deg);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.02) skewX(0deg);
+        filter: hue-rotate(270deg);
+        opacity: 0.85;
+    }
+}
+
+@keyframes combatAuraChromeLines {
+    0% {
+        background-position: 0 0;
+        opacity: 0.5;
+    }
+
+    50% {
+        background-position: 0 5px;
+        opacity: 0.8;
+    }
+
+    100% {
+        background-position: 0 -3px;
+        opacity: 0.4;
+    }
+}
+
+/* Sprite Chrome avec effet de bug visuel */
+.character-slot.combat-aura-chromeos .character-sprite {
+    filter:
+        drop-shadow(-3px 0 0 rgba(234, 67, 53, 0.7)) drop-shadow(3px 0 0 rgba(66, 133, 244, 0.7)) drop-shadow(0 -3px 0 rgba(251, 188, 4, 0.5)) drop-shadow(0 3px 0 rgba(52, 168, 83, 0.5)) brightness(0.9);
+    animation: combatAuraChromeSprite 0.2s steps(4) infinite;
+}
+
+@keyframes combatAuraChromeSprite {
+    0% {
+        transform: translateX(0) skewX(0deg);
+        filter:
+            drop-shadow(-3px 0 0 rgba(234, 67, 53, 0.7)) drop-shadow(3px 0 0 rgba(66, 133, 244, 0.7));
+    }
+
+    25% {
+        transform: translateX(-4px) skewX(2deg);
+        filter:
+            drop-shadow(-5px 0 0 rgba(234, 67, 53, 0.9)) drop-shadow(5px 0 0 rgba(66, 133, 244, 0.3));
+    }
+
+    50% {
+        transform: translateX(2px) skewX(-1deg);
+        filter:
+            drop-shadow(-2px 0 0 rgba(234, 67, 53, 0.4)) drop-shadow(4px 0 0 rgba(66, 133, 244, 0.8));
+    }
+
+    75% {
+        transform: translateX(-2px) skewX(1deg);
+        filter:
+            drop-shadow(-4px 0 0 rgba(234, 67, 53, 0.6)) drop-shadow(3px 0 0 rgba(66, 133, 244, 0.6));
+    }
+
+    100% {
+        transform: translateX(0) skewX(0deg);
+        filter:
+            drop-shadow(-3px 0 0 rgba(234, 67, 53, 0.7)) drop-shadow(3px 0 0 rgba(66, 133, 244, 0.7));
+    }
+}
+
+/* ========== KERNEL - Lumière Divine ========== */
+.character-slot.combat-aura-kernel {
+    position: relative;
+}
+
+/* Halo intérieur sacré */
+.character-slot.combat-aura-kernel::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 220%;
+    height: 220%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 245, 200, 0.6) 20%,
+            rgba(255, 215, 0, 0.4) 40%,
+            rgba(255, 200, 100, 0.2) 60%,
+            transparent 80%);
+    z-index: -1;
+    pointer-events: none;
+    animation: combatAuraKernelInner 2.5s ease-in-out infinite;
+}
+
+/* Rayons divins extérieurs */
+.character-slot.combat-aura-kernel::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 280%;
+    height: 280%;
+    transform: translate(-50%, -50%);
+    background:
+        conic-gradient(from 0deg,
+            transparent 0deg,
+            rgba(255, 255, 255, 0.4) 10deg,
+            transparent 20deg,
+            transparent 30deg,
+            rgba(255, 215, 0, 0.3) 40deg,
+            transparent 50deg,
+            transparent 60deg,
+            rgba(255, 255, 255, 0.5) 70deg,
+            transparent 80deg,
+            transparent 90deg,
+            rgba(255, 245, 200, 0.3) 100deg,
+            transparent 110deg,
+            transparent 120deg,
+            rgba(255, 255, 255, 0.4) 130deg,
+            transparent 140deg,
+            transparent 150deg,
+            rgba(255, 215, 0, 0.4) 160deg,
+            transparent 170deg,
+            transparent 180deg,
+            rgba(255, 255, 255, 0.3) 190deg,
+            transparent 200deg,
+            transparent 210deg,
+            rgba(255, 245, 200, 0.4) 220deg,
+            transparent 230deg,
+            transparent 240deg,
+            rgba(255, 255, 255, 0.5) 250deg,
+            transparent 260deg,
+            transparent 270deg,
+            rgba(255, 215, 0, 0.3) 280deg,
+            transparent 290deg,
+            transparent 300deg,
+            rgba(255, 255, 255, 0.4) 310deg,
+            transparent 320deg,
+            transparent 330deg,
+            rgba(255, 245, 200, 0.3) 340deg,
+            transparent 350deg,
+            transparent 360deg);
+    z-index: -2;
+    pointer-events: none;
+    animation: combatAuraKernelRays 8s linear infinite;
+    filter: blur(3px);
+}
+
+@keyframes combatAuraKernelInner {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.9;
+        filter: brightness(1) blur(0px);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: 1;
+        filter: brightness(1.4) blur(2px);
+    }
+}
+
+@keyframes combatAuraKernelRays {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Sprite Kernel avec éclat divin */
+.character-slot.combat-aura-kernel .character-sprite {
+    filter:
+        drop-shadow(0 0 20px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.7)) drop-shadow(0 0 60px rgba(255, 245, 200, 0.5)) brightness(1.2);
+    animation: combatAuraKernelSprite 3s ease-in-out infinite;
+}
+
+@keyframes combatAuraKernelSprite {
+
+    0%,
+    100% {
+        filter:
+            drop-shadow(0 0 20px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.7)) brightness(1.2);
+    }
+
+    50% {
+        filter:
+            drop-shadow(0 0 35px rgba(255, 255, 255, 1)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 80px rgba(255, 245, 200, 0.6)) brightness(1.5);
+    }
+}
+
+/* Animation de particules de lumière flottantes (optionnelle) */
+.character-slot.combat-aura-kernel .character-name-tag {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 215, 0, 0.3));
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #fff8dc;
+    text-shadow:
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 20px rgba(255, 215, 0, 0.8);
+    animation: combatAuraKernelTag 2s ease-in-out infinite;
+}
+
+@keyframes combatAuraKernelTag {
+
+    0%,
+    100% {
+        text-shadow:
+            0 0 10px rgba(255, 255, 255, 1),
+            0 0 20px rgba(255, 215, 0, 0.8);
+    }
+
+    50% {
+        text-shadow:
+            0 0 15px rgba(255, 255, 255, 1),
+            0 0 30px rgba(255, 215, 0, 1),
+            0 0 40px rgba(255, 245, 200, 0.6);
+    }
+}
+
+/* ========== Responsive pour les auras de combat ========== */
+@media (prefers-reduced-motion: reduce) {
+
+    .character-slot.combat-aura-win11,
+    .character-slot.combat-aura-win11::before,
+    .character-slot.combat-aura-win11::after,
+    .character-slot.combat-aura-win11 .character-sprite,
+    .character-slot.combat-aura-chromeos,
+    .character-slot.combat-aura-chromeos::before,
+    .character-slot.combat-aura-chromeos::after,
+    .character-slot.combat-aura-chromeos .character-sprite,
+    .character-slot.combat-aura-kernel,
+    .character-slot.combat-aura-kernel::before,
+    .character-slot.combat-aura-kernel::after,
+    .character-slot.combat-aura-kernel .character-sprite {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .character-slot.combat-aura-win11::before,
+    .character-slot.combat-aura-chromeos::before,
+    .character-slot.combat-aura-kernel::before {
+        width: 180%;
+        height: 180%;
+    }
+
+    .character-slot.combat-aura-win11::after,
+    .character-slot.combat-aura-chromeos::after {
+        width: 160%;
+        height: 160%;
+    }
+
+    .character-slot.combat-aura-kernel::after {
+        width: 220%;
+        height: 220%;
+    }
+}
+
+/* ============================================
+   HIDDEN CHOICE NOTIFICATIONS - Choix invisibles
+   ============================================ */
+
+.hidden-choice-notification {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 20, 60, 0.95));
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    border-radius: 12px;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        0 0 30px rgba(138, 43, 226, 0.3),
+        inset 0 0 20px rgba(138, 43, 226, 0.1);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hidden-choice-notification.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.hidden-choice-icon {
+    font-size: 1.8rem;
+    animation: hiddenChoiceIconPulse 1s ease-in-out infinite;
+}
+
+@keyframes hiddenChoiceIconPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    }
+
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+    }
+}
+
+.hidden-choice-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    background: linear-gradient(90deg, #a855f7, #06b6d4, #a855f7);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: hiddenChoiceTextShimmer 2s linear infinite;
+    letter-spacing: 0.05em;
+}
+
+@keyframes hiddenChoiceTextShimmer {
+    0% {
+        background-position: 200% center;
+    }
+
+    100% {
+        background-position: -200% center;
+    }
+}
+
+/* Effet glitch subtil sur la notification */
+.hidden-choice-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(138, 43, 226, 0.03) 2px,
+            rgba(138, 43, 226, 0.03) 4px);
+    pointer-events: none;
+    border-radius: 12px;
+    animation: hiddenChoiceScanlines 0.1s steps(2) infinite;
+}
+
+@keyframes hiddenChoiceScanlines {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 4px;
+    }
+}
+
+/* Bordure animée */
+.hidden-choice-notification::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg,
+            rgba(138, 43, 226, 0.5) 0%,
+            rgba(6, 182, 212, 0.5) 50%,
+            rgba(138, 43, 226, 0.5) 100%);
+    border-radius: 14px;
+    z-index: -1;
+    opacity: 0;
+    animation: hiddenChoiceBorderGlow 0.5s ease-out forwards;
+}
+
+.hidden-choice-notification.visible::after {
+    opacity: 1;
+}
+
+@keyframes hiddenChoiceBorderGlow {
+    0% {
+        opacity: 0;
+        filter: blur(5px);
+    }
+
+    50% {
+        opacity: 1;
+        filter: blur(10px);
+    }
+
+    100% {
+        opacity: 0.6;
+        filter: blur(3px);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hidden-choice-notification {
+        padding: 0.8rem 1.5rem;
+        gap: 0.75rem;
+    }
+
+    .hidden-choice-icon {
+        font-size: 1.4rem;
+    }
+
+    .hidden-choice-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .hidden-choice-notification,
+    .hidden-choice-icon,
+    .hidden-choice-text,
+    .hidden-choice-notification::before,
+    .hidden-choice-notification::after {
+        animation: none !important;
+    }
+}
+
+/* ============================================
+   TIMELINE INTERACTIVE - Styles
+   ============================================ */
+
+.timeline-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.timeline-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.timeline-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+}
+
+.timeline-container {
+    position: relative;
+    z-index: 1;
+    width: min(900px, 92vw);
+    max-height: 85vh;
+    padding: 2rem;
+    background: linear-gradient(145deg, rgba(12, 20, 45, 0.98), rgba(8, 12, 28, 0.99));
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 24px;
+    box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.7),
+        0 0 60px rgba(0, 212, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.timeline-modal.open .timeline-container {
+    transform: translateY(0) scale(1);
+}
+
+.timeline-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.timeline-close-btn:hover {
+    background: rgba(255, 71, 87, 0.3);
+    color: #ff4757;
+    transform: rotate(90deg);
+}
+
+.timeline-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    text-align: center;
+    margin-bottom: 0.4rem;
+    background: linear-gradient(135deg, #00d4ff, #7c3aed, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+}
+
+.timeline-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.timeline-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 212, 255, 0.3) transparent;
+}
+
+.timeline-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timeline-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.timeline-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(0, 212, 255, 0.4), rgba(124, 58, 237, 0.4));
+    border-radius: 3px;
+}
+
+/* Arc Container */
+.timeline-arc {
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.timeline-arc:hover {
+    border-color: rgba(0, 212, 255, 0.2);
+}
+
+.arc-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.05), transparent);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.arc-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 10px currentColor);
+}
+
+.arc-info {
+    flex: 1;
+}
+
+.arc-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+}
+
+.arc-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.arc-progress {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    color: var(--primary-color);
+}
+
+/* Chapters */
+.arc-chapters {
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.timeline-chapter {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.9rem 1.1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.timeline-chapter:hover:not(.locked) {
+    background: rgba(0, 212, 255, 0.08);
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateX(6px);
+    box-shadow: 0 5px 20px rgba(0, 212, 255, 0.15);
+}
+
+.timeline-chapter.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.timeline-chapter.locked:hover {
+    background: rgba(255, 255, 255, 0.03);
+    transform: none;
+}
+
+/* Chapter Status Indicator */
+.chapter-status {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.chapter-status.completed {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+}
+
+.chapter-status.current {
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
+    animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+.chapter-status.available {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.chapter-status.locked {
+    background: rgba(100, 100, 100, 0.3);
+    border: 2px solid rgba(100, 100, 100, 0.4);
+}
+
+.chapter-status.secret {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+    animation: secretGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes statusPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+@keyframes secretGlow {
+    0% {
+        box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+    }
+}
+
+/* Chapter Info */
+.chapter-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chapter-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chapter-details {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Event Markers Container */
+.chapter-markers {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.chapter-events {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.event-icon {
+    font-size: 1.1rem;
+    cursor: help;
+    transition: transform 0.2s ease;
+}
+
+.event-icon:hover {
+    transform: scale(1.3);
+}
+
+/* Death Icon */
+.death-icon {
+    filter: drop-shadow(0 0 6px rgba(255, 71, 87, 0.7));
+    animation: deathFlicker 3s ease-in-out infinite;
+}
+
+@keyframes deathFlicker {
+
+    0%,
+    90%,
+    100% {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 0.6;
+    }
+}
+
+/* Resurrection Icon */
+.resurrection-icon {
+    filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.8));
+    animation: resurrectionPulse 2s ease-in-out infinite;
+}
+
+@keyframes resurrectionPulse {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6));
+    }
+
+    50% {
+        transform: scale(1.15) rotate(180deg);
+        filter: drop-shadow(0 0 12px rgba(52, 211, 153, 1));
+    }
+}
+
+/* Corruption Icon */
+.corruption-icon {
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8));
+    animation: corruptionGlitch 2.5s ease-in-out infinite;
+}
+
+@keyframes corruptionGlitch {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+        filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.6));
+    }
+
+    10% {
+        transform: translate(-2px, 1px);
+    }
+
+    20% {
+        transform: translate(2px, -1px);
+        filter: drop-shadow(0 0 10px rgba(255, 0, 100, 0.8));
+    }
+
+    30% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 12px rgba(139, 92, 246, 1));
+    }
+}
+
+/* Timeline Legend */
+.timeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend-dot.completed {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.legend-dot.current {
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    box-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
+}
+
+.legend-dot.locked {
+    background: rgba(100, 100, 100, 0.4);
+}
+
+.legend-dot.secret {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timeline-container {
+        padding: 1.5rem 1rem;
+        border-radius: 18px;
+    }
+
+    .arc-header {
+        padding: 1rem 1.2rem;
+    }
+
+    .arc-icon {
+        font-size: 1.6rem;
+    }
+
+    .arc-name {
+        font-size: 1rem;
+    }
+
+    .timeline-chapter {
+        padding: 0.75rem 0.9rem;
+    }
+
+    .chapter-name {
+        font-size: 0.85rem;
+    }
+
+    .timeline-legend {
+        gap: 0.8rem;
+    }
+
+    .legend-item {
+        font-size: 0.75rem;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .chapter-status.current,
+    .chapter-status.secret,
+    .death-icon,
+    .resurrection-icon,
+    .corruption-icon {
+        animation: none !important;
+    }
+
+    .timeline-chapter:hover:not(.locked) {
+        transform: none;
+    }
+
+    .timeline-close-btn:hover {
+        transform: none;
+    }
+}
+
+/* ============================================
+   Animations - fadeInUp pour le menu
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   INTELLIGENT MEDIA PLAYER - BPM Indicator
+   ============================================ */
+
+/* Container BPM */
+.mp-bpm-container {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.1));
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+}
+
+/* Affichage BPM */
+.mp-bpm-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    --bpm-pulse-duration: 500ms;
+}
+
+.mp-bpm-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed, #ff6b9d);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: bpmPulse var(--bpm-pulse-duration) ease-in-out infinite,
+        bpmGradient 3s linear infinite;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+@keyframes bpmPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes bpmGradient {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.mp-bpm-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bouton Sync BPM */
+.mp-bpm-sync-btn {
+    padding: 0.3rem 0.6rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #00d4ff;
+    background: rgba(0, 212, 255, 0.15);
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.mp-bpm-sync-btn:hover {
+    background: rgba(0, 212, 255, 0.25);
+    border-color: rgba(0, 212, 255, 0.6);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.mp-bpm-sync-btn[aria-pressed="true"] {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(124, 58, 237, 0.3));
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+.mp-bpm-sync-btn[aria-pressed="false"] {
+    color: var(--text-secondary);
+    background: rgba(100, 100, 100, 0.2);
+    border-color: rgba(100, 100, 100, 0.4);
+}
+
+/* Indicateur visuel de rythme */
+.mp-bpm-display::before {
+    content: '♪';
+    margin-right: 0.3rem;
+    font-size: 0.9rem;
+    animation: bpmNote var(--bpm-pulse-duration) ease-in-out infinite;
+    color: #00d4ff;
+    filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.6));
+}
+
+@keyframes bpmNote {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-5deg);
+        opacity: 0.7;
+    }
+
+    25% {
+        transform: translateY(-3px) rotate(5deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(0) rotate(-5deg);
+        opacity: 0.8;
+    }
+
+    75% {
+        transform: translateY(-2px) rotate(3deg);
+        opacity: 0.9;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mp-bpm-container {
+        padding: 0.3rem 0.6rem;
+        gap: 0.4rem;
+    }
+
+    .mp-bpm-value {
+        font-size: 1.1rem;
+    }
+
+    .mp-bpm-sync-btn {
+        font-size: 0.55rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .mp-bpm-display::before {
+        font-size: 0.7rem;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .mp-bpm-value,
+    .mp-bpm-display::before {
+        animation: none !important;
+    }
+
+    .mp-bpm-sync-btn:hover {
+        transform: none;
+    }
+}
+
+/* ============================================
+   CORRUPTION SYSTEM - Effets visuels ChromeOS
+   ============================================ */
+
+/* Variables de corruption */
+body {
+    --corruption-hue: 0deg;
+    --corruption-intensity: 0;
+}
+
+/* ========== Niveau 1: Tremblement subtil ========== */
+.corruption-level-1 {
+    animation: corruptionTremble1 0.3s ease-in-out infinite;
+}
+
+.corruption-level-1 .dialogue-box {
+    box-shadow:
+        0 0 10px rgba(255, 0, 100, 0.1),
+        inset 0 0 5px rgba(255, 0, 100, 0.05);
+}
+
+@keyframes corruptionTremble1 {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    25% {
+        transform: translate(0.5px, 0);
+    }
+
+    50% {
+        transform: translate(-0.5px, 0.5px);
+    }
+
+    75% {
+        transform: translate(0.5px, -0.5px);
+    }
+}
+
+/* ========== Niveau 2: Scanlines + distorsion légère ========== */
+.corruption-level-2 {
+    animation: corruptionTremble2 0.2s ease-in-out infinite;
+}
+
+.corruption-level-2::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 0, 100, 0.03) 2px,
+            rgba(255, 0, 100, 0.03) 4px);
+    pointer-events: none;
+    z-index: 9998;
+    animation: corruptionScanlines 0.1s steps(2) infinite;
+}
+
+.corruption-level-2 .dialogue-box {
+    box-shadow:
+        0 0 20px rgba(255, 0, 100, 0.2),
+        inset 0 0 10px rgba(255, 0, 100, 0.1);
+    border-color: rgba(255, 0, 100, 0.3);
+}
+
+@keyframes corruptionTremble2 {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    20% {
+        transform: translate(-1px, 0.5px);
+    }
+
+    40% {
+        transform: translate(1px, -0.5px);
+    }
+
+    60% {
+        transform: translate(-0.5px, 1px);
+    }
+
+    80% {
+        transform: translate(0.5px, -1px);
+    }
+}
+
+@keyframes corruptionScanlines {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 4px;
+    }
+}
+
+/* ========== Niveau 3: Couleurs altérées ========== */
+.corruption-level-3 {
+    animation: corruptionTremble3 0.15s ease-in-out infinite;
+    filter: hue-rotate(var(--corruption-hue)) saturate(1.2);
+}
+
+.corruption-level-3::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(139, 0, 255, 0.05) 2px,
+            rgba(139, 0, 255, 0.05) 4px);
+    pointer-events: none;
+    z-index: 9998;
+    animation: corruptionScanlines 0.08s steps(3) infinite;
+}
+
+.corruption-level-3 .dialogue-box {
+    box-shadow:
+        0 0 30px rgba(139, 0, 255, 0.3),
+        inset 0 0 15px rgba(255, 0, 100, 0.15),
+        0 0 5px rgba(255, 0, 100, 0.5);
+    border-color: rgba(139, 0, 255, 0.5);
+    animation: corruptionBoxGlow 0.5s ease-in-out infinite alternate;
+}
+
+.corruption-level-3 #speaker-name {
+    animation: corruptionTextFlicker 0.2s steps(2) infinite;
+}
+
+@keyframes corruptionTremble3 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) skewX(0deg);
+    }
+
+    25% {
+        transform: translate(-1.5px, 1px) skewX(0.5deg);
+    }
+
+    50% {
+        transform: translate(1.5px, -1px) skewX(-0.5deg);
+    }
+
+    75% {
+        transform: translate(-1px, -0.5px) skewX(0.3deg);
+    }
+}
+
+@keyframes corruptionBoxGlow {
+    0% {
+        box-shadow: 0 0 30px rgba(139, 0, 255, 0.3), inset 0 0 15px rgba(255, 0, 100, 0.15);
+    }
+
+    100% {
+        box-shadow: 0 0 40px rgba(255, 0, 100, 0.4), inset 0 0 20px rgba(139, 0, 255, 0.2);
+    }
+}
+
+@keyframes corruptionTextFlicker {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ========== Niveau 4: Forte distorsion ========== */
+.corruption-level-4 {
+    animation: corruptionDistort4 0.1s ease-in-out infinite;
+    filter: hue-rotate(var(--corruption-hue)) saturate(1.4) contrast(1.1);
+}
+
+.corruption-level-4::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 0, 50, 0.08) 2px,
+            rgba(255, 0, 50, 0.08) 4px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent 100px,
+            rgba(139, 0, 255, 0.05) 100px,
+            rgba(139, 0, 255, 0.05) 102px);
+    pointer-events: none;
+    z-index: 9998;
+    animation: corruptionScanlines 0.05s steps(4) infinite;
+}
+
+.corruption-level-4::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,
+            transparent 40%,
+            rgba(255, 0, 100, 0.1) 50%,
+            transparent 60%);
+    pointer-events: none;
+    z-index: 9997;
+    animation: corruptionGlitchBar 2s linear infinite;
+}
+
+.corruption-level-4 .dialogue-box {
+    box-shadow:
+        0 0 40px rgba(255, 0, 100, 0.5),
+        inset 0 0 20px rgba(139, 0, 255, 0.3),
+        -3px 0 0 rgba(0, 255, 255, 0.3),
+        3px 0 0 rgba(255, 0, 100, 0.3);
+    border-color: rgba(255, 0, 100, 0.6);
+}
+
+.corruption-level-4 #dialogue-visual {
+    animation: corruptionTextJitter 0.1s steps(2) infinite;
+}
+
+@keyframes corruptionDistort4 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) skewX(0deg) scale(1);
+    }
+
+    10% {
+        transform: translate(-2px, 1px) skewX(1deg) scale(1.002);
+    }
+
+    20% {
+        transform: translate(2px, -2px) skewX(-1deg) scale(0.998);
+    }
+
+    30% {
+        transform: translate(-1px, 2px) skewX(0.5deg) scale(1.001);
+    }
+
+    40% {
+        transform: translate(3px, -1px) skewX(-0.5deg) scale(0.999);
+    }
+
+    50% {
+        transform: translate(-2px, -1px) skewX(0.8deg) scale(1.003);
+    }
+
+    60% {
+        transform: translate(1px, 2px) skewX(-0.8deg) scale(0.997);
+    }
+
+    70% {
+        transform: translate(-3px, 0) skewX(1.2deg) scale(1.002);
+    }
+
+    80% {
+        transform: translate(2px, 1px) skewX(-1.2deg) scale(0.998);
+    }
+
+    90% {
+        transform: translate(-1px, -2px) skewX(0.3deg) scale(1.001);
+    }
+}
+
+@keyframes corruptionGlitchBar {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+@keyframes corruptionTextJitter {
+
+    0%,
+    100% {
+        transform: translateX(0);
+        filter: none;
+    }
+
+    25% {
+        transform: translateX(-2px);
+        filter: blur(0.5px);
+    }
+
+    50% {
+        transform: translateX(2px);
+        filter: none;
+    }
+
+    75% {
+        transform: translateX(-1px);
+        filter: blur(0.3px);
+    }
+}
+
+/* ========== Niveau 5: Chaos total ========== */
+.corruption-level-5 {
+    animation: corruptionChaos 0.05s steps(3) infinite;
+    filter: hue-rotate(var(--corruption-hue)) saturate(1.8) contrast(1.2) brightness(1.1);
+}
+
+.corruption-level-5::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 1px,
+            rgba(255, 0, 50, 0.15) 1px,
+            rgba(255, 0, 50, 0.15) 2px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent 50px,
+            rgba(139, 0, 255, 0.1) 50px,
+            rgba(139, 0, 255, 0.1) 52px);
+    pointer-events: none;
+    z-index: 9998;
+    animation: corruptionScanlinesChaos 0.03s steps(5) infinite;
+}
+
+.corruption-level-5::after {
+    content: 'CORRUPTED';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 8vw, 5rem);
+    font-weight: 900;
+    color: rgba(255, 0, 100, 0.15);
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    pointer-events: none;
+    z-index: 9997;
+    animation: corruptionWatermark 0.5s steps(2) infinite;
+    mix-blend-mode: overlay;
+}
+
+.corruption-level-5 .dialogue-box {
+    box-shadow:
+        0 0 60px rgba(255, 0, 100, 0.7),
+        inset 0 0 30px rgba(139, 0, 255, 0.5),
+        -5px 0 0 rgba(0, 255, 255, 0.5),
+        5px 0 0 rgba(255, 0, 100, 0.5),
+        0 -3px 0 rgba(255, 255, 0, 0.3),
+        0 3px 0 rgba(139, 0, 255, 0.3);
+    border-color: rgba(255, 0, 100, 0.8);
+    animation: corruptionBoxChaos 0.1s steps(3) infinite;
+}
+
+.corruption-level-5 #speaker-name {
+    animation: corruptionNameChaos 0.08s steps(4) infinite;
+    text-shadow:
+        -2px 0 rgba(0, 255, 255, 0.7),
+        2px 0 rgba(255, 0, 100, 0.7);
+}
+
+.corruption-level-5 #dialogue-visual {
+    animation: corruptionTextChaos 0.06s steps(3) infinite;
+}
+
+@keyframes corruptionChaos {
+    0% {
+        transform: translate(0, 0) skewX(0deg) skewY(0deg);
+    }
+
+    20% {
+        transform: translate(-3px, 2px) skewX(2deg) skewY(-1deg);
+    }
+
+    40% {
+        transform: translate(4px, -3px) skewX(-3deg) skewY(1deg);
+    }
+
+    60% {
+        transform: translate(-2px, -2px) skewX(1deg) skewY(2deg);
+    }
+
+    80% {
+        transform: translate(3px, 3px) skewX(-2deg) skewY(-2deg);
+    }
+
+    100% {
+        transform: translate(-4px, 1px) skewX(3deg) skewY(0deg);
+    }
+}
+
+@keyframes corruptionScanlinesChaos {
+    0% {
+        opacity: 1;
+        background-position: 0 0;
+    }
+
+    20% {
+        opacity: 0.8;
+        background-position: 0 2px;
+    }
+
+    40% {
+        opacity: 1;
+        background-position: 0 -1px;
+    }
+
+    60% {
+        opacity: 0.9;
+        background-position: 0 3px;
+    }
+
+    80% {
+        opacity: 1;
+        background-position: 0 -2px;
+    }
+
+    100% {
+        opacity: 0.85;
+        background-position: 0 1px;
+    }
+}
+
+@keyframes corruptionWatermark {
+
+    0%,
+    100% {
+        opacity: 0.15;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.25;
+        transform: translate(-50%, -50%) scale(1.02);
+    }
+}
+
+@keyframes corruptionBoxChaos {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px);
+    }
+
+    50% {
+        transform: translateX(3px);
+    }
+
+    75% {
+        transform: translateX(-1px);
+    }
+}
+
+@keyframes corruptionNameChaos {
+
+    0%,
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    25% {
+        transform: translateX(-4px);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: translateX(4px);
+        opacity: 1;
+    }
+
+    75% {
+        transform: translateX(-2px);
+        opacity: 0.9;
+    }
+}
+
+@keyframes corruptionTextChaos {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+        clip-path: inset(0 0 0 0);
+    }
+
+    25% {
+        transform: translate(-2px, 1px);
+        clip-path: inset(5% 0 0 0);
+    }
+
+    50% {
+        transform: translate(2px, -1px);
+        clip-path: inset(0 0 5% 0);
+    }
+
+    75% {
+        transform: translate(-1px, -1px);
+        clip-path: inset(0 5% 0 0);
+    }
+}
+
+/* ========== Effets sur le texte ========== */
+.text-glitch {
+    position: relative;
+    animation: textGlitchChar 0.1s steps(2) forwards;
+}
+
+@keyframes textGlitchChar {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: translateX(-2px);
+        color: #ff0064;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.corruption-parasite {
+    display: inline;
+    color: #ff0064;
+    font-family: monospace;
+    animation: parasiteFlash 0.2s steps(2) forwards;
+    text-shadow: 0 0 5px #ff0064;
+}
+
+@keyframes parasiteFlash {
+    0% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    50% {
+        opacity: 0.8;
+        color: #8b00ff;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+/* ========== Responsive ========== */
+@media (prefers-reduced-motion: reduce) {
+
+    .corruption-level-1,
+    .corruption-level-2,
+    .corruption-level-3,
+    .corruption-level-4,
+    .corruption-level-5,
+    .corruption-level-2::before,
+    .corruption-level-3::before,
+    .corruption-level-4::before,
+    .corruption-level-4::after,
+    .corruption-level-5::before,
+    .corruption-level-5::after,
+    .corruption-level-3 .dialogue-box,
+    .corruption-level-4 .dialogue-box,
+    .corruption-level-5 .dialogue-box,
+    .corruption-level-3 #speaker-name,
+    .corruption-level-4 #dialogue-visual,
+    .corruption-level-5 #speaker-name,
+    .corruption-level-5 #dialogue-visual,
+    .text-glitch,
+    .corruption-parasite {
+        animation: none !important;
     }
 }

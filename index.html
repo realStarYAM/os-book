@@ -65,18 +65,28 @@
             <input type="range" id="volume-slider" min="0" max="100" value="50" class="volume-slider">
         </div>
 
-        <button id="start-btn" class="glow-button">
-            <span>▶ COMMENCER</span>
-        </button>
+        <!-- Conteneur des boutons du menu (layout stable) -->
+        <div class="menu-actions">
+            <button id="start-btn" class="glow-button">
+                <span>▶ COMMENCER</span>
+            </button>
 
-        <button id="chapter-btn" class="chapter-select-btn">
-            <span>📖 Choisir un chapitre</span>
-        </button>
+            <button id="chapter-btn" class="chapter-select-btn">
+                <span>📖 Choisir un chapitre</span>
+            </button>
 
-        <button id="whatif-btn" class="chapter-select-btn whatif-btn">
-            <span>🧩 Mode What if</span>
-            <span class="whatif-count" id="whatif-count" aria-label="Variantes actives">0</span>
-        </button>
+            <button id="whatif-btn" class="chapter-select-btn whatif-btn">
+                <span>🧩 Mode What if</span>
+                <span class="whatif-count" id="whatif-count" aria-label="Variantes actives">0</span>
+            </button>
+        </div>
+
+        <!-- Personnages du menu (dynamiques selon l'arc) -->
+        <div id="menu-characters" class="menu-characters">
+            <img id="menu-char-left" class="menu-char left" src="" alt="" style="display: none;">
+            <img id="menu-char-center" class="menu-char center" src="" alt="" style="display: none;">
+            <img id="menu-char-right" class="menu-char right" src="" alt="" style="display: none;">
+        </div>
 
         <p class="audio-notice">🎵 Cette expérience contient de la musique et des effets sonores</p>
     </div>
@@ -238,6 +248,17 @@
                 <span class="mp-separator">/</span>
                 <span id="mp-duration">0:00</span>
             </div>
+            <!-- Indicateur BPM avec synchronisation -->
+            <div class="mp-bpm-container">
+                <div class="mp-bpm-display" id="mp-bpm-display">
+                    <span id="mp-bpm-value" class="mp-bpm-value">100</span>
+                    <span class="mp-bpm-label">BPM</span>
+                </div>
+                <button id="mp-bpm-sync-toggle" class="mp-bpm-sync-btn" title="Sync vitesse texte avec BPM"
+                    aria-pressed="true">
+                    ⚡ SYNC
+                </button>
+            </div>
         </div>
 
         <div class="mp-progress-container">
@@ -302,6 +323,13 @@
             </div>
         </div>
     </div>
+
+    <!-- Sound Manager - Effets sonores narratifs -->
+    <script src="soundManager.js"></script>
+    <!-- Intégration SFX avec le Visual Novel -->
+    <script src="sfxIntegration.js"></script>
+    <!-- Exemples Sound Manager (optionnel, pour debug) -->
+    <!-- <script src="soundManager.examples.js"></script> -->
 
     <script src="script.js"></script>
 </body>
