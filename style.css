@@ -503,6 +503,26 @@ body {
     padding-right: 0.4rem;
 }
 
+.whatif-item,
+.chapter-item,
+.timeline-chapter {
+    appearance: none;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    padding: 0;
+}
+
+.whatif-item:focus-visible,
+.chapter-item:focus-visible,
+.timeline-chapter:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.85);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
 .whatif-card {
     position: relative;
     padding: 1.2rem;
@@ -510,6 +530,7 @@ body {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
 }
 
 .whatif-card:hover {
