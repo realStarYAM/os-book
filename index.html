@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body data-theme="default">
+<body data-theme="osbook">
     <!-- UI Loader Overlay - Système de chargement d'interfaces -->
     <div id="ui-loader" class="ui-loader" aria-hidden="true" role="alert" aria-live="polite">
         <div class="loader-backdrop"></div>
@@ -131,6 +131,16 @@
 
     <!-- Scène principale du Visual Novel -->
     <div id="vn-scene" class="screen">
+
+        <!-- OS BOOK HUD Minimal -->
+        <div id="osbook-hud" class="osbook-hud">
+            <div class="corruption-meter" id="corruption-meter">
+                <span class="corruption-value" id="corruption-value">0%</span>
+            </div>
+            <div class="os-status-panel" id="os-status-panel">
+                <!-- Généré dynamiquement par JS -->
+            </div>
+        </div>
 
         <!-- Écran de transition entre scènes -->
         <div id="transition-overlay" class="transition-overlay">

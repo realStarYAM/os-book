@@ -113,7 +113,449 @@
     --glass-border: rgba(255, 255, 255, 0.15);
 }
 
-/* Transition globale pour changement de thème */
+/* ============================================
+   Thème OS BOOK — Sombre & Cinématique
+   ============================================ */
+[data-theme="osbook"] {
+    --primary-color: #00d4ff;
+    --secondary-color: #8b0000;
+    --accent-color: #ff1744;
+    --bg-dark: #050507;
+    --bg-card: rgba(10, 10, 12, 0.85);
+    --text-primary: #e0e0e0;
+    --text-secondary: #808080;
+    --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.15);
+    --glass-bg: rgba(10, 10, 12, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.15);
+
+    /* Variables spécifiques OS BOOK */
+    --osbook-dialogue-bg: rgba(10, 10, 12, 0.7);
+    --osbook-dialogue-border: rgba(255, 255, 255, 0.15);
+    --osbook-corruption-low: #2a2a2a;
+    --osbook-corruption-high: #ff1744;
+    --osbook-death-color: #f0f8ff;
+}
+
+/* ============================================
+   OS BOOK — Boîte de Dialogue "Verre Brisé"
+   ============================================ */
+[data-theme="osbook"] .dialogue-container {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(90%, 800px);
+    z-index: 100;
+}
+
+[data-theme="osbook"] .dialogue-box {
+    background: var(--osbook-dialogue-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--osbook-dialogue-border);
+    border-radius: 0 8px 8px 8px;
+    padding: 1.5rem 2rem;
+    position: relative;
+
+    /* Coin supérieur gauche coupé — effet verre brisé */
+    clip-path: polygon(20px 0,
+            /* Début après la coupe */
+            100% 0,
+            /* Haut droite */
+            100% 100%,
+            /* Bas droite */
+            0 100%,
+            /* Bas gauche */
+            0 20px
+            /* Remonte vers la coupe */
+        );
+
+    /* Animation respiration */
+    animation: dialogueBreathing 3s ease-in-out infinite;
+}
+
+[data-theme="osbook"] .dialogue-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 28px;
+    border-left: 1px solid var(--osbook-dialogue-border);
+    border-top: 1px solid var(--osbook-dialogue-border);
+    transform: rotate(-45deg) translate(-7px, 7px);
+    pointer-events: none;
+}
+
+[data-theme="osbook"] .speaker-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    padding: 0.3rem 0;
+    /* La couleur sera définie par JS selon le personnage */
+    color: var(--primary-color);
+    text-shadow: 0 0 15px currentColor;
+    background: transparent;
+    border: none;
+}
+
+[data-theme="osbook"] #dialogue-text,
+[data-theme="osbook"] #dialogue-visual {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+[data-theme="osbook"] .continue-indicator {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 1.2rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0;
+    animation: continueIndicatorPulse 1.5s ease-in-out infinite;
+}
+
+[data-theme="osbook"] .continue-indicator::before {
+    content: '▼';
+    display: inline-block;
+    animation: continueIndicatorBounce 1s ease-in-out infinite;
+}
+
+/* Animation de respiration pour la boîte de dialogue */
+@keyframes dialogueBreathing {
+
+    0%,
+    100% {
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    50% {
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 212, 255, 0.1);
+    }
+}
+
+@keyframes continueIndicatorPulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes continueIndicatorBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(4px);
+    }
+}
+
+/* ============================================
+   OS BOOK — Système de Choix
+   ============================================ */
+[data-theme="osbook"] .choices-container,
+[data-theme="osbook"] .choice-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+[data-theme="osbook"] .choice-btn,
+[data-theme="osbook"] .osbook-choice {
+    width: min(60%, 500px);
+    padding: 1rem 1.5rem;
+    background: rgba(13, 13, 15, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid transparent;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+[data-theme="osbook"] .choice-btn:hover,
+[data-theme="osbook"] .osbook-choice:hover {
+    background: rgba(13, 13, 15, 0.95);
+    border-left-color: var(--primary-color);
+    transform: translateX(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="osbook"] .choice-btn:active {
+    transform: translateX(8px) scale(0.98);
+}
+
+/* Choix dangereux / Corruption */
+[data-theme="osbook"] .choice-btn.choice-danger,
+[data-theme="osbook"] .osbook-choice.danger {
+    background: rgba(74, 17, 17, 0.6);
+    border-color: rgba(255, 23, 68, 0.3);
+}
+
+[data-theme="osbook"] .choice-btn.choice-danger:hover {
+    border-left-color: var(--accent-color);
+    box-shadow: 0 4px 20px rgba(255, 23, 68, 0.2);
+}
+
+/* Indicateur de conséquence */
+[data-theme="osbook"] .choice-consequence {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--accent-color);
+    opacity: 0.8;
+}
+
+/* ============================================
+   OS BOOK — HUD Minimal
+   ============================================ */
+[data-theme="osbook"] .osbook-hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="osbook"] #vn-scene:hover .osbook-hud {
+    opacity: 1;
+}
+
+/* Jauge de corruption */
+[data-theme="osbook"] .corruption-meter {
+    width: 48px;
+    height: 48px;
+    position: relative;
+}
+
+[data-theme="osbook"] .corruption-meter::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid var(--osbook-corruption-low);
+    border-top-color: var(--osbook-corruption-high);
+    /* La rotation sera gérée par JS selon le niveau */
+}
+
+[data-theme="osbook"] .corruption-meter .corruption-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* Panel statut OS */
+[data-theme="osbook"] .os-status-panel {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: right;
+    line-height: 1.6;
+}
+
+[data-theme="osbook"] .os-status-panel .os-alive {
+    color: #e0e0e0;
+}
+
+[data-theme="osbook"] .os-status-panel .os-weakened {
+    color: #808080;
+}
+
+[data-theme="osbook"] .os-status-panel .os-dead {
+    color: #404040;
+    text-decoration: line-through;
+}
+
+[data-theme="osbook"] .os-status-panel .os-corrupted {
+    color: var(--accent-color);
+}
+
+/* ============================================
+   OS BOOK — Notifications
+   ============================================ */
+[data-theme="osbook"] .osbook-notification {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    padding: 0.8rem 1.2rem;
+    background: rgba(10, 10, 12, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    animation: notificationSlideIn 0.4s ease-out;
+}
+
+[data-theme="osbook"] .osbook-notification.notif-narrative {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+[data-theme="osbook"] .osbook-notification.notif-corruption {
+    border-color: var(--accent-color);
+    background: rgba(74, 17, 17, 0.9);
+    animation: notificationSlideIn 0.4s ease-out, glitchShake 0.1s ease-in-out 0.4s 3;
+}
+
+[data-theme="osbook"] .osbook-notification.notif-death {
+    border-color: rgba(240, 248, 255, 0.3);
+    color: var(--osbook-death-color);
+    animation: notificationSlideIn 1s ease-out;
+}
+
+@keyframes notificationSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ============================================
+   OS BOOK — Effets de Corruption Visuels
+   ============================================ */
+
+/* Glitch shake */
+@keyframes glitchShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-2px);
+    }
+
+    75% {
+        transform: translateX(2px);
+    }
+}
+
+/* Scanlines */
+[data-theme="osbook"] .corruption-scanlines::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.1) 2px,
+            rgba(0, 0, 0, 0.1) 4px);
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanlinesDrift 8s linear infinite;
+}
+
+@keyframes scanlinesDrift {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(100px);
+    }
+}
+
+/* Aberration chromatique */
+[data-theme="osbook"] .chromatic-aberration {
+    text-shadow:
+        -2px 0 rgba(255, 0, 0, 0.5),
+        2px 0 rgba(0, 255, 255, 0.5);
+}
+
+/* Niveaux de corruption progressifs */
+[data-theme="osbook"] .corruption-level-1 {
+    /* 20-40% */
+}
+
+[data-theme="osbook"] .corruption-level-2 {
+    animation: subtleShake 0.1s ease-in-out;
+    animation-iteration-count: 1;
+}
+
+[data-theme="osbook"] .corruption-level-3 .dialogue-box {
+    border-color: rgba(255, 23, 68, 0.3);
+}
+
+[data-theme="osbook"] .corruption-level-4 {
+    filter: contrast(1.1);
+}
+
+[data-theme="osbook"] .corruption-level-5 {
+    filter: contrast(1.2) saturate(1.2);
+}
+
+@keyframes subtleShake {
+
+    0%,
+    100% {
+        transform: translateX(-50%);
+    }
+
+    25% {
+        transform: translateX(calc(-50% - 1px));
+    }
+
+    75% {
+        transform: translateX(calc(-50% + 1px));
+    }
+}
+
+/* ============================================
+   OS BOOK — Transition Silence
+   ============================================ */
+[data-theme="osbook"] .transition-overlay.silence-transition {
+    background: #050507 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="osbook"] .transition-overlay.silence-transition .transition-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: none;
+}
+
 body,
 .screen,
 .menu-panel,
@@ -276,15 +718,19 @@ body {
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-primary);
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f953c6 100%);
+    background-size: 200% 200%;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition:
+        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s ease,
+        background-position 0.5s ease;
     box-shadow:
-        0 0 20px rgba(124, 58, 237, 0.4),
-        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        0 10px 30px rgba(102, 126, 234, 0.4),
+        0 5px 15px rgba(118, 75, 162, 0.3);
 }
 
 .glow-button::before {
@@ -299,14 +745,32 @@ body {
 }
 
 .glow-button:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
+    background-position: 100% 0;
     box-shadow:
-        0 0 40px rgba(0, 212, 255, 0.6),
-        inset 0 0 20px rgba(255, 255, 255, 0.2);
+        0 20px 40px rgba(102, 126, 234, 0.5),
+        0 10px 25px rgba(118, 75, 162, 0.4);
 }
 
 .glow-button:hover::before {
     left: 100%;
+}
+
+/* ACTIVE : effet de presser (descend) */
+.glow-button:active {
+    transform: translateY(2px);
+    box-shadow:
+        0 5px 15px rgba(102, 126, 234, 0.3),
+        0 2px 8px rgba(118, 75, 162, 0.2);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* FOCUS : accessibilité */
+.glow-button:focus {
+    outline: none;
+    box-shadow:
+        0 0 0 3px rgba(102, 126, 234, 0.5),
+        0 10px 30px rgba(102, 126, 234, 0.4);
 }
 
 /* Bouton Choisir un chapitre */

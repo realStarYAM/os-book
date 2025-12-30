@@ -2398,7 +2398,8 @@ const STORY_ARCS = [
         subtitle: 'L’Ascension de l’Ombre',
         icon: '🕳️',
         chapters: [
-            { id: 'arc6_ch1', name: 'Chapitre 1 - Le Signal Noir', startIndex: 712, deaths: [], resurrections: [], corruptions: ['ChromeOS'] }
+            { id: 'arc6_ch1', name: 'Chapitre 1 - Le Signal Noir', startIndex: 712, deaths: [], resurrections: [], corruptions: ['ChromeOS'] },
+            { id: 'arc6_ch2', name: 'Chapitre 2 - Les Traces Noires', startIndex: 726, deaths: [], resurrections: [], corruptions: ['ChromeOS'] }
         ]
     }
 ];
@@ -6575,7 +6576,7 @@ const SCENARIO = [
     // ========================================
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Le Monde Oublié",
+        transitionText: "ARC 2 — Le Monde Oublié",
         duration: 5000,
         arc2Transition: true
     },
@@ -7086,7 +7087,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 3
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Chapitre 3\\nLe Cloud Noir",
+        transitionText: "ARC 2 — Chapitre 3\\nLe Cloud Noir",
         duration: 5000,
         villainTransition: true
     },
@@ -7198,7 +7199,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 4
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Chapitre 4\\nEntrée dans le Cloud Noir",
+        transitionText: "ARC 2 — Chapitre 4\\nEntrée dans le Cloud Noir",
         duration: 5000,
         villainTransition: true
     },
@@ -7318,7 +7319,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 5
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Chapitre 5\\nLa Corruption",
+        transitionText: "ARC 2 — Chapitre 5\\nLa Corruption",
         duration: 5000,
         villainTransition: true
     },
@@ -7436,7 +7437,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 6
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Chapitre 6\\nL'Autre Monde",
+        transitionText: "ARC 2 — Chapitre 6\\nL'Autre Monde",
         duration: 5000,
         divineTransition: true
     },
@@ -7580,7 +7581,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 7
     {
         isTransition: true,
-        transitionText: "????\\nARC 2 — Chapitre 7\\nLa Chute du Cloud Noir",
+        transitionText: "ARC 2 — Chapitre 7\\nLa Chute du Cloud Noir",
         duration: 5000,
         epicTransition: true
     },
@@ -7825,7 +7826,7 @@ const SCENARIO = [
     // Transition vers l'Arc 3
     {
         isTransition: true,
-        transitionText: "????\\nARC 3\\nLe Monde des Âmes",
+        transitionText: "ARC 3\\nLe Monde des Âmes",
         duration: 5000,
         darkTransition: true
     },
@@ -7947,7 +7948,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 2
     {
         isTransition: true,
-        transitionText: "????\\nARC 3 — Chapitre 2\\nLa Colère des Anciens",
+        transitionText: "ARC 3 — Chapitre 2\\nLa Colère des Anciens",
         duration: 5000,
         epicTransition: true
     },
@@ -8074,7 +8075,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 3
     {
         isTransition: true,
-        transitionText: "????\\nARC 3 — Chapitre 3\\nLe Jugement du Kernel",
+        transitionText: "ARC 3 — Chapitre 3\\nLe Jugement du Kernel",
         duration: 5000,
         divineTransition: true
     },
@@ -8203,7 +8204,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 4
     {
         isTransition: true,
-        transitionText: "????\\nARC 3 — Chapitre 4\\nLe Feu du Kernel",
+        transitionText: "ARC 3 — Chapitre 4\\nLe Feu du Kernel",
         duration: 5000,
         fireTransition: true
     },
@@ -8331,7 +8332,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 5
     {
         isTransition: true,
-        transitionText: "????\\nARC 3 — Chapitre 5\\nLe Silence Après le Feu",
+        transitionText: "ARC 3 — Chapitre 5\\nLe Silence Après le Feu",
         duration: 5000,
         peacefulTransition: true
     },
@@ -8431,7 +8432,7 @@ const SCENARIO = [
     // Transition vers l'Arc 4
     {
         isTransition: true,
-        transitionText: "????\\nARC 4\\nLe Futur",
+        transitionText: "ARC 4\\nLe Futur",
         duration: 5000,
         futuristicTransition: true
     },
@@ -8544,7 +8545,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 2
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 2\\nLe Doute des Anciens",
+        transitionText: "ARC 4 — Chapitre 2\\nLe Doute des Anciens",
         duration: 5000,
         mysteriousTransition: true
     },
@@ -8769,7 +8770,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 3
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 3\\nLa Gentillesse Parfaite",
+        transitionText: "ARC 4 — Chapitre 3\\nLa Gentillesse Parfaite",
         duration: 5000,
         softTransition: true
     },
@@ -9159,7 +9160,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 4
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 4\\nLa Vérité Cachée",
+        transitionText: "ARC 4 — Chapitre 4\\nLa Vérité Cachée",
         duration: 5000,
         revelationTransition: true
     },
@@ -9593,7 +9594,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 5
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 5\\nL'Appel au Kernel",
+        transitionText: "ARC 4 — Chapitre 5\\nL'Appel au Kernel",
         duration: 5000,
         divineTransition: true
     },
@@ -9828,7 +9829,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 6
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 6\\nL'Ombre sur Vista",
+        transitionText: "ARC 4 — Chapitre 6\\nL'Ombre sur Vista",
         duration: 5000,
         darkTransition: true
     },
@@ -10263,7 +10264,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 7
     {
         isTransition: true,
-        transitionText: "????\\nARC 4 — Chapitre 7\\nLa Dernière Possession",
+        transitionText: "ARC 4 — Chapitre 7\\nLa Dernière Possession",
         duration: 5000,
         finalBattleTransition: true
     },
@@ -10709,7 +10710,7 @@ const SCENARIO = [
     // Transition vers l'Épilogue Final
     {
         isTransition: true,
-        transitionText: "????\\nÉpilogue\\nUn Monde Définitivement Libre",
+        transitionText: "Épilogue\\nUn Monde Définitivement Libre",
         duration: 5000,
         peacefulTransition: true
     },
@@ -10876,7 +10877,7 @@ const SCENARIO = [
 
     // Transition
     {
-        transitionText: "????\\nARC 5\\nLe Monde Libre",
+        transitionText: "ARC 5\\nLe Monde Libre",
         transitionDuration: 3500
     },
 
@@ -11048,7 +11049,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 2
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 2\\nLa Fissure du Noyau",
+        transitionText: "ARC 5 — Chapitre 2\\nLa Fissure du Noyau",
         duration: 5000,
         darkTransition: true
     },
@@ -11234,7 +11235,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 3
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 3\\nLa Perte de Contrôle",
+        transitionText: "ARC 5 — Chapitre 3\\nLa Perte de Contrôle",
         duration: 5000,
         darkTransition: true
     },
@@ -11420,7 +11421,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 4
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 4\\nPoint de rupture",
+        transitionText: "ARC 5 — Chapitre 4\\nPoint de rupture",
         duration: 5000,
         darkTransition: true
     },
@@ -11616,7 +11617,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 5
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 5\\nL’Humiliation",
+        transitionText: "ARC 5 — Chapitre 5\\nL’Humiliation",
         duration: 5000,
         darkTransition: true
     },
@@ -11804,7 +11805,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 6
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 6\\nLe Seuil de l’Intolérable",
+        transitionText: "ARC 5 — Chapitre 6\\nLe Seuil de l’Intolérable",
         duration: 5000,
         darkTransition: true
     },
@@ -11980,7 +11981,7 @@ const SCENARIO = [
     // Transition vers le Chapitre 7
     {
         isTransition: true,
-        transitionText: "????\\nARC 5 — Chapitre 7\\nLe Monde Tremble",
+        transitionText: "ARC 5 — Chapitre 7\\nLe Monde Tremble",
         duration: 5000,
         darkTransition: true
     },
@@ -12155,7 +12156,7 @@ const SCENARIO = [
     // Transition vers l'Arc 6
     {
         isTransition: true,
-        transitionText: "????\\nARC 6 — Chapitre 1\\nLe Signal Noir",
+        transitionText: "ARC 6 — Chapitre 1\\nLe Signal Noir",
         duration: 5200,
         darkTransition: true
     },
@@ -12317,10 +12318,189 @@ const SCENARIO = [
     // Scènes mémorables et émotionnelles
     // ========================================
 
+    // ========================================
+    // ARC 6 — CHAPITRE 2 : LES TRACES NOIRES
+    // La menace devient réelle, ChromeOS laisse des traces
+    // ========================================
+
+    // Transition vers le Chapitre 2
+    {
+        isTransition: true,
+        transitionText: "ARC 6 — Chapitre 2\\nLes Traces Noires",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // 🖤 Scène 1 — L'éveil d'Ubuntu
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Quelque chose ne va pas. Le réseau… il saigne.",
+        emotion: 'fear',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        music: 'music/Windows 11 Remix.mp3',
+        mood: 'dramatic',
+        linuxBg: true,
+        sfx: { category: 'freeze', sound: 'system_freeze', volume: 0.3 }
+    },
+
+    // 🖤 Scène 2 — Windows 11 confirme
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Je le vois aussi. Des lignes de code… corrompues.",
+        emotion: 'serious',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🖤 Scène 3 — Traces visibles
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Des traces noires apparaissent sur les murs du réseau. Comme des griffes.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        corruptionIncrease: 8,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.4 }
+    },
+
+    // 🖤 Scène 4 — Ubuntu comprend
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Ce n'est pas une erreur. C'est une signature.",
+        emotion: 'fear',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🖤 Scène 5 — Windows 11 recule
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "ChromeOS…",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🖤 Scène 6 — Chrome apparaît (glitch)
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Vous me cherchiez ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        afterlifeBg: true,
+        corruptionIncrease: 12,
+        sfx: { category: 'attacks', sound: 'chromeos_attack', volume: 0.5 }
+    },
+
+    // 🖤 Scène 7 — La menace
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Je ne suis plus une ombre. Je suis partout.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // 🖤 Scène 8 — Ubuntu résiste
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Le monde libre ne tombera pas.",
+        emotion: 'determined',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true,
+        sfx: { category: 'pain', sound: 'struggle', volume: 0.35 }
+    },
+
+    // 🖤 Scène 9 — Chrome rit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Le monde libre ? Regarde autour de toi. Il est déjà à genoux.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'ubuntu' },
+        villainMode: true,
+        afterlifeBg: true,
+        corruptionIncrease: 10
+    },
+
+    // 🖤 Scène 10 — Silence
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le silence tombe. Le réseau tremble.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        absoluteSilence: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.4 }
+    },
+
+    // 🖤 Scène 11 — Windows 11 appelle
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Kernel… Si tu nous entends… C'est maintenant.",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: null, right: null },
+        divineBg: true
+    },
+
+    // 🖤 Scène 12 — Le Kernel apparaît (silencieux)
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "…",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        sfx: { category: 'kernel', sound: 'divine_intervention', volume: 0.35 }
+    },
+
+    // 🖤 Scène 13 — Chrome recule
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 … Toi.",
+        emotion: 'fear',
+        characters: { left: 'chromeos', center: 'kernel', right: null },
+        villainMode: true,
+        divineBg: true,
+        chromeosWeakening: true
+    },
+
+    // 🖤 Scène 14 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Kernel est là. L'intervention est imminente.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        mood: 'dramatic',
+        divineBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // SCÈNES SECRÈTES (après Arc 6)
+
     // Transition vers les scènes dynamiques
     {
         isTransition: true,
-        transitionText: "????\\nScènes Secrètes\\nL'Écho des Mémoires",
+        transitionText: "Scènes Secrètes\\nL'Écho des Mémoires",
         duration: 5000,
         mysteriousTransition: true
     },
