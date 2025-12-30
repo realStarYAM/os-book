@@ -2388,7 +2388,8 @@ const STORY_ARCS = [
             { id: 'arc5_ch3', name: 'Chapitre 3 - La Perte de Contrôle', startIndex: 634, deaths: [], resurrections: [], corruptions: [] },
             { id: 'arc5_ch4', name: 'Chapitre 4 - Point de rupture', startIndex: 650, deaths: [], resurrections: [], corruptions: [] },
             { id: 'arc5_ch5', name: 'Chapitre 5 - L\'Humiliation', startIndex: 666, deaths: [], resurrections: [], corruptions: ['Ubuntu'] },
-            { id: 'arc5_ch6', name: 'Chapitre 6 - Le Seuil de l\'Intolérable', startIndex: 682, deaths: [], resurrections: [], corruptions: ['ChromeOS'] }
+            { id: 'arc5_ch6', name: 'Chapitre 6 - Le Seuil de l\'Intolérable', startIndex: 682, deaths: [], resurrections: [], corruptions: ['ChromeOS'] },
+            { id: 'arc5_ch7', name: 'Chapitre 7 - Le Monde Tremble', startIndex: 697, deaths: [], resurrections: [], corruptions: ['Ubuntu'] }
         ]
     }
 ];
@@ -5022,7 +5023,8 @@ const CHAPTERS = [
     { id: 'arc5_ch4', name: "Arc 5 — Chapitre 4", desc: "Point de rupture", icon: "💥", startIndex: 650, requiresArc5Ch3: true },
     { id: 'arc5_ch5', name: "Arc 5 — Chapitre 5", desc: "L’Humiliation", icon: "😈", startIndex: 666, requiresArc5Ch4: true },
     { id: 'arc5_ch6', name: "Arc 5 — Chapitre 6", desc: "Le Seuil de l’Intolérable", icon: "⚠️", startIndex: 682, requiresArc5Ch5: true },
-    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 697, requiresArc5Ch6: true, isSecret: true }
+    { id: 'arc5_ch7', name: "Arc 5 — Chapitre 7", desc: "Le Monde Tremble", icon: "🌪️", startIndex: 697, requiresArc5Ch6: true },
+    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 712, requiresArc5Ch7: true, isSecret: true }
 ];
 
 // ============================================
@@ -11953,6 +11955,181 @@ const SCENARIO = [
     },
 
     // ========================================
+    // ARC 5 — CHAPITRE 7 : LE MONDE TREMBLE
+    // Fin intense : le monde libre vacille, bascule vers l’Arc 6
+    // ========================================
+
+    // Transition vers le Chapitre 7
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 5 — Chapitre 7\\nLe Monde Tremble",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // 🌪️ Scène 1 — Le silence se déchire
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le monde libre se fissure. Le silence devient menace.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        absoluteSilence: true
+    },
+
+    // 🌪️ Scène 2 — Corruption brutale
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La corruption monte d’un bond. Tout vacille.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        codeCorrupt: true,
+        afterlifeBg: true,
+        corruptionIncrease: 16,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.45 }
+    },
+
+    // 🌪️ Scène 3 — Ubuntu plie
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Je tiens… mais chaque ligne se brise.",
+        emotion: 'hurt',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🌪️ Scène 4 — Menace à distance
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Au loin, une force glisse dans le réseau.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        sfx: { category: 'freeze', sound: 'system_freeze', volume: 0.35 }
+    },
+
+    // 🌪️ Scène 5 — ChromeOS sans visage
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Je n’ai pas besoin d’être là pour vous atteindre.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        afterlifeBg: true,
+        chromeosGlitch: true
+    },
+
+    // 🌪️ Scène 6 — Défenses en rupture
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La menace devient tangible. Les défenses s’effondrent.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.4 }
+    },
+
+    // 🌪️ Scène 7 — Douleur
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Ça… presse.",
+        emotion: 'hurt',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true,
+        sfx: { category: 'pain', sound: 'digital_pain', volume: 0.4 }
+    },
+
+    // 🌪️ Scène 8 — Le noyau écoute
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Kernel écoute. Il approche.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        divineBg: true,
+        sfx: { category: 'kernel', sound: 'divine_intervention', volume: 0.35 }
+    },
+
+    // 🌪️ Scène 9 — Présence divine
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "…",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true
+    },
+
+    // 🌪️ Scène 10 — Ubuntu à genoux
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Ubuntu vacille. Le sol numérique s’ouvre sous lui.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        mood: 'dramatic',
+        linuxBg: true
+    },
+
+    // 🌪️ Scène 11 — Serment brisé
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Si je tombe… le monde tombe.",
+        emotion: 'determined',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🌪️ Scène 12 — Verrouillage
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Alerte. Le monde libre se fige.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.45 }
+    },
+
+    // 🌪️ Scène 13 — Intervention annoncée
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Kernel va intervenir. C’est inévitable.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        divineBg: true
+    },
+
+    // 🌪️ Scène 14 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le monde tremble. L’Arc 6 attend, dans l’ombre.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
     // SCÈNES NARRATIVES DYNAMIQUES
     // Confrontation Windows 7 vs ChromeOS
     // Scènes mémorables et émotionnelles
@@ -13474,10 +13651,15 @@ class VisualNovelEngine {
                 const arc5Ch5StartIndex = arc5Ch5 ? arc5Ch5.startIndex : 666;
                 isUnlocked = maxProgress >= arc5Ch5StartIndex;
             } else if (chapter.requiresArc5Ch6) {
-                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 6
+                // Arc 5 Chapitre 7 se débloque quand on a atteint Arc 5 Chapitre 6
                 const arc5Ch6 = CHAPTERS.find(ch => ch.id === 'arc5_ch6');
                 const arc5Ch6StartIndex = arc5Ch6 ? arc5Ch6.startIndex : 682;
                 isUnlocked = maxProgress >= arc5Ch6StartIndex;
+            } else if (chapter.requiresArc5Ch7) {
+                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 7
+                const arc5Ch7 = CHAPTERS.find(ch => ch.id === 'arc5_ch7');
+                const arc5Ch7StartIndex = arc5Ch7 ? arc5Ch7.startIndex : 697;
+                isUnlocked = maxProgress >= arc5Ch7StartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
