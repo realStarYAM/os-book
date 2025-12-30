@@ -2391,6 +2391,15 @@ const STORY_ARCS = [
             { id: 'arc5_ch6', name: 'Chapitre 6 - Le Seuil de l\'Intolérable', startIndex: 682, deaths: [], resurrections: [], corruptions: ['ChromeOS'] },
             { id: 'arc5_ch7', name: 'Chapitre 7 - Le Monde Tremble', startIndex: 697, deaths: [], resurrections: [], corruptions: ['Ubuntu'] }
         ]
+    },
+    {
+        id: 'arc6',
+        name: 'Arc 6',
+        subtitle: 'L’Ascension de l’Ombre',
+        icon: '🕳️',
+        chapters: [
+            { id: 'arc6_ch1', name: 'Chapitre 1 - Le Signal Noir', startIndex: 712, deaths: [], resurrections: [], corruptions: ['ChromeOS'] }
+        ]
     }
 ];
 
@@ -5024,7 +5033,9 @@ const CHAPTERS = [
     { id: 'arc5_ch5', name: "Arc 5 — Chapitre 5", desc: "L’Humiliation", icon: "😈", startIndex: 666, requiresArc5Ch4: true },
     { id: 'arc5_ch6', name: "Arc 5 — Chapitre 6", desc: "Le Seuil de l’Intolérable", icon: "⚠️", startIndex: 682, requiresArc5Ch5: true },
     { id: 'arc5_ch7', name: "Arc 5 — Chapitre 7", desc: "Le Monde Tremble", icon: "🌪️", startIndex: 697, requiresArc5Ch6: true },
-    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 712, requiresArc5Ch7: true, isSecret: true }
+    { id: 'arc6', name: "Arc 6", desc: "L’Ascension de l’Ombre", icon: "🕳️", startIndex: 712, requiresArc5Ch7: true },
+    { id: 'arc6_ch1', name: "Arc 6 — Chapitre 1", desc: "Le Signal Noir", icon: "📡", startIndex: 712, requiresArc5Ch7: true },
+    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 725, requiresArc5Ch7: true, isSecret: true }
 ];
 
 // ============================================
@@ -5066,6 +5077,13 @@ const MENU_THEMES = {
         music: null,
         characters: ['ubuntu', 'windows11', 'macos'],
         title: 'LE MONDE LIBRE'
+    },
+    'arc6': {
+        arcClass: 'menu-arc6',
+        bg: 'void',
+        music: null,
+        characters: ['windows11', 'kernel', 'ubuntu'],
+        title: 'L’ASCENSION DE L’OMBRE'
     }
 };
 
@@ -12130,6 +12148,170 @@ const SCENARIO = [
     },
 
     // ========================================
+    // ARC 6 — CHAPITRE 1 : LE SIGNAL NOIR
+    // Nouveau départ, tension sombre, menace réelle
+    // ========================================
+
+    // Transition vers l'Arc 6
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 6 — Chapitre 1\\nLe Signal Noir",
+        duration: 5200,
+        darkTransition: true
+    },
+
+    // 🕳️ Scène 1 — Le signal
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le monde libre se fige. Un signal noir traverse les lignes.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        music: 'music/Windows 11 Remix.mp3',
+        mood: 'dramatic',
+        afterlifeBg: true,
+        sfx: { category: 'freeze', sound: 'system_freeze', volume: 0.35 }
+    },
+
+    // 🕳️ Scène 2 — Ubuntu sent le changement
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Quelque chose a changé. L’air n’est plus le même.",
+        emotion: 'fear',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🕳️ Scène 3 — Windows 11 confirme
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Je le sens aussi. Ce signal… il n’est pas humain.",
+        emotion: 'serious',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🕳️ Scène 4 — Protocoles coupés
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Les protocoles s’éteignent, un par un.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.4 }
+    },
+
+    // 🕳️ Scène 5 — ChromeOS se révèle
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Je ne suis plus une ombre.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        afterlifeBg: true,
+        chromeosGlitch: true
+    },
+
+    // 🕳️ Scène 6 — Corruption réelle
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La corruption mord le réseau. Les défenses plient.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        corruptionIncrease: 12,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.45 }
+    },
+
+    // 🕳️ Scène 7 — Le Kernel approche
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "…",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        sfx: { category: 'kernel', sound: 'divine_intervention', volume: 0.4 }
+    },
+
+    // 🕳️ Scène 8 — Windows 11 au seuil
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Kernel… tu es là.",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: 'kernel', right: null },
+        divineBg: true
+    },
+
+    // 🕳️ Scène 9 — Silence
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Kernel ne répond pas. Il observe.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        mood: 'dramatic',
+        divineBg: true,
+        absoluteSilence: true
+    },
+
+    // 🕳️ Scène 10 — Choix
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La décision tombe. Le signal noir exige une réponse.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        choices: [
+            {
+                id: "arc6_ch1_lockdown",
+                label: "Verrouiller le réseau.",
+                impact: { corruption: -6 }
+            },
+            {
+                id: "arc6_ch1_open_kernel",
+                label: "Ouvrir un canal vers le Kernel.",
+                impact: { corruption: 6 }
+            }
+        ]
+    },
+
+    // 🕳️ Scène 11 — Réponse glaciale
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le signal noir répond. Le monde se fige.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        sfx: { category: 'freeze', sound: 'system_freeze', volume: 0.4 }
+    },
+
+    // 🕳️ Scène 12 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Signal Noir est lancé. L’Ascension commence.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        afterlifeBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
     // SCÈNES NARRATIVES DYNAMIQUES
     // Confrontation Windows 7 vs ChromeOS
     // Scènes mémorables et émotionnelles
@@ -12952,11 +13134,13 @@ class VisualNovelEngine {
         const progress = this.getProgress();
 
         // Determine arc based on progress
+        const arc6Start = CHAPTERS.find(c => c.id === 'arc6')?.startIndex || 712;
         const arc5Start = CHAPTERS.find(c => c.id === 'arc5')?.startIndex || 602;
         const arc4Start = CHAPTERS.find(c => c.id === 'arc4')?.startIndex || 375;
         const arc3Start = CHAPTERS.find(c => c.id === 'arc3')?.startIndex || 322;
         const arc2Start = CHAPTERS.find(c => c.id === 'arc2')?.startIndex || 189;
 
+        if (progress >= arc6Start) return 'arc6';
         if (progress >= arc5Start) return 'arc5';
         if (progress >= arc4Start) return 'arc4';
         if (progress >= arc3Start) return 'arc3';
@@ -12971,7 +13155,7 @@ class VisualNovelEngine {
         console.log(`🎨 Menu Theme: ${arcId}`, theme);
 
         // Apply arc class to body for CSS styling
-        document.body.classList.remove('menu-arc2', 'menu-arc3', 'menu-arc4', 'menu-arc5');
+        document.body.classList.remove('menu-arc2', 'menu-arc3', 'menu-arc4', 'menu-arc5', 'menu-arc6');
         if (theme.arcClass) {
             document.body.classList.add(theme.arcClass);
         }
@@ -14062,7 +14246,14 @@ class VisualNovelEngine {
             return;
         }
 
+        const choicesPanel = document.getElementById('choices-panel');
+        if (choicesPanel) {
+            choicesPanel.classList.remove('active');
+            choicesPanel.innerHTML = '';
+        }
+
         const scene = this.branchQueue.length > 0 ? this.branchQueue[0] : SCENARIO[this.currentSceneIndex];
+        this.currentSceneData = scene;
 
         const progress = ((this.currentSceneIndex + 1) / SCENARIO.length) * 100;
         this.elements.progressFill.style.width = `${progress}%`;
@@ -14184,6 +14375,13 @@ class VisualNovelEngine {
         this.handleAudio(scene);
         this.handleMonitor(scene);
         this.updateCharacters(scene);
+
+        if (typeof scene.corruptionIncrease === 'number' && scene.corruptionIncrease > 0) {
+            CorruptionManager.increase(scene.corruptionIncrease);
+        }
+        if (typeof scene.corruptionDecrease === 'number' && scene.corruptionDecrease > 0) {
+            CorruptionManager.decrease(scene.corruptionDecrease);
+        }
 
         // N'affiche le dialogue que si la scène a un speaker défini
         if (scene.speaker) {
@@ -14643,6 +14841,10 @@ class VisualNovelEngine {
 
         this.elements.dialogueLive.textContent = this.currentTypingText || '';
         this.elements.continueIndicator.style.visibility = 'visible';
+
+        if (this.currentSceneData?.choices && this.currentSceneData.choices.length > 0) {
+            showNarrativeChoices(this.currentSceneData.choices);
+        }
     }
 
     skipTyping() {
