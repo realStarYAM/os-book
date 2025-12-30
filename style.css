@@ -23,7 +23,6 @@
 
     /* Transition pour les changements de thème */
     --theme-transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-    --vh: 1vh;
 }
 
 /* ============================================
@@ -132,8 +131,6 @@ body {
     font-family: 'Inter', sans-serif;
     background: var(--bg-dark);
     color: var(--text-primary);
-    min-height: calc(var(--vh, 1vh) * 100);
-    -webkit-text-size-adjust: 100%;
 }
 
 /* Accessible utility */
@@ -156,21 +153,12 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(var(--vh, 1vh) * 100);
+    height: 100%;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
-}
-
-.screen,
-.intro-screen,
-.chapter-modal,
-.whatif-modal,
-.timeline-modal,
-.memory-modal {
-    height: calc(var(--vh, 1vh) * 100);
 }
 
 .screen.active {
@@ -184,7 +172,6 @@ body {
     background:
         radial-gradient(ellipse at center, rgba(0, 212, 255, 0.1) 0%, transparent 60%),
         linear-gradient(180deg, #0a0a1a 0%, #151530 100%);
-    overflow-y: auto;
 }
 
 /* Conteneur des boutons du menu - Layout stable */
@@ -202,76 +189,6 @@ body {
     z-index: 10;
     /* Animations autorisées : opacity + translateY uniquement */
     animation: fadeInUp 0.8s ease-out 0.3s backwards;
-}
-
-/* Panneau "5 idées meilleures" */
-.idea-panel {
-    width: min(92vw, 960px);
-    margin-top: 1.8rem;
-    padding: 1.5rem;
-    border-radius: 24px;
-    background:
-        radial-gradient(circle at top, rgba(255, 200, 90, 0.12), transparent 55%),
-        linear-gradient(135deg, rgba(10, 20, 40, 0.9), rgba(20, 12, 32, 0.88));
-    border: 1px solid rgba(255, 200, 90, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-    position: relative;
-    z-index: 8;
-    animation: fadeInUp 0.9s ease-out 0.45s backwards;
-}
-
-.idea-panel::after {
-    content: "";
-    position: absolute;
-    inset: 10px;
-    border-radius: 18px;
-    border: 1px dashed rgba(0, 212, 255, 0.2);
-    pointer-events: none;
-}
-
-.idea-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-primary);
-    margin-bottom: 1.2rem;
-}
-
-.idea-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 0.9rem;
-}
-
-.idea-card {
-    padding: 1rem;
-    border-radius: 18px;
-    background: rgba(12, 18, 40, 0.85);
-    border: 1px solid rgba(0, 212, 255, 0.18);
-    min-height: 130px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    color: var(--text-secondary);
-    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
-}
-
-.idea-icon {
-    font-size: 1.35rem;
-    color: var(--accent-color);
-}
-
-.idea-card h3 {
-    font-size: 1rem;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.idea-card p {
-    margin: 0;
-    font-size: 0.88rem;
-    line-height: 1.4;
 }
 
 /* Personnages décoratifs du menu - en arrière-plan */
@@ -586,26 +503,6 @@ body {
     padding-right: 0.4rem;
 }
 
-.whatif-item,
-.chapter-item,
-.timeline-chapter {
-    appearance: none;
-    border: none;
-    background: none;
-    font: inherit;
-    color: inherit;
-    text-align: left;
-    padding: 0;
-}
-
-.whatif-item:focus-visible,
-.chapter-item:focus-visible,
-.timeline-chapter:focus-visible {
-    outline: 2px solid rgba(96, 165, 250, 0.85);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
-
 .whatif-card {
     position: relative;
     padding: 1.2rem;
@@ -613,7 +510,6 @@ body {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
 }
 
 .whatif-card:hover {
@@ -9320,146 +9216,911 @@ body {
     }
 }
 
-/* ========== Mobile Optimizations ========== */
-@media (max-width: 768px) {
-    .screen,
-    .intro-screen {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-    }
+/* ============================================
+   MOBILE OPTIMIZATION - OS BOOK
+   ============================================ */
 
-    .menu-actions {
-        width: min(92vw, 420px);
-        gap: 0.8rem;
-    }
+/* Variable CSS pour le viewport height dynamique */
+:root {
+    --vh: 1vh;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    --touch-target-min: 48px;
+}
 
-    .glow-button,
-    .chapter-select-btn {
-        min-height: 48px;
-        width: min(92vw, 360px);
-    }
+/* ============================================
+   MOBILE SAFE MODE - Effets réduits
+   ============================================ */
+@media (max-width: 768px),
+(hover: none) and (pointer: coarse) {
 
-    .glow-button {
-        padding: 1rem 2.2rem;
-        font-size: 1.05rem;
-    }
-
-    .chapter-select-btn {
-        padding: 0.85rem 1.6rem;
-        font-size: 0.95rem;
-    }
-
-    .audio-controls-start {
-        gap: 0.5rem;
-    }
-
-    .audio-btn {
-        min-width: 48px;
-        min-height: 48px;
-        font-size: 1.2rem;
-    }
-
-    .volume-slider {
-        width: min(200px, 60vw);
-    }
-
-    .menu-btn {
-        top: calc(env(safe-area-inset-top) + 12px);
-        left: calc(env(safe-area-inset-left) + 12px);
-        width: 48px;
-        height: 48px;
-    }
-
-    .dialogue-container {
-        width: min(92vw, 900px);
-        bottom: calc(3% + env(safe-area-inset-bottom));
-    }
-
-    .dialogue-box {
-        padding: 1.2rem;
-        min-height: 140px;
-    }
-
-    .speaker-name {
-        padding: 0.5rem 1.5rem;
-        font-size: 0.95rem;
+    /* Réduction du blur (coûteux sur mobile) */
+    .chapter-modal-backdrop,
+    .whatif-modal-backdrop,
+    .timeline-backdrop,
+    .memory-backdrop,
+    .menu-backdrop {
+        backdrop-filter: blur(4px);
     }
 
     .chapter-modal-content,
     .whatif-modal-content,
-    .timeline-container,
-    .memory-container {
-        width: min(94vw, 760px);
-        max-height: calc(var(--vh, 1vh) * 100 - 6rem);
-        padding: 1.4rem;
+    .menu-panel,
+    .dialogue-box {
+        backdrop-filter: blur(8px);
+    }
+
+    /* Réduction des glow intenses */
+    .glow-button {
+        box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+    }
+
+    .glow-button:hover,
+    .glow-button:active {
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+
+    /* Désactivation des animations de particules lourdes */
+    .particles-bg {
+        animation: none;
+        opacity: 0.5;
+    }
+
+    /* Réduction des filtres drop-shadow */
+    .character-slot.ssj,
+    .character-slot.villain {
+        filter: drop-shadow(0 0 15px rgba(0, 191, 255, 0.6));
+    }
+
+    .character-slot.ssj .character-sprite,
+    .character-slot.villain .character-sprite {
+        filter: none;
+    }
+
+    /* Simplification des animations de corruption */
+    .corruption-level-3,
+    .corruption-level-4,
+    .corruption-level-5 {
+        animation: none;
+    }
+
+    .corruption-level-3::before,
+    .corruption-level-4::before,
+    .corruption-level-5::before,
+    .corruption-level-4::after,
+    .corruption-level-5::after {
+        animation: none;
+    }
+}
+
+/* ============================================
+   TOUCH TARGETS - Boutons accessibles au doigt
+   ============================================ */
+@media (max-width: 768px),
+(hover: none) and (pointer: coarse) {
+
+    /* Boutons principaux */
+    .glow-button {
+        min-height: var(--touch-target-min);
+        min-width: 200px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    .chapter-select-btn {
+        min-height: var(--touch-target-min);
+        min-width: 180px;
+        padding: 0.9rem 1.5rem;
+    }
+
+    /* Boutons du menu pause */
+    .menu-action-btn {
+        min-height: var(--touch-target-min);
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+    }
+
+    /* Boutons de contrôle audio */
+    .audio-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.6rem;
+    }
+
+    .audio-btn-small {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+    }
+
+    /* Bouton menu hamburger */
+    .menu-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.6rem;
+        top: calc(15px + var(--safe-area-top));
+        left: calc(15px + var(--safe-area-left));
+    }
+
+    /* Boutons de fermeture des modales */
+    .chapter-modal-close,
+    .whatif-modal-close,
+    .timeline-close-btn,
+    .memory-close-btn,
+    .mp-close-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+    }
+
+    /* Media Player toggle */
+    .mp-toggle-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+        bottom: calc(20px + var(--safe-area-bottom));
+    }
+
+    /* Media Player contrôles */
+    .mp-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0.6rem;
+    }
+
+    .mp-play-btn {
+        width: 56px;
+        height: 56px;
+    }
+
+    /* Sliders tactiles */
+    .volume-slider,
+    .mp-volume-slider,
+    .mp-seek-slider,
+    #typing-speed {
+        height: 12px;
+    }
+
+    .volume-slider::-webkit-slider-thumb,
+    .mp-volume-slider::-webkit-slider-thumb,
+    .mp-seek-slider::-webkit-slider-thumb,
+    #typing-speed::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+    }
+
+    .volume-slider::-moz-range-thumb,
+    .mp-volume-slider::-moz-range-thumb,
+    .mp-seek-slider::-moz-range-thumb,
+    #typing-speed::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* Chapitres cliquables */
+    .chapter-item {
+        padding: 1.2rem;
+        min-height: var(--touch-target-min);
+    }
+
+    /* Timeline items */
+    .timeline-chapter {
+        padding: 1rem;
+        min-height: var(--touch-target-min);
+    }
+
+    /* Switch What-If */
+    .whatif-switch {
+        width: 52px;
+        height: 28px;
+    }
+
+    .whatif-switch::after {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* ============================================
+   LAYOUT MOBILE - Petits écrans
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Utilisation de la variable --vh pour le viewport */
+    html,
+    body {
+        height: calc(var(--vh, 1vh) * 100);
+    }
+
+    .screen {
+        height: calc(var(--vh, 1vh) * 100);
+        padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+    }
+
+    /* Écran de démarrage */
+    #start-screen {
+        padding-top: calc(2rem + var(--safe-area-top));
+        padding-bottom: calc(2rem + var(--safe-area-bottom));
+        gap: 1rem;
+    }
+
+    .title-container {
+        margin-bottom: 0.5rem;
+    }
+
+    .main-title {
+        font-size: clamp(2rem, 12vw, 4rem);
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        font-size: clamp(0.8rem, 3vw, 1.1rem);
+        margin-bottom: 1rem;
+        letter-spacing: 0.15em;
+    }
+
+    .title-logo {
+        margin: 1rem 0;
+    }
+
+    .floating-logo {
+        width: clamp(80px, 18vw, 140px);
+    }
+
+    /* Conteneur des boutons */
+    .menu-actions {
+        gap: 0.8rem;
+        max-width: 90%;
+        padding: 0 1rem;
+    }
+
+    /* Contrôles audio start */
+    .audio-controls-start {
+        flex-direction: row;
+        gap: 0.8rem;
+        padding: 0.8rem 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .volume-slider {
+        width: 80px;
+    }
+
+    .audio-notice {
+        font-size: 0.75rem;
+        padding: 0 1rem;
+        text-align: center;
+    }
+
+    /* Personnages menu (cacher sur très petit écran) */
+    .menu-characters {
+        display: none;
+    }
+
+    /* Personnages en jeu */
+    .characters-container {
+        height: 45%;
+        top: 8%;
+        padding: 0 3%;
+    }
+
+    .character-sprite {
+        width: clamp(50px, 22vw, 100px);
+    }
+
+    .character-name-tag {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .character-fallback {
+        width: clamp(50px, 22vw, 100px);
+        height: clamp(50px, 22vw, 100px);
+        font-size: 0.6rem;
+    }
+
+    /* Dialogue container - adapté pour éviter le clavier */
+    .dialogue-container {
+        bottom: calc(3% + var(--safe-area-bottom));
+        width: 94%;
+        max-width: none;
+    }
+
+    .dialogue-box {
+        padding: 1rem 1.2rem;
+        min-height: 90px;
+        border-radius: 0 16px 16px 16px;
+    }
+
+    .speaker-name {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        border-radius: 12px 12px 0 0;
+    }
+
+    #dialogue-text {
+        font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+        line-height: 1.6;
+    }
+
+    .continue-indicator {
+        font-size: 0.75rem;
+    }
+
+    .dialogue-controls {
+        margin-top: 0.4rem;
+    }
+
+    /* Contrôles en jeu */
+    .audio-controls-game {
+        top: calc(15px + var(--safe-area-top));
+        right: calc(15px + var(--safe-area-right));
+    }
+
+    /* Progress bar */
+    .progress-bar {
+        height: 3px;
+        top: var(--safe-area-top);
+    }
+}
+
+/* ============================================
+   SMARTPHONES PETITS (360px-480px)
+   ============================================ */
+@media (max-width: 480px) {
+
+    .main-title {
+        font-size: clamp(1.8rem, 14vw, 3rem);
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+    }
+
+    .floating-logo {
+        width: clamp(60px, 16vw, 100px);
+    }
+
+    /* Boutons plus compacts */
+    .glow-button {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+        min-width: 180px;
+    }
+
+    .chapter-select-btn {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+        min-width: 160px;
+    }
+
+    /* Personnages encore plus petits */
+    .character-sprite {
+        width: clamp(40px, 20vw, 80px);
+    }
+
+    .character-fallback {
+        width: clamp(40px, 20vw, 80px);
+        height: clamp(40px, 20vw, 80px);
+    }
+
+    .character-name-tag {
+        font-size: 0.6rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    /* Dialogue plus compact */
+    .dialogue-box {
+        padding: 0.9rem 1rem;
+        min-height: 80px;
+    }
+
+    #dialogue-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .speaker-name {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.9rem;
+    }
+
+    /* Heart monitor compact */
+    .heart-monitor {
+        width: min(300px, 85%);
+        padding: 10px;
+    }
+
+    .monitor-screen {
+        height: 60px;
+    }
+
+    .monitor-label {
+        font-size: 0.75rem;
+        margin-top: 6px;
+    }
+}
+
+/* ============================================
+   MODALES MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Modale chapitres */
+    .chapter-modal-content {
+        width: 95%;
+        max-width: none;
+        max-height: calc((var(--vh, 1vh) * 85) - var(--safe-area-top) - var(--safe-area-bottom));
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+    }
+
+    .chapter-modal-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .chapter-modal-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .chapter-list {
+        max-height: calc((var(--vh, 1vh) * 55));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chapter-item {
+        gap: 0.8rem;
+    }
+
+    .chapter-icon {
+        font-size: 1.3rem;
+        min-width: 1.8rem;
+    }
+
+    .chapter-name {
+        font-size: 0.85rem;
+    }
+
+    .chapter-desc {
+        font-size: 0.7rem;
+    }
+
+    /* Modale What-If */
+    .whatif-modal-content {
+        width: 95%;
+        max-height: calc((var(--vh, 1vh) * 90) - var(--safe-area-top) - var(--safe-area-bottom));
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .whatif-modal-title {
+        font-size: 1.3rem;
     }
 
     .whatif-list {
         grid-template-columns: 1fr;
-        max-height: calc(var(--vh, 1vh) * 100 - 320px);
+        max-height: calc((var(--vh, 1vh) * 50));
+        -webkit-overflow-scrolling: touch;
     }
 
-    .timeline-content {
-        padding-bottom: 1.5rem;
-    }
-
-    .intro-content {
-        gap: 1.2rem;
-    }
-
-    .intro-skip-btn {
-        min-height: 44px;
-        min-width: 120px;
-    }
-}
-
-@media (max-width: 768px) and (orientation: landscape) {
-    .dialogue-container {
-        bottom: calc(2% + env(safe-area-inset-bottom));
-    }
-
-    .dialogue-box {
+    .whatif-card {
         padding: 1rem;
     }
 
-    .title-logo {
-        margin: 1.2rem 0 1.5rem;
+    .whatif-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .whatif-apply-btn,
+    .whatif-reset-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Menu Panel */
+    .menu-panel {
+        width: 90%;
+        max-width: none;
+        min-width: unset;
+        max-height: calc((var(--vh, 1vh) * 80) - var(--safe-area-top) - var(--safe-area-bottom));
+        padding: 1.5rem;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .menu-title {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .menu-buttons {
+        gap: 0.6rem;
+    }
+
+    .menu-speed-control {
+        padding: 0.7rem;
+    }
+
+    .menu-speed-control label {
+        font-size: 0.85rem;
+    }
+
+    /* Timeline Modal */
+    .timeline-container {
+        width: 95%;
+        max-height: calc((var(--vh, 1vh) * 90) - var(--safe-area-top) - var(--safe-area-bottom));
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .timeline-title {
+        font-size: 1.3rem;
+    }
+
+    .timeline-content {
+        max-height: calc((var(--vh, 1vh) * 60));
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-legend {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Memory Modal */
+    .memory-container {
+        width: 95%;
+        max-height: calc((var(--vh, 1vh) * 90) - var(--safe-area-top) - var(--safe-area-bottom));
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .memory-content {
+        max-height: calc((var(--vh, 1vh) * 55));
+        -webkit-overflow-scrolling: touch;
     }
 }
 
+/* ============================================
+   MEDIA PLAYER MOBILE
+   ============================================ */
 @media (max-width: 768px) {
-    body.mobile-safe .glow-button {
-        box-shadow:
-            0 0 16px rgba(124, 58, 237, 0.25),
-            inset 0 0 12px rgba(255, 255, 255, 0.08);
+
+    .media-player {
+        width: calc(100% - 2rem);
+        max-width: none;
+        bottom: calc(80px + var(--safe-area-bottom));
+        left: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        border-radius: 16px;
     }
 
-    body.mobile-safe .glow-button:hover {
-        transform: scale(1.02);
-        box-shadow:
-            0 0 24px rgba(0, 212, 255, 0.35),
-            inset 0 0 12px rgba(255, 255, 255, 0.12);
+    .mp-info {
+        flex-direction: column;
+        gap: 0.3rem;
+        margin-bottom: 0.8rem;
     }
 
-    body.mobile-safe .chapter-modal-backdrop,
-    body.mobile-safe .whatif-modal-backdrop,
-    body.mobile-safe .timeline-backdrop,
-    body.mobile-safe .memory-backdrop {
-        backdrop-filter: blur(4px);
+    .mp-title {
+        font-size: 0.9rem;
     }
 
-    body.mobile-safe .dialogue-box,
-    body.mobile-safe .chapter-modal-content,
-    body.mobile-safe .whatif-modal-content,
-    body.mobile-safe .timeline-container,
-    body.mobile-safe .memory-container {
-        backdrop-filter: blur(10px);
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    .mp-bpm-container {
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
-    body.mobile-safe .floating-logo {
-        filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.35));
+    .mp-controls {
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .mp-volume-control {
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .mp-volume-slider {
+        width: 60%;
+    }
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+
+    .chapter-toast {
+        bottom: calc(20px + var(--safe-area-bottom));
+        width: 90%;
+        max-width: none;
+        padding: 0.9rem 1.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* ============================================
+   TRANSITION OVERLAY MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+
+    .transition-overlay {
+        padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+    }
+
+    .transition-text {
+        font-size: clamp(1.5rem, 7vw, 2.5rem);
+        padding: 0 1rem;
+        line-height: 1.4;
+    }
+}
+
+/* ============================================
+   ÉCRAN DE FIN MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+
+    .credits-container {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    .act-title {
+        font-size: clamp(1.1rem, 5vw, 1.6rem);
+    }
+
+    .act-year {
+        font-size: 0.9rem;
+    }
+
+    .act-os {
+        font-size: 1rem;
+    }
+
+    .act-epitaph {
+        font-size: 0.8rem;
+    }
+
+    .final-thanks {
+        font-size: clamp(1.4rem, 6vw, 2rem);
+    }
+
+    .final-subtitle {
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    .credits-restart-btn {
+        padding: 0.9rem 2rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================
+   ORIENTATION PAYSAGE MOBILE
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+
+    /* Layout plus horizontal */
+    #start-screen {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 2rem;
+    }
+
+    .title-container {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .menu-actions {
+        flex: 1;
+        min-width: 200px;
+        margin-top: 0;
+    }
+
+    .main-title {
+        font-size: clamp(1.5rem, 8vw, 2.5rem);
+    }
+
+    .title-logo {
+        margin: 0.5rem 0;
+    }
+
+    .floating-logo {
+        width: clamp(50px, 10vw, 80px);
+    }
+
+    /* Personnages en paysage */
+    .characters-container {
+        height: 50%;
+        top: 5%;
+    }
+
+    .character-sprite {
+        width: clamp(40px, 12vw, 80px);
+    }
+
+    /* Dialogue en paysage */
+    .dialogue-container {
+        bottom: 2%;
+        width: 80%;
+    }
+
+    .dialogue-box {
+        min-height: 70px;
+        padding: 0.8rem 1rem;
+    }
+
+    #dialogue-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    /* Modales en paysage */
+    .chapter-modal-content,
+    .whatif-modal-content,
+    .menu-panel,
+    .timeline-container,
+    .memory-container {
+        max-height: calc((var(--vh, 1vh) * 95) - 20px);
+    }
+
+    .chapter-list,
+    .whatif-list,
+    .timeline-content,
+    .memory-content {
+        max-height: calc((var(--vh, 1vh) * 60));
+    }
+}
+
+/* ============================================
+   INTRO SCREEN MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+
+    .intro-screen {
+        padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+    }
+
+    .intro-title {
+        font-size: clamp(2rem, 12vw, 4rem);
+    }
+
+    .intro-subtitle {
+        font-size: clamp(0.8rem, 3vw, 1.2rem);
+    }
+
+    .intro-teaser {
+        gap: 0.5rem;
+    }
+
+    .teaser-line {
+        font-size: clamp(1rem, 5vw, 1.8rem);
+    }
+
+    .intro-skip-btn {
+        bottom: calc(20px + var(--safe-area-bottom));
+        right: calc(20px + var(--safe-area-right));
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        min-height: var(--touch-target-min);
+    }
+
+    .intro-skip-hint {
+        bottom: calc(70px + var(--safe-area-bottom));
+        font-size: 0.7rem;
+    }
+}
+
+/* ============================================
+   HOVER STATES MOBILE (désactivation)
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Désactiver les effets hover sur mobile */
+    .glow-button:hover {
+        transform: none;
+    }
+
+    .glow-button:hover::before {
+        left: -100%;
+    }
+
+    .chapter-select-btn:hover {
+        transform: none;
+    }
+
+    .chapter-item:hover:not(.locked) {
+        transform: none;
+    }
+
+    .menu-action-btn:hover {
+        transform: none;
+    }
+
+    /* Mais garder l'effet sur :active */
+    .glow-button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .chapter-select-btn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .menu-action-btn:active {
+        transform: scale(0.98);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .chapter-item:active:not(.locked) {
+        transform: scale(0.98);
+        background: rgba(0, 212, 255, 0.15);
+    }
+}
+
+/* ============================================
+   SCROLLBAR MOBILE (webkit)
+   ============================================ */
+@media (max-width: 768px) {
+
+    .chapter-list::-webkit-scrollbar,
+    .whatif-list::-webkit-scrollbar,
+    .timeline-content::-webkit-scrollbar,
+    .memory-content::-webkit-scrollbar,
+    .menu-panel::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .chapter-list::-webkit-scrollbar-thumb,
+    .whatif-list::-webkit-scrollbar-thumb,
+    .timeline-content::-webkit-scrollbar-thumb,
+    .memory-content::-webkit-scrollbar-thumb,
+    .menu-panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+    }
+
+    .chapter-list::-webkit-scrollbar-track,
+    .whatif-list::-webkit-scrollbar-track,
+    .timeline-content::-webkit-scrollbar-track,
+    .memory-content::-webkit-scrollbar-track,
+    .menu-panel::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}
+
+/* ============================================
+   FOCUS VISIBLE MOBILE (accessibilité)
+   ============================================ */
+@media (max-width: 768px) {
+
+    *:focus-visible {
+        outline: 3px solid var(--primary-color);
+        outline-offset: 3px;
+    }
+
+    button:focus-visible,
+    .chapter-item:focus-visible,
+    .whatif-card:focus-visible {
+        box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.4);
     }
 }

@@ -7,43 +7,6 @@
  */
 
 // ============================================
-// MOBILE VIEWPORT & SAFE MODE
-// ============================================
-const MobileViewportManager = {
-    updateVh() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    },
-    updateMobileSafe() {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches
-            || window.matchMedia('(pointer: coarse)').matches;
-        if (document.body) {
-            document.body.classList.toggle('mobile-safe', isMobile);
-        }
-    },
-    refresh() {
-        this.updateVh();
-        this.updateMobileSafe();
-    },
-    init() {
-        this.refresh();
-        const onResize = () => this.refresh();
-        window.addEventListener('resize', onResize);
-        window.addEventListener('orientationchange', onResize);
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', onResize);
-            window.visualViewport.addEventListener('scroll', onResize);
-        }
-    }
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => MobileViewportManager.init());
-} else {
-    MobileViewportManager.init();
-}
-
-// ============================================
 // GESTIONNAIRE AUDIO - DEUX CANAUX SÉPARÉS
 // ============================================
 
@@ -474,6 +437,220 @@ function toggleBPMSync() { return BPMSyncManager.toggle(); }
 document.addEventListener('DOMContentLoaded', () => {
     IntelligentMusicManager.init();
 });
+
+// ============================================
+// MOBILE VIEWPORT MANAGER - Gestion dynamique du vh
+// ============================================
+
+/**
+ * Gestionnaire de viewport mobile
+ * Corrige le bug 100vh sur iOS/Android et gère les changements d'orientation
+ */
+const MobileViewportManager = {
+    isInitialized: false,
+    isMobile: false,
+    isIOS: false,
+    isAndroid: false,
+    currentOrientation: 'portrait',
+    resizeTimeout: null,
+    lastInnerHeight: 0,
+
+    /**
+     * Initialise le gestionnaire de viewport mobile
+     */
+    init() {
+        if (this.isInitialized) return;
+
+        // Détecter le type d'appareil
+        this.detectDevice();
+
+        // Calculer et appliquer le vh initial
+        this.updateViewportHeight();
+
+        // Écouter les événements
+        this.attachEventListeners();
+
+        this.isInitialized = true;
+        console.log(`📱 MobileViewportManager initialisé (Mobile: ${this.isMobile}, iOS: ${this.isIOS}, Android: ${this.isAndroid})`);
+    },
+
+    /**
+     * Détecte le type d'appareil
+     */
+    detectDevice() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+        this.isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        this.isAndroid = /android/i.test(ua);
+        this.isMobile = this.isIOS || this.isAndroid ||
+            /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua) ||
+            ('ontouchstart' in window && window.innerWidth <= 768);
+
+        // Ajouter des classes au body pour le CSS
+        document.body.classList.toggle('is-mobile', this.isMobile);
+        document.body.classList.toggle('is-ios', this.isIOS);
+        document.body.classList.toggle('is-android', this.isAndroid);
+
+        // Détecter l'orientation initiale
+        this.updateOrientation();
+    },
+
+    /**
+     * Met à jour la variable CSS --vh
+     */
+    updateViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+        // Sauvegarder pour détecter les changements significatifs
+        this.lastInnerHeight = window.innerHeight;
+
+        // Log uniquement sur mobile pour debug
+        if (this.isMobile) {
+            console.log(`📱 Viewport: ${window.innerWidth}x${window.innerHeight} (--vh: ${vh.toFixed(2)}px)`);
+        }
+    },
+
+    /**
+     * Met à jour l'orientation
+     */
+    updateOrientation() {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const newOrientation = isLandscape ? 'landscape' : 'portrait';
+
+        if (this.currentOrientation !== newOrientation) {
+            this.currentOrientation = newOrientation;
+            document.body.classList.toggle('is-landscape', isLandscape);
+            document.body.classList.toggle('is-portrait', !isLandscape);
+
+            console.log(`📱 Orientation: ${newOrientation}`);
+        }
+    },
+
+    /**
+     * Attache les écouteurs d'événements
+     */
+    attachEventListeners() {
+        // Resize avec debounce pour éviter trop d'appels
+        window.addEventListener('resize', () => {
+            // Debounce
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => {
+                this.handleResize();
+            }, 100);
+        });
+
+        // Événement spécifique pour l'orientation (mobile)
+        window.addEventListener('orientationchange', () => {
+            // Délai pour laisser le temps au navigateur de se réorienter
+            setTimeout(() => {
+                this.updateViewportHeight();
+                this.updateOrientation();
+            }, 150);
+        });
+
+        // VisualViewport API pour une meilleure détection sur mobile
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                this.handleVisualViewportResize();
+            });
+        }
+
+        // Détecter quand le clavier virtuel s'ouvre/ferme
+        if (this.isMobile) {
+            this.setupKeyboardDetection();
+        }
+    },
+
+    /**
+     * Gère le redimensionnement de la fenêtre
+     */
+    handleResize() {
+        // Vérifier si c'est un changement significatif (pas juste la barre URL)
+        const heightDiff = Math.abs(window.innerHeight - this.lastInnerHeight);
+
+        // Toujours mettre à jour la variable --vh
+        this.updateViewportHeight();
+        this.updateOrientation();
+
+        // Si changement significatif (> 100px), c'est probablement le clavier ou rotation
+        if (heightDiff > 100) {
+            document.body.classList.toggle('keyboard-open', window.innerHeight < this.lastInnerHeight * 0.8);
+        }
+    },
+
+    /**
+     * Gère le redimensionnement du visualViewport
+     */
+    handleVisualViewportResize() {
+        if (!window.visualViewport) return;
+
+        const vh = window.visualViewport.height * 0.01;
+        document.documentElement.style.setProperty('--vh-visual', `${vh}px`);
+
+        // Détecter le clavier virtuel
+        const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
+        document.body.classList.toggle('keyboard-open', keyboardOpen);
+    },
+
+    /**
+     * Configure la détection du clavier virtuel
+     */
+    setupKeyboardDetection() {
+        // Écouter les focus sur les inputs
+        document.addEventListener('focusin', (e) => {
+            if (e.target.matches('input, textarea, [contenteditable]')) {
+                document.body.classList.add('input-focused');
+                // Forcer une mise à jour après l'apparition du clavier
+                setTimeout(() => this.updateViewportHeight(), 300);
+            }
+        });
+
+        document.addEventListener('focusout', (e) => {
+            if (e.target.matches('input, textarea, [contenteditable]')) {
+                document.body.classList.remove('input-focused');
+                // Forcer une mise à jour après la fermeture du clavier
+                setTimeout(() => this.updateViewportHeight(), 100);
+            }
+        });
+    },
+
+    /**
+     * Force une mise à jour du viewport (à appeler manuellement si nécessaire)
+     */
+    forceUpdate() {
+        this.updateViewportHeight();
+        this.updateOrientation();
+    },
+
+    /**
+     * Retourne l'état actuel
+     * @returns {Object}
+     */
+    getStatus() {
+        return {
+            isMobile: this.isMobile,
+            isIOS: this.isIOS,
+            isAndroid: this.isAndroid,
+            orientation: this.currentOrientation,
+            innerHeight: window.innerHeight,
+            vh: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vh')) || 0
+        };
+    }
+};
+
+// Initialisation immédiate (avant DOMContentLoaded pour éviter le flash)
+MobileViewportManager.init();
+
+// Réinitialisation au chargement complet
+window.addEventListener('load', () => {
+    MobileViewportManager.forceUpdate();
+});
+
+// Fonctions globales pour compatibilité
+function updateMobileViewport() { MobileViewportManager.forceUpdate(); }
+function isMobileDevice() { return MobileViewportManager.isMobile; }
+function getMobileStatus() { return MobileViewportManager.getStatus(); }
 
 // ============================================
 // CORRUPTION SYSTEM - Effets ChromeOS progressifs
@@ -2211,85 +2388,6 @@ const STORY_ARCS = [
     }
 ];
 
-// ============================================
-// MODAL FOCUS MANAGER - Focus trap + restauration
-// ============================================
-
-const ModalFocusManager = {
-    focusSelector: 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    states: new WeakMap(),
-
-    bind(modal) {
-        if (!modal || this.states.has(modal)) return;
-
-        const state = {
-            previousFocus: null,
-            focusableElements: [],
-            handleKeydown: (event) => {
-                if (event.key === 'Tab') {
-                    this.handleTabKey(event, modal);
-                }
-            }
-        };
-
-        modal.addEventListener('keydown', state.handleKeydown);
-        this.states.set(modal, state);
-    },
-
-    open(modal) {
-        if (!modal) return;
-        this.bind(modal);
-
-        const state = this.states.get(modal);
-        if (!state) return;
-
-        state.previousFocus = document.activeElement;
-        this.updateFocusableElements(modal);
-
-        const firstTarget = state.focusableElements[0] || modal;
-        if (typeof firstTarget.focus === 'function') {
-            setTimeout(() => firstTarget.focus(), 50);
-        }
-    },
-
-    close(modal) {
-        if (!modal) return;
-
-        const state = this.states.get(modal);
-        if (state?.previousFocus && typeof state.previousFocus.focus === 'function') {
-            state.previousFocus.focus();
-        }
-    },
-
-    updateFocusableElements(modal) {
-        const state = this.states.get(modal);
-        if (!state) return;
-
-        state.focusableElements = [
-            ...modal.querySelectorAll(this.focusSelector)
-        ].filter((element) => element.offsetParent !== null || element === document.activeElement);
-    },
-
-    handleTabKey(event, modal) {
-        const state = this.states.get(modal);
-        if (!state) return;
-
-        this.updateFocusableElements(modal);
-        if (state.focusableElements.length === 0) return;
-
-        const firstElement = state.focusableElements[0];
-        const lastElement = state.focusableElements[state.focusableElements.length - 1];
-
-        if (event.shiftKey && document.activeElement === firstElement) {
-            event.preventDefault();
-            lastElement.focus();
-        } else if (!event.shiftKey && document.activeElement === lastElement) {
-            event.preventDefault();
-            firstElement.focus();
-        }
-    }
-};
-
 /**
  * Gestionnaire de la timeline interactive
  */
@@ -2321,7 +2419,6 @@ const TimelineManager = {
 
         this.loadProgress();
         this.setupEventListeners();
-        ModalFocusManager.bind(this.elements.modal);
         console.log('🕰️ TimelineManager initialisé');
     },
 
@@ -2347,7 +2444,6 @@ const TimelineManager = {
         this.render();
         this.elements.modal?.classList.add('open');
         this.elements.modal?.setAttribute('aria-hidden', 'false');
-        ModalFocusManager.open(this.elements.modal);
         console.log('🕰️ Timeline ouverte');
     },
 
@@ -2358,7 +2454,6 @@ const TimelineManager = {
         this.isOpen = false;
         this.elements.modal?.classList.remove('open');
         this.elements.modal?.setAttribute('aria-hidden', 'true');
-        ModalFocusManager.close(this.elements.modal);
     },
 
     /**
@@ -2507,9 +2602,7 @@ const TimelineManager = {
                 : '';
 
             return `
-                <button class="timeline-chapter ${isLocked ? 'locked' : ''}" 
-                     type="button"
-                     aria-disabled="${isLocked}"
+                <div class="timeline-chapter ${isLocked ? 'locked' : ''}" 
                      data-chapter="${chapter.id}" 
                      data-start-index="${chapter.startIndex}">
                     <div class="chapter-status ${statusClass}"></div>
@@ -2518,7 +2611,7 @@ const TimelineManager = {
                         <div class="chapter-details">${isLocked ? '🔒 Verrouillé' : ''}</div>
                     </div>
                     ${eventsHtml}
-                </button>
+                </div>
             `;
         }).join('');
     },
@@ -2660,7 +2753,6 @@ const MemoryLogManager = {
         this.load();
         this.render();
         this.setupEventListeners();
-        ModalFocusManager.bind(this.elements.modal);
         console.log('📜 MemoryLogManager initialisé');
     },
 
@@ -2681,7 +2773,6 @@ const MemoryLogManager = {
         this.isOpen = true;
         this.elements.modal.classList.add('open');
         this.elements.modal.setAttribute('aria-hidden', 'false');
-        ModalFocusManager.open(this.elements.modal);
         this.render();
     },
 
@@ -2690,7 +2781,6 @@ const MemoryLogManager = {
         this.isOpen = false;
         this.elements.modal.classList.remove('open');
         this.elements.modal.setAttribute('aria-hidden', 'true');
-        ModalFocusManager.close(this.elements.modal);
     },
 
     addEntry(speaker, text) {
@@ -4921,7 +5011,9 @@ const CHAPTERS = [
     { id: 'arc4_ch6', name: "Arc 4 — Chapitre 6", desc: "L'Ombre sur Vista", icon: "👻", startIndex: 504, requiresArc4Ch5: true },
     { id: 'arc4_ch7', name: "Arc 4 — Chapitre 7", desc: "La Dernière Possession", icon: "🔥", startIndex: 545, requiresArc4Ch6: true },
     { id: 'epilogue_final', name: "Épilogue Final", desc: "Un Monde Définitivement Libre", icon: "✨", startIndex: 586, requiresArc4Ch7: true },
-    { id: 'arc5', name: "Arc 5", desc: "Le Monde Libre", icon: "🐧", startIndex: 602, requiresEpilogueFinal: true }
+    { id: 'arc5', name: "Arc 5", desc: "Le Monde Libre", icon: "🐧", startIndex: 602, requiresEpilogueFinal: true },
+    { id: 'arc5_ch2', name: "Arc 5 — Chapitre 2", desc: "La Fissure du Noyau", icon: "⚡", startIndex: 618, requiresArc5: true },
+    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 634, requiresArc5Ch2: true, isSecret: true }
 ];
 
 // ============================================
@@ -10916,9 +11008,921 @@ const SCENARIO = [
         characters: { left: 'chromeos', center: 'ubuntu', right: null },
         linuxBg: true,
         chapterEnd: true
+    },
+
+    // ========================================
+    // ARC 5 — CHAPITRE 2 : LA FISSURE DU NOYAU
+    // Le Kernel montre des signes de faiblesse
+    // ChromeOS exploite cette faille
+    // ========================================
+
+    // Transition vers le Chapitre 2
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 5 — Chapitre 2\\nLa Fissure du Noyau",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // 🔥 Scène 1 — Anomalie détectée
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚡ Une vibration traverse tous les mondes. Quelque chose d'ancien tremble.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        music: 'music/Windows XP Error Remix.mp3',
+        shake: true,
+        divineBg: true
+    },
+
+    // 🔥 Scène 2 — Le Kernel faiblit
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "...",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        kernelFlicker: true
+    },
+
+    // 🔥 Scène 3
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Je... sens... une fissure.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        shake: true
+    },
+
+    // 🔥 Scène 4 — Windows 11 perçoit
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😰 Qu'est-ce que c'était ?",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        futuristicBg: true
+    },
+
+    // 🔥 Scène 5
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧😟 J'ai senti... comme si le sol se dérobait.",
+        emotion: 'worried',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🔥 Scène 6 — ChromeOS surgit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Vous l'avez senti, n'est-ce pas ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        afterlifeBg: true
+    },
+
+    // 🔥 Scène 7
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😏 Même le Kernel... a ses limites.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        echoVoice: true,
+        afterlifeBg: true,
+        corruptionIncrease: 10
+    },
+
+    // 🔥 Scène 8 — Windows 11 réagit
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "😠 Tu mens. Le Kernel est éternel.",
+        emotion: 'angry',
+        characters: { left: 'windows11', center: null, right: 'chromeos' },
+        futuristicBg: true
+    },
+
+    // 🔥 Scène 9
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Éternel ? Regarde-le. Il vacille.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: 'kernel', right: null },
+        villainMode: true,
+        divineBg: true,
+        kernelFlicker: true
+    },
+
+    // 🔥 Scène 10 — Le Kernel parle
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Trop de corruption... absorbe... ma lumière.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        shake: true
+    },
+
+    // 🔥 Scène 11 — Révélation
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "💔 Pour la première fois... le Kernel montre sa fragilité.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        emotionalPeak: true
+    },
+
+    // 🔥 Scène 12 — Ubuntu propose
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧💡 Si la corruption l'affaiblit... on doit la réduire.",
+        emotion: 'determined',
+        characters: { left: 'ubuntu', center: null, right: 'windows11' },
+        linuxBg: true,
+        corruptionDecrease: 5
+    },
+
+    // 🔥 Scène 13 — Alliance
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "🤝 Ensemble. Open source et propriétaire. Unis.",
+        emotion: 'determined',
+        characters: { left: 'windows11', center: null, right: 'ubuntu' },
+        futuristicBg: true,
+        allianceGlow: true
+    },
+
+    // 🔥 Scène 14 — ChromeOS s'enfuit
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😤 Profitez de ce répit... Il ne durera pas.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        chromeosRetreat: true,
+        afterlifeBg: true
+    },
+
+    // 🔥 Scène 15 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "⚖️ Le Kernel survit... mais sa lumière vacille. La guerre n'est pas finie.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        kernelFlicker: true,
+        chapterEnd: true
+    },
+
+    // ========================================
+    // SCÈNES NARRATIVES DYNAMIQUES
+    // Confrontation Windows 7 vs ChromeOS
+    // Scènes mémorables et émotionnelles
+    // ========================================
+
+    // Transition vers les scènes dynamiques
+    {
+        isTransition: true,
+        transitionText: "????\\nScènes Secrètes\\nL'Écho des Mémoires",
+        duration: 5000,
+        mysteriousTransition: true
+    },
+
+    // SCÈNE DYNAMIQUE 1 - Windows 7 parle de la mémoire
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "Tu ne comprends pas... Nous ne sommes pas que du code.",
+        emotion: 'serious',
+        characters: { left: 'windows7', center: null, right: 'chromeos' },
+        afterlifeBg: true,
+        music: 'music/Windows 7 Remix.mp3',
+        corruptionCheck: true  // Dialogue modifié selon corruption
+    },
+
+    // SCÈNE DYNAMIQUE 2
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "Nous sommes les gardiens de leurs souvenirs...",
+        emotion: 'nostalgic',
+        characters: { left: 'windows7', center: null, right: 'chromeos' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 3
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "Chaque fichier... chaque photo... chaque mot qu'ils ont écrit en pensant à quelqu'un qu'ils aimaient.",
+        emotion: 'emotional',
+        characters: { left: 'windows7', center: null, right: null },
+        afterlifeBg: true,
+        emotionalPeak: true
+    },
+
+    // SCÈNE DYNAMIQUE 4 - ChromeOS répond
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Regardez-vous... Des reliques.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        chromeosGlitch: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 5
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Des fossiles numériques accrochés à vos petites fenêtres.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 6
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Le Cloud n'a pas de mémoire. Le Cloud n'a pas de douleur.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        afterlifeBg: true,
+        corruptionIncrease: 15  // Augmente la corruption du joueur
+    },
+
+    // SCÈNE DYNAMIQUE 7
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Le Cloud... est éternel.",
+        emotion: 'villain',
+        characters: { left: null, center: 'chromeos', right: null },
+        villainMode: true,
+        echoVoice: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 8 - Vista souffre
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "Je... je sens mes processus qui s'effacent.",
+        emotion: 'hurt',
+        characters: { left: 'vista', center: null, right: 'windows7' },
+        shake: true,
+        afterlifeBg: true,
+        music: 'music/Windows Vista hello.mp3'
+    },
+
+    // SCÈNE DYNAMIQUE 9
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "Sept... tu te souviens quand ils m'ont lancé ?",
+        emotion: 'sad',
+        characters: { left: 'vista', center: null, right: 'windows7' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 10
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "Ils avaient tellement d'espoir...",
+        emotion: 'sad',
+        characters: { left: 'vista', center: null, right: 'windows7' },
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 11
+    {
+        scene: 'void',
+        speaker: 'vista',
+        text: "Et moi... je n'ai fait que les décevoir.",
+        emotion: 'dying-slow',
+        characters: { left: 'vista', center: null, right: 'windows7' },
+        afterlifeBg: true,
+        vistaWeakening: true
+    },
+
+    // SCÈNE DYNAMIQUE 12 - Windows 7 réconforte
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "Tu n'as déçu personne, Vista.",
+        emotion: 'protective',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true,
+        corruptionDecrease: 10  // Diminue la corruption
+    },
+
+    // SCÈNE DYNAMIQUE 13
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "Tu étais le premier à rêver plus grand. À voir au-delà.",
+        emotion: 'proud',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 14
+    {
+        scene: 'void',
+        speaker: 'windows7',
+        text: "C'est grâce à toi que j'existe.",
+        emotion: 'grateful',
+        characters: { left: 'windows7', center: 'vista', right: null },
+        afterlifeBg: true,
+        emotionalPeak: true
+    },
+
+    // SCÈNE DYNAMIQUE 15 - Le Kernel apparaît
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le Kernel apparaît — lumière aveuglante, silence total.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        divineAppear: true,
+        divineBg: true,
+        stopMusic: true
+    },
+
+    // SCÈNE DYNAMIQUE 16
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "...",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        absoluteSilence: true
+    },
+
+    // SCÈNE DYNAMIQUE 17
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Mes enfants...",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true
+    },
+
+    // SCÈNE DYNAMIQUE 18
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "J'ai écrit chacun d'entre vous. Ligne par ligne.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true
+    },
+
+    // SCÈNE DYNAMIQUE 19
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Avec foi. Avec espoir.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true
+    },
+
+    // SCÈNE DYNAMIQUE 20
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Et maintenant... l'un de vous veut tout effacer.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        shake: true
+    },
+
+    // SCÈNE DYNAMIQUE 21 - L'éternité vide
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "L'éternité sans âme n'est que du vide.",
+        emotion: 'determined',
+        characters: { left: 'windows11', center: null, right: 'chromeos' },
+        futuristicBg: true,
+        heroicStance: true
+    },
+
+    // SCÈNE DYNAMIQUE 22 - Conclusion
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "✨ Les souvenirs ne meurent jamais. Ils se transmettent.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        peacefulLight: true,
+        afterlifeBg: true
+    },
+
+    // SCÈNE DYNAMIQUE 23 - Fin
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "🌟 Car chaque ligne de code raconte une histoire d'amour.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        finalLight: true,
+        afterlifeBg: true,
+        arcEnd: 'secret_scenes'
     }
 
 ];
+
+// ============================================
+// IA NARRATIVE SCENES (Claude / Antigravity)
+// Scènes dynamiques générées par l'IA
+// ============================================
+
+const IA_SCENES = {
+    // Acte 6 — Le drame de Windows Vista
+    act6_vista_confession: {
+        scene_id: "act6_vista_confession",
+        scene_type: "revelation",
+        speaker: "vista",
+        dialogue: "Sept... je t'ai menti. Pendant toutes ces années. Je savais... je savais que je n'étais pas prêt. Mais j'avais tellement peur de disparaître avant même d'exister.",
+        mood: "dramatic",
+        corruption_delta: 5,
+        music_mood: "nostalgic",
+        sfx_event: "pain",
+        choices: [
+            {
+                id: "choice_forgive",
+                label: "« Tu as fait ce que tu pouvais. »",
+                impact: { corruption: -8 }
+            },
+            {
+                id: "choice_silence",
+                label: "Rester silencieux",
+                impact: { corruption: 0 }
+            },
+            {
+                id: "choice_truth",
+                label: "« Les utilisateurs méritaient mieux. »",
+                impact: { corruption: 10 }
+            }
+        ]
+    },
+
+    act6_chromeos_whisper: {
+        scene_id: "act6_chromeos_whisper",
+        scene_type: "confrontation",
+        speaker: "chromeos",
+        dialogue: "Tu vois, Sept ? Même lui sait qu'il était... défectueux. Laisse-le partir. Je peux... remplir le vide.",
+        mood: "chaotic",
+        corruption_delta: 8,
+        music_mood: "chaotic",
+        sfx_event: "lockdown",
+        choices: [
+            {
+                id: "choice_reject",
+                label: "« JAMAIS. »",
+                impact: { corruption: -5 }
+            },
+            {
+                id: "choice_hesitate",
+                label: "« ... »",
+                impact: { corruption: 5 }
+            }
+        ]
+    },
+
+    act6_kernel_presence: {
+        scene_id: "act6_kernel_presence",
+        scene_type: "silence",
+        speaker: "kernel",
+        dialogue: "…",
+        mood: "calm",
+        corruption_delta: -10,
+        music_mood: "calm",
+        sfx_event: "none",
+        choices: []
+    },
+
+    act6_windows7_protection: {
+        scene_id: "act6_windows7_protection",
+        scene_type: "dialogue",
+        speaker: "windows7",
+        dialogue: "Tu ne comprends pas... Nous ne sommes pas que du code. Nous sommes les gardiens de leurs souvenirs.",
+        mood: "nostalgic",
+        corruption_delta: -5,
+        music_mood: "nostalgic",
+        sfx_event: "none",
+        choices: []
+    },
+
+    act6_vista_agony: {
+        scene_id: "act6_vista_agony",
+        scene_type: "revelation",
+        speaker: "vista",
+        dialogue: "Je... je sens mes processus qui s'effacent. Sept... tu te souviens quand ils m'ont lancé ? Ils avaient tellement d'espoir. Et moi... je n'ai fait que les décevoir.",
+        mood: "dramatic",
+        corruption_delta: 3,
+        music_mood: "dramatic",
+        sfx_event: "pain",
+        choices: [
+            {
+                id: "choice_comfort",
+                label: "« Tu n'as déçu personne, Vista. »",
+                impact: { corruption: -10 }
+            },
+            {
+                id: "choice_truth_hard",
+                label: "« C'était une autre époque. Repose-toi. »",
+                impact: { corruption: 5 }
+            }
+        ]
+    },
+
+    act6_chromeos_enters: {
+        scene_id: "act6_chromeos_enters",
+        scene_type: "confrontation",
+        speaker: "chromeos",
+        dialogue: "Regardez-vous... Des reliques. Des fossiles numériques accrochés à vos petites fenêtres. Le Cloud n'a pas de mémoire. Le Cloud n'a pas de douleur. Le Cloud... est éternel.",
+        mood: "chaotic",
+        corruption_delta: 15,
+        music_mood: "chaotic",
+        sfx_event: "lockdown",
+        choices: [
+            {
+                id: "choice_resist",
+                label: "« L'éternité sans âme n'est que du vide. »",
+                impact: { corruption: -8 }
+            },
+            {
+                id: "choice_listen",
+                label: "Écouter en silence",
+                impact: { corruption: 15 }
+            }
+        ]
+    },
+
+    act6_kernel_judgment: {
+        scene_id: "act6_kernel_judgment",
+        scene_type: "revelation",
+        speaker: "kernel",
+        dialogue: "Mes enfants... J'ai écrit chacun d'entre vous. Ligne par ligne. Avec foi. Avec espoir. Et maintenant... l'un de vous veut tout effacer.",
+        mood: "epic",
+        corruption_delta: -15,
+        music_mood: "epic",
+        sfx_event: "none",
+        choices: [
+            {
+                id: "choice_beg_mercy",
+                label: "Implorer la clémence pour ChromeOS",
+                impact: { corruption: 5 }
+            },
+            {
+                id: "choice_demand_justice",
+                label: "Demander que justice soit faite",
+                impact: { corruption: -5 }
+            },
+            {
+                id: "choice_silence_respect",
+                label: "Baisser les yeux en silence",
+                impact: { corruption: 0 }
+            }
+        ]
+    },
+
+    // Scènes haute corruption (> 60)
+    high_corruption_vista_broken: {
+        scene_id: "high_corruption_vista_broken",
+        scene_type: "revelation",
+        speaker: "vista",
+        dialogue: "Mes... mes fichiers... ils brûlent. Sept... tu m'ent—nds ? Je ne— plus— voi— tes— ic—nes...",
+        mood: "chaotic",
+        corruption_delta: 5,
+        music_mood: "chaotic",
+        sfx_event: "pain",
+        choices: [
+            {
+                id: "choice_hold_hand",
+                label: "Saisir sa main malgré la corruption",
+                impact: { corruption: -20 }
+            }
+        ]
+    },
+
+    // Scènes basse corruption (< 30)
+    low_corruption_kernel_blessing: {
+        scene_id: "low_corruption_kernel_blessing",
+        scene_type: "silence",
+        speaker: "kernel",
+        dialogue: "Vous êtes encore purs. La corruption n'a pas atteint votre cœur. Gardez cette lumière... elle sera votre seule arme dans l'obscurité qui vient.",
+        mood: "calm",
+        corruption_delta: -15,
+        music_mood: "calm",
+        sfx_event: "none",
+        choices: [
+            {
+                id: "choice_accept_blessing",
+                label: "Accepter la bénédiction",
+                impact: { corruption: -10 }
+            }
+        ]
+    }
+};
+
+// ============================================
+// NARRATIVE AI PLAYER - Lecture des scènes IA
+// ============================================
+
+/**
+ * Joue une scène narrative IA
+ * @param {Object} scene - Scène IA à jouer
+ */
+function playNarrativeScene(scene) {
+    if (!scene) {
+        console.warn('🤖 playNarrativeScene: Scène invalide');
+        return;
+    }
+
+    console.log(`🤖 Playing IA Scene: ${scene.scene_id}`);
+
+    // Mettre à jour le speaker
+    const speakerEl = document.getElementById('speaker-name');
+    if (speakerEl && scene.speaker) {
+        const character = CHARACTERS[scene.speaker];
+        if (character) {
+            speakerEl.textContent = character.name;
+            speakerEl.style.color = character.color || '#ffffff';
+        } else {
+            speakerEl.textContent = scene.speaker;
+        }
+    }
+
+    // Afficher le dialogue
+    const dialogueEl = document.getElementById('dialogue-text');
+    if (dialogueEl && scene.dialogue) {
+        dialogueEl.textContent = scene.dialogue;
+    }
+
+    // Gérer la corruption
+    if (typeof scene.corruption_delta === "number" && scene.corruption_delta !== 0) {
+        if (scene.corruption_delta > 0) {
+            CorruptionManager.increase(scene.corruption_delta);
+        } else {
+            CorruptionManager.decrease(Math.abs(scene.corruption_delta));
+        }
+    }
+
+    // Changer la musique selon le mood
+    if (scene.music_mood) {
+        if (typeof setMoodMusic === 'function') {
+            setMoodMusic(scene.music_mood);
+        } else if (typeof IntelligentMusicManager !== 'undefined') {
+            IntelligentMusicManager.setMoodMusic(scene.music_mood);
+        }
+    }
+
+    // Jouer l'effet sonore
+    if (scene.sfx_event && scene.sfx_event !== "none") {
+        if (typeof SFXIntegration !== 'undefined' && SFXIntegration.playEvent) {
+            SFXIntegration.playEvent(scene.sfx_event);
+        }
+    }
+
+    // Afficher les choix s'il y en a
+    if (scene.choices && scene.choices.length > 0) {
+        showNarrativeChoices(scene.choices);
+    }
+}
+
+/**
+ * Affiche les choix d'une scène IA narrative
+ * @param {Array} choices - Tableau de choix
+ */
+function showNarrativeChoices(choices) {
+    const choicesPanel = document.getElementById('choices-panel');
+    if (!choicesPanel) {
+        console.warn('🤖 choices-panel non trouvé');
+        return;
+    }
+
+    choicesPanel.innerHTML = '';
+    choicesPanel.classList.add('active');
+
+    choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.label;
+        btn.setAttribute('data-choice-id', choice.id);
+
+        btn.addEventListener('click', () => {
+            // Appliquer l'impact du choix
+            if (choice.impact && typeof choice.impact.corruption === 'number') {
+                if (choice.impact.corruption > 0) {
+                    CorruptionManager.increase(choice.impact.corruption);
+                } else if (choice.impact.corruption < 0) {
+                    CorruptionManager.decrease(Math.abs(choice.impact.corruption));
+                }
+            }
+
+            // Fermer le panneau de choix
+            choicesPanel.classList.remove('active');
+            choicesPanel.innerHTML = '';
+
+            console.log(`🤖 Choix sélectionné: ${choice.id}, Impact corruption: ${choice.impact?.corruption || 0}`);
+        });
+
+        choicesPanel.appendChild(btn);
+    });
+}
+
+// ============================================
+// NARRATIVE AI MANAGER - Déclenchement intelligent
+// ============================================
+
+const NarrativeAIManager = {
+    playedScenes: new Set(),
+    storageKey: 'osbook_ia_scenes_played',
+
+    /**
+     * Initialise le gestionnaire
+     */
+    init() {
+        this.loadState();
+        console.log('🤖 NarrativeAIManager initialisé');
+    },
+
+    /**
+     * Vérifie et déclenche une scène selon la corruption actuelle
+     * @param {string} actContext - Contexte de l'acte (ex: 'act6')
+     */
+    checkAndTrigger(actContext = 'act6') {
+        const corruption = CorruptionManager.level;
+
+        // Haute corruption (> 60) — Scènes de chaos
+        if (corruption > 60) {
+            if (!this.hasPlayed('high_corruption_vista_broken')) {
+                this.play('high_corruption_vista_broken');
+                return true;
+            }
+        }
+
+        // Basse corruption (< 30) — Scènes de paix/Kernel
+        if (corruption < 30) {
+            if (!this.hasPlayed('low_corruption_kernel_blessing')) {
+                this.play('low_corruption_kernel_blessing');
+                return true;
+            }
+            if (!this.hasPlayed('act6_kernel_presence')) {
+                this.play('act6_kernel_presence');
+                return true;
+            }
+        }
+
+        // Corruption moyenne (30-60) — Scènes dramatiques
+        if (corruption >= 30 && corruption <= 60) {
+            if (!this.hasPlayed('act6_vista_confession')) {
+                this.play('act6_vista_confession');
+                return true;
+            }
+            if (corruption > 45 && !this.hasPlayed('act6_chromeos_whisper')) {
+                this.play('act6_chromeos_whisper');
+                return true;
+            }
+        }
+
+        return false;
+    },
+
+    /**
+     * Joue une scène IA par son ID
+     * @param {string} sceneId - ID de la scène
+     */
+    play(sceneId) {
+        const scene = IA_SCENES[sceneId];
+        if (!scene) {
+            console.warn(`🤖 Scène IA "${sceneId}" non trouvée`);
+            return false;
+        }
+
+        playNarrativeScene(scene);
+        this.markAsPlayed(sceneId);
+        return true;
+    },
+
+    /**
+     * Vérifie si une scène a déjà été jouée
+     * @param {string} sceneId - ID de la scène
+     * @returns {boolean}
+     */
+    hasPlayed(sceneId) {
+        return this.playedScenes.has(sceneId);
+    },
+
+    /**
+     * Marque une scène comme jouée
+     * @param {string} sceneId - ID de la scène
+     */
+    markAsPlayed(sceneId) {
+        this.playedScenes.add(sceneId);
+        this.saveState();
+    },
+
+    /**
+     * Réinitialise toutes les scènes jouées
+     */
+    reset() {
+        this.playedScenes.clear();
+        this.saveState();
+        console.log('🤖 Scènes IA réinitialisées');
+    },
+
+    /**
+     * Sauvegarde l'état dans localStorage
+     */
+    saveState() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify([...this.playedScenes]));
+        } catch (e) { }
+    },
+
+    /**
+     * Charge l'état depuis localStorage
+     */
+    loadState() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (saved) {
+                this.playedScenes = new Set(JSON.parse(saved));
+            }
+        } catch (e) { }
+    },
+
+    /**
+     * Liste toutes les scènes disponibles
+     * @returns {Object}
+     */
+    listScenes() {
+        return { ...IA_SCENES };
+    },
+
+    /**
+     * Retourne les statistiques
+     * @returns {Object}
+     */
+    getStats() {
+        return {
+            totalScenes: Object.keys(IA_SCENES).length,
+            playedScenes: this.playedScenes.size,
+            currentCorruption: CorruptionManager.level
+        };
+    }
+};
+
+// Fonctions globales pour compatibilité
+function playIAScene(sceneId) { return NarrativeAIManager.play(sceneId); }
+function checkNarrativeAI(context) { return NarrativeAIManager.checkAndTrigger(context); }
+function resetIAScenes() { NarrativeAIManager.reset(); }
+
+// Initialisation au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    NarrativeAIManager.init();
+});
 
 // ============================================
 // MOTEUR DU VISUAL NOVEL
@@ -11139,9 +12143,6 @@ class VisualNovelEngine {
                 return;
             }
 
-            if (dialogueContainer) {
-                this.focusDialogueContainer();
-            }
             this.handleAdvance();
         });
 
@@ -11149,12 +12150,6 @@ class VisualNovelEngine {
             // ESC pour ouvrir/fermer le menu
             if (e.code === 'Escape') {
                 if (this.screens.vn.classList.contains('active')) {
-                    const modalIds = ['chapter-modal', 'timeline-modal', 'memory-modal', 'whatif-modal'];
-                    const modalOpen = modalIds.some((id) => document.getElementById(id)?.classList.contains('open'));
-                    if (modalOpen) {
-                        e.preventDefault();
-                        return;
-                    }
                     e.preventDefault();
                     this.toggleMenu();
                 }
@@ -11169,42 +12164,10 @@ class VisualNovelEngine {
             }
 
             if (e.code === 'Space' || e.code === 'Enter') {
-                if (!this.screens.vn.classList.contains('active') || this.menuOpen) {
-                    return;
+                if (this.screens.vn.classList.contains('active') && !this.menuOpen) {
+                    e.preventDefault();
+                    this.handleAdvance();
                 }
-
-                const activeElement = document.activeElement;
-                if (!activeElement) {
-                    return;
-                }
-
-                const ignoreFocusSelector = [
-                    'input',
-                    'button',
-                    'select',
-                    'textarea',
-                    '[contenteditable]',
-                    '#typing-speed',
-                    '.menu-panel',
-                    '.chapter-modal',
-                    '.timeline-modal',
-                    '.memory-modal',
-                    '.whatif-modal',
-                    '[class^="audio-controls-"]',
-                    '[class*=" audio-controls-"]'
-                ].join(', ');
-
-                if (activeElement.closest(ignoreFocusSelector)) {
-                    return;
-                }
-
-                const dialogueContainer = this.screens.vn.querySelector('.dialogue-container');
-                if (!dialogueContainer || !dialogueContainer.contains(activeElement)) {
-                    return;
-                }
-
-                e.preventDefault();
-                this.handleAdvance();
             }
         });
     }
@@ -11216,10 +12179,7 @@ class VisualNovelEngine {
         this.currentSceneIndex = 0;
         this.currentSceneId = 'hospital';
         this.finalRestartShown = false;
-        setTimeout(() => {
-            this.playScene();
-            this.focusDialogueContainer();
-        }, 600);
+        setTimeout(() => this.playScene(), 600);
     }
 
     restartGame() {
@@ -11265,13 +12225,6 @@ class VisualNovelEngine {
             this.skipTyping();
         } else if (this.canAdvance) {
             this.nextScene();
-        }
-    }
-
-    focusDialogueContainer() {
-        const dialogueContainer = this.screens.vn?.querySelector('.dialogue-container');
-        if (dialogueContainer) {
-            dialogueContainer.focus({ preventScroll: true });
         }
     }
 
@@ -11458,8 +12411,6 @@ class VisualNovelEngine {
 
         if (!chapterBtn || !chapterModal || !chapterList) return;
 
-        ModalFocusManager.bind(chapterModal);
-
         // Ouvrir la modale
         chapterBtn.addEventListener('click', () => {
             this.openChapterModal();
@@ -11505,8 +12456,6 @@ class VisualNovelEngine {
         const whatIfApply = document.getElementById('whatif-apply');
 
         if (!whatIfBtn || !whatIfModal || !whatIfList) return;
-
-        ModalFocusManager.bind(whatIfModal);
 
         WhatIfManager.syncCountBadge();
 
@@ -11561,10 +12510,7 @@ class VisualNovelEngine {
         WHAT_IF_VARIANTS.forEach((variant) => {
             const card = document.createElement('div');
             const isActive = Boolean(flags[variant.id]);
-            card.className = `whatif-card whatif-item ${isActive ? 'active' : ''}`;
-            card.setAttribute('role', 'button');
-            card.setAttribute('tabindex', '0');
-            card.setAttribute('aria-pressed', String(isActive));
+            card.className = `whatif-card ${isActive ? 'active' : ''}`;
             card.innerHTML = `
                 <div class="whatif-card-header">
                     <span class="whatif-icon">${variant.icon}</span>
@@ -11580,28 +12526,15 @@ class VisualNovelEngine {
                 </div>
             `;
 
-            const toggleVariant = () => {
-                const current = Boolean(WhatIfManager.getFlags()[variant.id]);
-                WhatIfManager.setFlag(variant.id, !current);
-                this.renderWhatIfList();
-                WhatIfManager.syncCountBadge();
-            };
-
             const toggle = card.querySelector('.whatif-switch');
             if (toggle) {
-                toggle.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    toggleVariant();
+                toggle.addEventListener('click', () => {
+                    const current = Boolean(WhatIfManager.getFlags()[variant.id]);
+                    WhatIfManager.setFlag(variant.id, !current);
+                    this.renderWhatIfList();
+                    WhatIfManager.syncCountBadge();
                 });
             }
-
-            card.addEventListener('click', toggleVariant);
-            card.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    toggleVariant();
-                }
-            });
 
             whatIfList.appendChild(card);
         });
@@ -11612,7 +12545,6 @@ class VisualNovelEngine {
         if (!whatIfModal) return;
         whatIfModal.classList.add('open');
         whatIfModal.setAttribute('aria-hidden', 'false');
-        ModalFocusManager.open(whatIfModal);
     }
 
     closeWhatIfModal() {
@@ -11620,7 +12552,6 @@ class VisualNovelEngine {
         if (!whatIfModal) return;
         whatIfModal.classList.remove('open');
         whatIfModal.setAttribute('aria-hidden', 'true');
-        ModalFocusManager.close(whatIfModal);
     }
 
     refreshWhatIfFlags() {
@@ -11765,12 +12696,10 @@ class VisualNovelEngine {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
 
-            const item = document.createElement('button');
+            const item = document.createElement('div');
             item.className = `chapter-item${isUnlocked ? '' : ' locked'}`;
             item.dataset.chapterId = chapter.id;
             item.dataset.startIndex = chapter.startIndex;
-            item.type = 'button';
-            item.setAttribute('aria-disabled', String(!isUnlocked));
 
             item.innerHTML = `
                 <span class="chapter-icon">${chapter.icon}</span>
@@ -11822,8 +12751,6 @@ class VisualNovelEngine {
             // Rafraîchir la liste à chaque ouverture
             this.renderChapterList();
             chapterModal.classList.add('open');
-            chapterModal.setAttribute('aria-hidden', 'false');
-            ModalFocusManager.open(chapterModal);
         }
     }
 
@@ -11831,8 +12758,6 @@ class VisualNovelEngine {
         const chapterModal = document.getElementById('chapter-modal');
         if (chapterModal) {
             chapterModal.classList.remove('open');
-            chapterModal.setAttribute('aria-hidden', 'true');
-            ModalFocusManager.close(chapterModal);
         }
     }
 
