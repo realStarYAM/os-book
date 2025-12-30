@@ -5016,7 +5016,8 @@ const CHAPTERS = [
     { id: 'arc5', name: "Arc 5", desc: "Le Monde Libre", icon: "🐧", startIndex: 602, requiresEpilogueFinal: true },
     { id: 'arc5_ch2', name: "Arc 5 — Chapitre 2", desc: "La Fissure du Noyau", icon: "⚡", startIndex: 618, requiresArc5: true },
     { id: 'arc5_ch3', name: "Arc 5 — Chapitre 3", desc: "La Perte de Contrôle", icon: "🕳️", startIndex: 634, requiresArc5Ch2: true },
-    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 650, requiresArc5Ch3: true, isSecret: true }
+    { id: 'arc5_ch4', name: "Arc 5 — Chapitre 4", desc: "Point de rupture", icon: "💥", startIndex: 650, requiresArc5Ch3: true },
+    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 666, requiresArc5Ch4: true, isSecret: true }
 ];
 
 // ============================================
@@ -11387,6 +11388,202 @@ const SCENARIO = [
     },
 
     // ========================================
+    // ARC 5 — CHAPITRE 4 : POINT DE RUPTURE
+    // Le Kernel vacille, l'ombre influence sans visage
+    // ========================================
+
+    // Transition vers le Chapitre 4
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 5 — Chapitre 4\\nPoint de rupture",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // 🕳️ Scène 1 — Pression muette
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Le vide se resserre. Le Kernel respire par fragments.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'dramatic',
+        divineBg: true,
+        glitchDark: true
+    },
+
+    // 🕳️ Scène 2 — Doute du Kernel
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Je doute.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        kernelFlicker: true
+    },
+
+    // 🕳️ Scène 3 — Windows 11 tente d'ancrer
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Tu es notre base. Ne tombe pas.",
+        emotion: 'serious',
+        characters: { left: 'windows11', center: null, right: null },
+        futuristicBg: true
+    },
+
+    // 🕳️ Scène 4 — Influence invisible
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Une influence traverse les systèmes. Aucun visage. Aucun nom.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true,
+        glitchDark: true,
+        corruptionIncrease: 15,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.7 }
+    },
+
+    // 🕳️ Scène 5 — Ubuntu ressent
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Je ne vois rien... mais ça agit.",
+        emotion: 'worried',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🕳️ Scène 6 — Freeze
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Tout se fige.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        stopMusic: true,
+        absoluteSilence: true,
+        freezeTotal: true,
+        glitchDark: true,
+        afterlifeBg: true
+    },
+
+    // 🕳️ Scène 7 — Avertissement
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Si je tombe... vous tombez avec moi.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        mood: 'dramatic',
+        divineBg: true,
+        divineVoice: true,
+        kernelFlicker: true,
+        shake: true
+    },
+
+    // 🕳️ Scène 8 — Directive froide
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Une directive froide s'infiltre. Elle n'a pas d'auteur.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true,
+        systemLockdown: true,
+        corruptionIncrease: 25
+    },
+
+    // 🕳️ Scène 9 — Windows 11 soupçonne
+    {
+        scene: 'void',
+        speaker: 'windows11',
+        text: "Qui écrit dans l'ombre ?",
+        emotion: 'fear',
+        characters: { left: 'windows11', center: null, right: null },
+        futuristicBg: true
+    },
+
+    // 🕳️ Scène 10 — Kernel brisé
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Je ne suis plus seul dans mon propre code.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        shake: true
+    },
+
+    // 🕳️ Scène 11 — Verrouillage
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Les chemins se ferment. Les portes se ferment.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.65 }
+    },
+
+    // 🕳️ Scène 12 — Ubuntu comprend
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 On perd le contrôle.",
+        emotion: 'serious',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 🕳️ Scène 13 — Murmure
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Chut.",
+        emotion: 'villain',
+        characters: { left: null, center: null, right: null },
+        villainMode: true,
+        echoVoice: true,
+        chromeosGlitch: true,
+        afterlifeBg: true,
+        corruptionIncrease: 15
+    },
+
+    // 🕳️ Scène 14 — Rupture
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La lumière se fissure. La douleur traverse le noyau.",
+        emotion: 'normal',
+        characters: { left: null, center: 'kernel', right: null },
+        mood: 'chaotic',
+        divineBg: true,
+        codeCorrupt: true,
+        shake: true,
+        corruptionIncrease: 20,
+        sfx: { category: 'pain', sound: 'digital_pain', volume: 0.7 }
+    },
+
+    // 🕳️ Scène 15 — Point de rupture
+    {
+        scene: 'void',
+        speaker: 'kernel',
+        text: "Point de rupture.",
+        emotion: 'divine',
+        characters: { left: null, center: 'kernel', right: null },
+        divineBg: true,
+        divineVoice: true,
+        kernelFlicker: true,
+        absoluteSilence: true,
+        chapterEnd: true
+    },
+
+    // ========================================
     // SCÈNES NARRATIVES DYNAMIQUES
     // Confrontation Windows 7 vs ChromeOS
     // Scènes mémorables et émotionnelles
@@ -12893,10 +13090,15 @@ class VisualNovelEngine {
                 const arc5Ch2StartIndex = arc5Ch2 ? arc5Ch2.startIndex : 618;
                 isUnlocked = maxProgress >= arc5Ch2StartIndex;
             } else if (chapter.requiresArc5Ch3) {
-                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 3
+                // Arc 5 Chapitre 4 se débloque quand on a atteint Arc 5 Chapitre 3
                 const arc5Ch3 = CHAPTERS.find(ch => ch.id === 'arc5_ch3');
                 const arc5Ch3StartIndex = arc5Ch3 ? arc5Ch3.startIndex : 634;
                 isUnlocked = maxProgress >= arc5Ch3StartIndex;
+            } else if (chapter.requiresArc5Ch4) {
+                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 4
+                const arc5Ch4 = CHAPTERS.find(ch => ch.id === 'arc5_ch4');
+                const arc5Ch4StartIndex = arc5Ch4 ? arc5Ch4.startIndex : 650;
+                isUnlocked = maxProgress >= arc5Ch4StartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
