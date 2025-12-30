@@ -7354,6 +7354,11 @@ border-top: 1px solid rgba(255, 255, 255, 0.1);
     filter: drop-shadow(0 0 20px rgba(229, 148, 32, 0.5));
 }
 
+/* Arc 6 - Style sombre épique */
+.menu-arc6 .menu-char {
+    filter: drop-shadow(0 0 28px rgba(20, 20, 20, 0.8)) brightness(0.75) saturate(0.9);
+}
+
 /* ============================================
    COMBAT AURAS - Effets d'aura pendant les combats
    ============================================ */
