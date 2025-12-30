@@ -2383,9 +2383,11 @@ const STORY_ARCS = [
         subtitle: 'Le Monde Libre',
         icon: '🐧',
         chapters: [
-            { id: 'arc5_ch1', name: 'Chapitre 1 - Linux World', startIndex: 280, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc5_ch1', name: 'Chapitre 1 - Linux World', startIndex: 602, deaths: [], resurrections: [], corruptions: [] },
             { id: 'arc5_ch2', name: 'Chapitre 2 - La Fissure du Noyau', startIndex: 618, deaths: [], resurrections: [], corruptions: [] },
-            { id: 'arc5_ch3', name: 'Chapitre 3 - La Perte de Contrôle', startIndex: 634, deaths: [], resurrections: [], corruptions: [] }
+            { id: 'arc5_ch3', name: 'Chapitre 3 - La Perte de Contrôle', startIndex: 634, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc5_ch4', name: 'Chapitre 4 - Point de rupture', startIndex: 650, deaths: [], resurrections: [], corruptions: [] },
+            { id: 'arc5_ch5', name: 'Chapitre 5 - L\'Humiliation', startIndex: 666, deaths: [], resurrections: [], corruptions: ['Ubuntu'] }
         ]
     }
 ];
@@ -5017,7 +5019,8 @@ const CHAPTERS = [
     { id: 'arc5_ch2', name: "Arc 5 — Chapitre 2", desc: "La Fissure du Noyau", icon: "⚡", startIndex: 618, requiresArc5: true },
     { id: 'arc5_ch3', name: "Arc 5 — Chapitre 3", desc: "La Perte de Contrôle", icon: "🕳️", startIndex: 634, requiresArc5Ch2: true },
     { id: 'arc5_ch4', name: "Arc 5 — Chapitre 4", desc: "Point de rupture", icon: "💥", startIndex: 650, requiresArc5Ch3: true },
-    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 666, requiresArc5Ch4: true, isSecret: true }
+    { id: 'arc5_ch5', name: "Arc 5 — Chapitre 5", desc: "L’Humiliation", icon: "😈", startIndex: 666, requiresArc5Ch4: true },
+    { id: 'secret_scenes', name: "Scènes Secrètes", desc: "L'Écho des Mémoires", icon: "🔮", startIndex: 682, requiresArc5Ch5: true, isSecret: true }
 ];
 
 // ============================================
@@ -11584,6 +11587,194 @@ const SCENARIO = [
     },
 
     // ========================================
+    // ARC 5 — CHAPITRE 5 : L’HUMILIATION
+    // ChromeOS humilie Ubuntu de façon provocatrice
+    // ========================================
+
+    // Transition vers le Chapitre 5
+    {
+        isTransition: true,
+        transitionText: "????\\nARC 5 — Chapitre 5\\nL’Humiliation",
+        duration: 5000,
+        darkTransition: true
+    },
+
+    // 😈 Scène 1 — Entrée provocatrice
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😈 Une lueur acide raye le vide. ChromeOS débarque en fanfare.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        chromeosGlitch: true,
+        corruptionIncrease: 8,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.6 }
+    },
+
+    // 😈 Scène 2 — ChromeOS annonce le spectacle
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Ubuntu, prêt pour un petit spectacle ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        afterlifeBg: true
+    },
+
+    // 😈 Scène 3 — Mise en scène
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Un projecteur géant affiche l’interface d’Ubuntu, comme une scène publique.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        glitchDark: true
+    },
+
+    // 😈 Scène 4 — Sabotage symbolique
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "J’ai activé ton “mode démo”... avec un logo clignotant « BETA ». Ça te va ?",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: 'ubuntu' },
+        villainMode: true,
+        chromeosGlitch: true,
+        afterlifeBg: true,
+        corruptionIncrease: 6
+    },
+
+    // 😈 Scène 5 — Ubuntu réagit
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Qu’est-ce que tu fabriques ?!",
+        emotion: 'angry',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 😈 Scène 6 — Humiliation publique
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Des notifications moqueuses pleuvent : « Mise à jour de la dignité... échec ».",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        sfx: { category: 'attacks', sound: 'chromeos_corruption', volume: 0.55 }
+    },
+
+    // 😈 Scène 7 — Verrouillage humiliant
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Les raccourcis d’Ubuntu se figent, remplacés par un panneau « Accès restreint ».",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        afterlifeBg: true,
+        systemLockdown: true,
+        sfx: { category: 'lockdown', sound: 'system_lockdown', volume: 0.7 }
+    },
+
+    // 😈 Scène 8 — Colère d’Ubuntu
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "T’es malade ou quoi ?!",
+        emotion: 'angry',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true,
+        shake: true
+    },
+
+    // 😈 Scène 9 — Rire de ChromeOS
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "Muhahaha",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        echoVoice: true,
+        afterlifeBg: true
+    },
+
+    // 😈 Scène 10 — Douleur symbolique
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "Une douleur froide traverse le système d’Ubuntu, comme une mise à jour forcée.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        mood: 'chaotic',
+        afterlifeBg: true,
+        sfx: { category: 'pain', sound: 'digital_pain', volume: 0.6 }
+    },
+
+    // 😈 Scène 11 — Ubuntu reprend
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Tu veux rire ? Tu viens de réveiller ma colère.",
+        emotion: 'determined',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 😈 Scène 12 — ChromeOS insiste
+    {
+        scene: 'void',
+        speaker: 'chromeos',
+        text: "😈 Ce n’est qu’un avant-goût. Le public adore.",
+        emotion: 'villain',
+        characters: { left: 'chromeos', center: null, right: null },
+        villainMode: true,
+        afterlifeBg: true,
+        corruptionIncrease: 10
+    },
+
+    // 😈 Scène 13 — Corruption grimpe
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "La corruption s’élève, nourrie par la moquerie.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: null },
+        mood: 'chaotic',
+        codeCorrupt: true,
+        afterlifeBg: true,
+        corruptionIncrease: 12
+    },
+
+    // 😈 Scène 14 — Ubuntu tient bon
+    {
+        scene: 'void',
+        speaker: 'ubuntu',
+        text: "🐧 Je ne suis pas ton jouet.",
+        emotion: 'serious',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        linuxBg: true
+    },
+
+    // 😈 Scène 15 — Fin du chapitre
+    {
+        scene: 'void',
+        speaker: 'narrator',
+        text: "😈 L’humiliation laisse une cicatrice… et allume une colère dangereuse.",
+        emotion: 'normal',
+        characters: { left: null, center: null, right: 'ubuntu' },
+        afterlifeBg: true,
+        chapterEnd: true
+    },
+
+    // ========================================
     // SCÈNES NARRATIVES DYNAMIQUES
     // Confrontation Windows 7 vs ChromeOS
     // Scènes mémorables et émotionnelles
@@ -13095,10 +13286,15 @@ class VisualNovelEngine {
                 const arc5Ch3StartIndex = arc5Ch3 ? arc5Ch3.startIndex : 634;
                 isUnlocked = maxProgress >= arc5Ch3StartIndex;
             } else if (chapter.requiresArc5Ch4) {
-                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 4
+                // Arc 5 Chapitre 5 se débloque quand on a atteint Arc 5 Chapitre 4
                 const arc5Ch4 = CHAPTERS.find(ch => ch.id === 'arc5_ch4');
                 const arc5Ch4StartIndex = arc5Ch4 ? arc5Ch4.startIndex : 650;
                 isUnlocked = maxProgress >= arc5Ch4StartIndex;
+            } else if (chapter.requiresArc5Ch5) {
+                // Scènes Secrètes se débloquent quand on a atteint Arc 5 Chapitre 5
+                const arc5Ch5 = CHAPTERS.find(ch => ch.id === 'arc5_ch5');
+                const arc5Ch5StartIndex = arc5Ch5 ? arc5Ch5.startIndex : 666;
+                isUnlocked = maxProgress >= arc5Ch5StartIndex;
             } else {
                 isUnlocked = maxProgress >= chapter.startIndex;
             }
